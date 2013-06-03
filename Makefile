@@ -1,4 +1,4 @@
-TARGET		= RPX10 Test
+TARGET		= RPX10
 
 all: $(TARGET)
 
@@ -9,23 +9,25 @@ RP_DIR		= /Users/ishii/workspace/realpaver-1.1hgsvn
 CC          = g++
 BUILD       = ar rs    # for static libraries
 INCLUDES	= -I $(RP_DIR)/src
-CFLAGS      = -O3 $(INCLUDES)
+CFLAGS      = -g $(INCLUDES)
 #CFLAGS      = -O3 -arch i386 -arch x86_64
 #CFLAGS      = -g -Wall
 #CFLAGS      = -O3 -Wall
 LDFLAGS     = -L$(RP_DIR)/src -lgaol -lgdtoa -lultim -lrealpaver
 
-X10_HEADERS     = RPX10__Solver.h	Test__Stub.h
-X10_SOURCES     = RPX10.x10			Test.x10
-X10_CPP_SOURCES = RPX10__Solver.cpp	Test__Stub.cpp
+X10_HEADERS     = Solver__Core.h Test__Stub.h
+X10_SOURCES     = RPX10.x10 Solver.x10 Solver1.x10 Test.x10
+X10_CPP_SOURCES = Solver__Core.cc Test__Stub.cc
 
 %.o:%.cc
 	$(CC) $(CFLAGS) -c $< -o $@
 
 
 ## X10 STUFF ##
-X10CXX          = x10c++ -STATIC_CHECKS -NO_CHECKS -O
-#X10CXX         += -report postcompile=1
+X10CXX          = x10c++
+#X10CXX          = x10c++ -STATIC_CHECKS
+#X10CXX          += -O -NO_CHECKS
+X10CXX         += -report postcompile=1
 OUTDIR          = out_dir
 OUTDIR_REVERSE  = ..
 

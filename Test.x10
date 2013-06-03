@@ -11,7 +11,7 @@ public class Test {
 
     @NativeRep("c++", "Test__Stub*", "Test__Stub", null)
     @NativeCPPOutputFile("Test__Stub.h")
-    @NativeCPPCompilationUnit("Test__Stub.cpp")
+    @NativeCPPCompilationUnit("Test__Stub.cc")
 
     static class Stub {
         public def this() : Stub { }

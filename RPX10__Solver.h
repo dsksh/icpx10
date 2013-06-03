@@ -24,7 +24,7 @@ public:
 
     static RPX10__Solver* _make();
 
-	x10_int solve(x10::lang::String *);
+	x10_int solve();
 };
 
 #endif // RPX10__Solver_h 

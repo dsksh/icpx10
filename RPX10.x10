@@ -5,39 +5,64 @@ import x10.io.*;
 
 public class RPX10 {
 
-    @NativeRep("c++", "RPX10__Solver *", "RPX10__Solver", null)
+    /*@NativeRep("c++", "RPX10__Solver *", "RPX10__Solver", null)
     @NativeCPPOutputFile("RPX10__Solver.h")
-    @NativeCPPCompilationUnit("RPX10__Solver.cpp")
+    @NativeCPPCompilationUnit("RPX10__Solver.cc")
 
     static class Solver {
         public def this() : Solver { }
         @Native("c++", "(#0)->solve((#1))")
         public def solve (filename:String):int = 0;
     } 
+    */
+
+    /*public static def main(args:Array[String](1)) {
+        val solver = new Solver(args(0));
+        solver.solve();
+    }
+    */
 
     public static def main(args:Array[String](1)) {
-
         // create a solver at each place
         val everyone = Dist.makeUnique();
-        //val s_handle = PlaceLocalHandle.make[RestartableSolver](everyone,
-        //        () => new RestartableSolver(configuration) );
+        //val sHandle = PlaceLocalHandle.make[Solver](everyone, 
+        //        () => new Solver(args(0)) );
+        val sHandle = PlaceLocalHandle.make[Solver1](everyone, 
+                () => new Solver1(args(0)) );
+        //val ref:GlobalRef[PlaceLocalHandle[Solver1]] = GlobalRef[PlaceLocalHandle[Solver1]](sHandle);
 
-        // place ID of the master process that handles restart sequence, if
-        // that option is used by the solvers; this place also runs a regular
-        // solver like the rest of the places, responding to getNewRestart()
-        // requests whenever it handles incoming messages
-        val master_id = here.id();
-        Console.OUT.println(here + ": starting master process for restart sequence");
+        val masterId = here.id();
 
-        // launch a solver at each place; wait for all solvers to finish
-        // (by solving or by being killed)
-        finish ateach (i in everyone) {
-		    val s = new Solver();
-    		Console.OUT.print(here + ": start solving... ");
-            s.solve(args(0));
-    		Console.OUT.println(here + ": done");
+        finish for (p in Place.places()) at (p) async {
+		    val solver = sHandle();
+
+            //solver.sHandle = sHandle;
+
+            /*if (here.id() != 0) {
+                at (here.prev()) Console.OUT.println(here + ": " + sHandle());
+                at (here.prev()) {
+                    var sh:PlaceLocalHandle[Solver1];
+                    sh = sHandle;
+                    Console.OUT.println(here + ": " + sh());
+                }
+                at (here.prev()) {
+                    sHandle().sHandle = sHandle;
+                    Console.OUT.println(here + ": " + sHandle().sHandle());
+                }
+            }*/
+
+            //solver.solve();
+            solver.solve(sHandle);
         }
 
+        /*val it = solutions.iterator();
+        for (var i:Int = 0; it.hasNext(); ++i) {
+            val p = it.next();
+   		    //Console.OUT.println("solution " + i + ":");
+   		    Console.OUT.println(p.second);
+   		    Console.OUT.println();
+        }
+        */
     }
 }
 
