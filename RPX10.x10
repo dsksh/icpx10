@@ -31,26 +31,10 @@ public class RPX10 {
                 () => new Solver1(args(0)) );
         //val ref:GlobalRef[PlaceLocalHandle[Solver1]] = GlobalRef[PlaceLocalHandle[Solver1]](sHandle);
 
-        val masterId = here.id();
+        sHandle().setup(sHandle);
 
         finish for (p in Place.places()) at (p) async {
 		    val solver = sHandle();
-
-            //solver.sHandle = sHandle;
-
-            /*if (here.id() != 0) {
-                at (here.prev()) Console.OUT.println(here + ": " + sHandle());
-                at (here.prev()) {
-                    var sh:PlaceLocalHandle[Solver1];
-                    sh = sHandle;
-                    Console.OUT.println(here + ": " + sh());
-                }
-                at (here.prev()) {
-                    sHandle().sHandle = sHandle;
-                    Console.OUT.println(here + ": " + sHandle().sHandle());
-                }
-            }*/
-
             //solver.solve();
             solver.solve(sHandle);
         }

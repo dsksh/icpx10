@@ -20,6 +20,25 @@ public class Solver1 extends Solver {
         super(filename);
     }
 
+    public def setup(sHandle:PlaceLocalHandle[Solver1]) {
+        // split the initial domain (#P-1) times
+        for (i in 1..(Place.numPlaces()-1)) {
+            val box:IntervalVec = list.removeFirst();
+            val v = selectVariable(box);
+            val bp = box.split(v);
+            list.add(bp.first);
+            list.add(bp.second);
+        }
+        
+        // distribute the sub-domains
+        finish for (p in Place.places()) async {
+            if (here.id() != 0) {
+                val box:IntervalVec = list.removeFirst();
+                at (p) sHandle().list.add(box);
+            }
+        }
+    }
+
 
     protected def search(sHandle:PlaceLocalHandle[Solver1], box:IntervalVec) {
     //protected def search(box:IntervalVec) {
