@@ -3,17 +3,17 @@ TARGET		= RPX10
 all: $(TARGET)
 
 ##
-RP_DIR		= /Users/ishii/workspace/realpaver-1.1hgsvn
+#RP_HOME	= /Users/ishii/workspace/realpaver-1.1hgsvn
 
 ## NOTE: the C++ compiler must match the one configured for x10c++.
 CC          = g++
 BUILD       = ar rs    # for static libraries
-INCLUDES	= -I $(RP_DIR)/src
+INCLUDES	= -I $(RP_HOME)/src
 CFLAGS      = -g $(INCLUDES)
 #CFLAGS      = -O3 -arch i386 -arch x86_64
 #CFLAGS      = -g -Wall
 #CFLAGS      = -O3 -Wall
-LDFLAGS     = -L$(RP_DIR)/src -lgaol -lgdtoa -lultim -lrealpaver
+LDFLAGS     = -L$(RP_HOME)/src -lgaol -lgdtoa -lultim -lrealpaver
 
 X10_HEADERS     = Solver__Core.h Test__Stub.h
 X10_SOURCES     = RPX10.x10 Solver.x10 Solver1.x10 Test.x10
