@@ -25,7 +25,7 @@ X10_CPP_SOURCES = Solver__Core.cc Test__Stub.cc
 
 ## X10 STUFF ##
 X10CXX          = x10c++ -STATIC_CHECKS
-#X10CXX          += -O -NO_CHECKS
+X10CXX          += -O -NO_CHECKS
 X10CXX         += -report postcompile=1
 OUTDIR          = out_dir
 OUTDIR_REVERSE  = ..

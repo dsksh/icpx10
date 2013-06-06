@@ -16,6 +16,8 @@ public class RPX10 {
     } 
     */
 
+    static def format(t:Long) = (t as Double) * 1.0e-9;
+
     /*public static def main(args:Array[String](1)) {
         val solver = new Solver(args(0));
         solver.solve();
@@ -31,6 +33,9 @@ public class RPX10 {
                 () => new Solver1(args(0)) );
         //val ref:GlobalRef[PlaceLocalHandle[Solver1]] = GlobalRef[PlaceLocalHandle[Solver1]](sHandle);
 
+        val masterP = here;
+
+        var time:Long = -System.nanoTime();
         sHandle().setup(sHandle);
 
         finish for (p in Place.places()) at (p) async {
@@ -47,6 +52,18 @@ public class RPX10 {
    		    Console.OUT.println();
         }
         */
+
+        time += System.nanoTime();
+        Console.OUT.println();
+        Console.OUT.println("time: " + format(time) + " s");
+
+        // sum up the # split at each place
+        val nSplit = new GlobalRef(new Cell(0));
+        finish for (p in Place.places()) at (p) async {
+            val v = sHandle().nSplit.get();
+            at (masterP) nSplit().value += v;
+        }
+        Console.OUT.println("split: " + nSplit().value);
     }
 }
 

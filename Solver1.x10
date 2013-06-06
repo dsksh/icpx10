@@ -8,6 +8,7 @@ import x10.util.concurrent.AtomicInteger;
 public class Solver1 extends Solver {
     //private var nProcs:AtomicInteger = new AtomicInteger(0);
     private var nProcs:Int = 0;
+    public var nSplit:AtomicInteger = new AtomicInteger(0);
     private var request:AtomicBoolean = new AtomicBoolean(false);
     //private var finished:AtomicBoolean = new AtomicBoolean(false);
     private var finished:Boolean = false;
@@ -22,19 +23,23 @@ public class Solver1 extends Solver {
 
     public def setup(sHandle:PlaceLocalHandle[Solver1]) {
         // split the initial domain (#P-1) times
-        for (i in 1..(Place.numPlaces()-1)) {
+        for (i in 1..Place.numPlaces()) {
             val box:IntervalVec = list.removeFirst();
             val v = selectVariable(box);
             val bp = box.split(v);
+            nSplit.getAndIncrement();
             list.add(bp.first);
             list.add(bp.second);
         }
         
         // distribute the sub-domains
-        finish for (p in Place.places()) async {
-            if (here.id() != 0) {
+        //finish for (p in Place.places()) async {
+        for (p in Place.places()) {
+            if (p != here) {
                 val box:IntervalVec = list.removeFirst();
-                at (p) sHandle().list.add(box);
+                at (p) {
+                    sHandle().list.add(box);
+                }
             }
         }
     }
@@ -44,7 +49,7 @@ public class Solver1 extends Solver {
     //protected def search(box:IntervalVec) {
         //nProcs.getAndIncrement();
 
-        Console.OUT.println(here + ": search:\n" + box + '\n');
+        //Console.OUT.println(here + ": search:\n" + box + '\n');
 
         var res:Result = Result.unknown();
         atomic { res = core.contract(box); }
@@ -52,14 +57,18 @@ public class Solver1 extends Solver {
         if (!res.hasNoSolution()) {
             if (isSplittable(box)) {
                 val v = selectVariable(box);
-                val bp = box.split(v);
+                val bp = box.split(v); 
+                nSplit.getAndIncrement();
+                //nSplit++;
                 
-                Console.OUT.println(here + ": request: " + request.get() + '\n');
+                //Console.OUT.println(here + ": request: " + request.get() + '\n');
 
                 if (//nProcs.get() > 1 && 
                     //here.id() != Place.MAX_PLACES-1 && 
-                    request.get() ) {
-                    Console.OUT.println(here + ": got request");
+                    request.get() 
+                    //&& false
+                   ) {
+                    //Console.OUT.println(here + ": got request");
                     at (here.next()) {
                         atomic sHandle().list.add(bp.first);
                     }
@@ -79,11 +88,11 @@ public class Solver1 extends Solver {
                 Console.OUT.println(here + ": solution:\n" + box + '\n');
             }
         }
-        else Console.OUT.println("no solution");
+        //else Console.OUT.println("no solution");
 
         //nProcs.getAndDecrement();
         atomic nProcs--;
-        Console.OUT.println(here + ": nProcs: " + nProcs + '\n');
+        //Console.OUT.println(here + ": nProcs: " + nProcs + '\n');
     }
 
     protected def getNextBox(sHandle:PlaceLocalHandle[Solver1]) : IntervalVec {
@@ -93,7 +102,7 @@ public class Solver1 extends Solver {
             //when (nProcs.get() == 0) {
             when (nProcs == 0) {
                 //finished.set(true);
-                finished = true;
+                atomic finished = true;
                 /*at (here.next()) {
        		        Console.OUT.println(here + ": set finished");
                     //sHandle().finished.set(true);
@@ -106,14 +115,14 @@ public class Solver1 extends Solver {
             }
         }
         else {
-   		    Console.OUT.println(here + ": request box to " + here.prev());
+   		    //Console.OUT.println(here + ": request box to " + here.prev());
             at (here.prev()) {
-   		        Console.OUT.println(here + ": set request");
+   		        //Console.OUT.println(here + ": set request");
                 sHandle().request.set(true);
             }
             when (!list.isEmpty() || finished) {
                 if (!list.isEmpty()) {
-   		            Console.OUT.println(here + ": got box");
+   		            //Console.OUT.println(here + ": got box");
                     return list.removeFirst();
                 }
                 else {
@@ -128,18 +137,21 @@ public class Solver1 extends Solver {
    		Console.OUT.println(here + ": start solving... ");
 
         //while (!finished.get()) {
-        while (!finished) {
+        //while (!finished) {
+        while (true) {
             val box:IntervalVec = getNextBox(sHandle);
             if (box != null) {
                 //nProcs.getAndIncrement();
                 atomic nProcs++;
                 search(sHandle, box);
             }
+            else break;
         }
 
         //if (here.id() == Place.numPlaces()-1) 
         at (here.next()) {
-	        Console.OUT.println(here + ": set finished");
+	        //Console.OUT.println(here + ": set finished");
+            //sHandle().finished.set(true);
             atomic sHandle().finished = true;
         }
 

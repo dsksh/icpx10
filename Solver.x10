@@ -114,7 +114,7 @@ public class Solver {
         precision = prec;
         dummy = 0;
     }
-    public def this(filename:String) { this(filename, 1E-1); }
+    public def this(filename:String) { this(filename, 1E-6); }
 
     public def getSolutions() : List[Pair[Result,IntervalVec]] { return solutions; }
     
