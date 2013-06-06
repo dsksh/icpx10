@@ -63,16 +63,12 @@ public class Solver1 extends Solver {
                 
                 //Console.OUT.println(here + ": request: " + request.get() + '\n');
 
-                if (//nProcs.get() > 1 && 
-                    //here.id() != Place.MAX_PLACES-1 && 
-                    request.get() 
-                    //&& false
-                   ) {
-                    //Console.OUT.println(here + ": got request");
+                if (request.compareAndSet(true, false)) {
+                    //request.set(false);
+                    Console.OUT.println(here + ": got request");
                     at (here.next()) {
                         atomic sHandle().list.add(bp.first);
                     }
-                    request.set(false);
                 }
                 else {
                     atomic nProcs++;
@@ -99,30 +95,32 @@ public class Solver1 extends Solver {
         if (!list.isEmpty())
             return list.removeFirst();
         else if (here.id() == 0) {
-            //when (nProcs.get() == 0) {
-            when (nProcs == 0) {
-                //finished.set(true);
-                atomic finished = true;
-                /*at (here.next()) {
-       		        Console.OUT.println(here + ": set finished");
-                    //sHandle().finished.set(true);
-                    sHandle().finished = true;
-                }*/
-                //if (request.get()) {
-                //}
-       		    Console.OUT.println(here + ": finished");
-                return null;
-            }
+//            //when (nProcs.get() == 0) {
+//            when (nProcs == 0) {
+//                //finished.set(true);
+//                atomic finished = true;
+//                /*at (here.next()) {
+//       		        Console.OUT.println(here + ": set finished");
+//                    //sHandle().finished.set(true);
+//                    sHandle().finished = true;
+//                }*/
+//                //if (request.get()) {
+//                //}
+//       		    Console.OUT.println(here + ": finished");
+//                return null;
+//            }
+            return null;
         }
         else {
    		    //Console.OUT.println(here + ": request box to " + here.prev());
             at (here.prev()) {
-   		        //Console.OUT.println(here + ": set request");
+   		        Console.OUT.println(here + ": set request");
                 sHandle().request.set(true);
             }
             when (!list.isEmpty() || finished) {
+   		        Console.OUT.println(here + ": activated");
                 if (!list.isEmpty()) {
-   		            //Console.OUT.println(here + ": got box");
+   		            Console.OUT.println(here + ": got box");
                     return list.removeFirst();
                 }
                 else {
@@ -138,7 +136,7 @@ public class Solver1 extends Solver {
 
         //while (!finished.get()) {
         //while (!finished) {
-        while (true) {
+        finish while (true) {
             val box:IntervalVec = getNextBox(sHandle);
             if (box != null) {
                 //nProcs.getAndIncrement();
@@ -148,11 +146,18 @@ public class Solver1 extends Solver {
             else break;
         }
 
+        if (here.id() == 0) {
+            //finished.set(true);
+            atomic finished = true;
+        }
+
         //if (here.id() == Place.numPlaces()-1) 
         at (here.next()) {
-	        //Console.OUT.println(here + ": set finished");
-            //sHandle().finished.set(true);
-            atomic sHandle().finished = true;
+            when (sHandle().list.isEmpty()) {
+	            Console.OUT.println(here + ": set finished");
+                //sHandle().finished.set(true);
+                sHandle().finished = true;
+            }
         }
 
    		Console.OUT.println(here + ": done");
