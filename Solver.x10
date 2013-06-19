@@ -28,8 +28,13 @@ public class Solver {
     }
 
     public static class IntervalVec extends HashMap[String,Interval] { 
+        public var vit:Iterator[String] = null;
+
         public def this() : IntervalVec { } 
-        public def this(lhs:IntervalVec) : IntervalVec { super(lhs.serialize()); } 
+        public def this(lhs:IntervalVec) : IntervalVec { 
+            super(lhs.serialize()); 
+            this.vit = lhs.vit;
+        } 
 
         public def split(variable:String) : Pair[IntervalVec,IntervalVec] {
             val b1 = new IntervalVec(this); 
@@ -100,6 +105,7 @@ public class Solver {
 
     val core:Core;
     val list:List[IntervalVec];
+    //val list:CircularQueue[IntervalVec];
     val solutions:List[Pair[Result,IntervalVec]];
     val precision:Double;
     val dummy:Double; // kludge for a success of compilation
@@ -114,7 +120,7 @@ public class Solver {
         precision = prec;
         dummy = 0;
     }
-    public def this(filename:String) { this(filename, 1E-6); }
+    public def this(filename:String) { this(filename, 1E-1); }
 
     public def getSolutions() : List[Pair[Result,IntervalVec]] { return solutions; }
     
@@ -130,15 +136,61 @@ public class Solver {
 
     private var variableIt:Iterator[String] = null;
     // (global) round-robin selector
-    // TODO: not convergent??
     /*protected def selectVariable(box:IntervalVec) : String {
         if (variableIt == null || !variableIt.hasNext()) variableIt = box.keySet().iterator();
-        return variableIt.next();
+        val v0 = variableIt.next();
+        if (box(v0).value.width() > precision)
+            return v0;
+
+        // try rest of the vars.
+        while (variableIt.hasNext()) {
+            val v = variableIt.next();
+            if (box(v).value.width() > precision)
+                return v;
+        }
+
+        // try the preceding vars.
+        variableIt = box.keySet().iterator();
+        while (variableIt.hasNext()) {
+            val v = variableIt.next();
+            if (v == v0)
+                break;
+            if (box(v).value.width() > precision)
+                return v;
+        }
+
+        return null;
     }*/
-    // largest-first selector
+    // (local) round-robin selector
     protected def selectVariable(box:IntervalVec) : String {
+        if (box.vit == null || !box.vit.hasNext()) box.vit = box.keySet().iterator();
+        val v0 = box.vit.next();
+        if (box(v0).value.width() > precision)
+            return v0;
+
+        // try rest of the vars.
+        while (box.vit.hasNext()) {
+            val v = box.vit.next();
+            if (box(v).value.width() > precision)
+                return v;
+        }
+
+        // try the preceding vars.
+        box.vit = box.keySet().iterator();
+        while (box.vit.hasNext()) {
+            val v = box.vit.next();
+            if (v == v0)
+                break;
+            if (box(v).value.width() > precision)
+                return v;
+        }
+
+        return null;
+    }
+    // largest-first selector
+    /*protected def selectVariable(box:IntervalVec) : String {
         var variable:String = null;
-        var maxW:Double = 0.;
+        var maxW:Double = precision;
         val it = box.keySet().iterator();
         while (it.hasNext()) {
             val v = it.next();
@@ -149,7 +201,7 @@ public class Solver {
             }
         }
         return variable;
-    }
+    }*/
 
     protected def search(box:IntervalVec) {
 	    //Console.OUT.println(here + ": search:\n" + box + '\n');
@@ -175,7 +227,6 @@ public class Solver {
 
     protected def search1() {
         for (box in list) async {
-            //val box:IntervalVec = list.removeFirst();
    		    Console.OUT.println(here + ": search:");
    		    Console.OUT.println(box);
    		    Console.OUT.println();

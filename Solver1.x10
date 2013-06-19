@@ -6,8 +6,9 @@ import x10.util.concurrent.AtomicBoolean;
 import x10.util.concurrent.AtomicInteger;
 
 public class Solver1 extends Solver {
-    private var nProcs:AtomicInteger = new AtomicInteger(0);
-    public var nSplit:AtomicInteger = new AtomicInteger(0);
+    //private var nProcs:AtomicInteger = new AtomicInteger(0);
+    public var nSols:AtomicInteger = new AtomicInteger(0);
+    public var nSplits:AtomicInteger = new AtomicInteger(0);
     private var request:AtomicBoolean = new AtomicBoolean(false);
     //private var finished:AtomicBoolean = new AtomicBoolean(false);
     private var finished:Boolean = false;
@@ -22,11 +23,11 @@ public class Solver1 extends Solver {
 
     public def setup(sHandle:PlaceLocalHandle[Solver1]) {
         // split the initial domain (#P-1) times
-        for (i in 1..Place.numPlaces()) {
+        for (i in 1..(Place.numPlaces()-1)) {
             val box:IntervalVec = list.removeFirst();
             val v = selectVariable(box);
             val bp = box.split(v);
-            nSplit.getAndIncrement();
+            nSplits.getAndIncrement();
             list.add(bp.first);
             list.add(bp.second);
         }
@@ -49,40 +50,41 @@ public class Solver1 extends Solver {
         //nProcs.getAndIncrement();
         //Console.OUT.println(here + ": nProcs: " + nProcs);
 
-        //Console.OUT.println(here + ": search:\n" + box + '\n');
+//Console.OUT.println(here + ": search:\n" + box + '\n');
 
         var res:Result = Result.unknown();
         atomic { res = core.contract(box); }
 
         if (!res.hasNoSolution()) {
-            if (isSplittable(box)) {
-                val v = selectVariable(box);
+            val v = selectVariable(box);
+            //if (isSplittable(box)) {
+            if (v != null) {
                 val bp = box.split(v); 
-                nSplit.getAndIncrement();
-                //nSplit++;
+                nSplits.getAndIncrement();
                 
                 if (request.compareAndSet(true, false)) {
-                    //Console.OUT.println(here + ": got request");
+                    Console.OUT.println(here + ": got request");
                     at (here.next()) {
                         atomic sHandle().list.add(bp.first);
                     }
                 }
                 else {
-                    nProcs.getAndIncrement();
+                    //nProcs.getAndIncrement();
                     async search(sHandle, bp.first);
                 }
 
-                nProcs.getAndIncrement();
+                //nProcs.getAndIncrement();
                 async search(sHandle, bp.second);
             }
             else {
                 atomic solutions.add(new Pair[Result,IntervalVec](res, box));
                 Console.OUT.println(here + ": solution:\n" + box + '\n');
+                nSols.getAndIncrement();
             }
         }
         //else Console.OUT.println("no solution");
 
-        nProcs.getAndDecrement();
+        //nProcs.getAndDecrement();
     }
 
     protected def getNextBox(sHandle:PlaceLocalHandle[Solver1]) : IntervalVec {
@@ -108,8 +110,8 @@ public class Solver1 extends Solver {
         else {
    		    //Console.OUT.println(here + ": request box to " + here.prev());
             at (here.prev()) {
-   		        //Console.OUT.println(here + ": set request");
                 sHandle().request.set(true);
+   		        Console.OUT.println(here + ": set request");
             }
             when (!list.isEmpty() || finished) {
    		        //Console.OUT.println(here + ": activated");
@@ -133,7 +135,7 @@ public class Solver1 extends Solver {
         finish while (true) {
             val box:IntervalVec = getNextBox(sHandle);
             if (box != null) {
-                nProcs.getAndIncrement();
+                //nProcs.getAndIncrement();
                 search(sHandle, box);
             }
             else break;

@@ -215,8 +215,10 @@ Solution Solver__Core::calculateNext() {
 Solver__Result Solver__Core::contract(Solver__IntervalVec *iv) {
     Box box( *list_->get_cell()->box );
     setIVIntoBox(box, *iv);
+//std::cout << std::endl << "extracted:" << std::endl << box << std::endl;
+
     Solution sol = contractor_->contract(box);
-    iv = getIVFromBox(box);
+    *iv = *getIVFromBox(box);
     if (sol == Solution::no())
         return Solver__Result::noSolution();
     else

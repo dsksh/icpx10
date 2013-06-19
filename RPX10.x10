@@ -57,13 +57,29 @@ public class RPX10 {
         Console.OUT.println();
         Console.OUT.println("time: " + format(time) + " s");
 
-        // sum up the # split at each place
-        val nSplit = new GlobalRef(new Cell(0));
-        finish for (p in Place.places()) at (p) async {
-            val v = sHandle().nSplit.get();
-            at (masterP) nSplit().value += v;
+        // sum up the # solutions at each place
+        val nSols = new GlobalRef(new Cell(0));
+        Console.OUT.print("# sols:");
+        for (p in Place.places()) at (p) {
+            val v = sHandle().nSols.get();
+            at (masterP) {
+                Console.OUT.print((p == here ? " " : " + ") + v);
+                nSols().value += v;
+            }
         }
-        Console.OUT.println("split: " + nSplit().value);
+        Console.OUT.println(" = " + nSols().value);
+
+        // sum up the # splits at each place
+        val nSplits = new GlobalRef(new Cell(0));
+        Console.OUT.print("# splits:");
+        for (p in Place.places()) at (p) {
+            val v = sHandle().nSplits.get();
+            at (masterP) {
+                Console.OUT.print((p == here ? " " : " + ") + v);
+                nSplits().value += v;
+            }
+        }
+        Console.OUT.println(" = " + nSplits().value);
     }
 }
 
