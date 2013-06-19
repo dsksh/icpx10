@@ -16,7 +16,7 @@ CFLAGS      = -g $(INCLUDES)
 LDFLAGS     = -L$(RP_HOME)/src -lgaol -lgdtoa -lultim -lrealpaver
 
 X10_HEADERS     = Solver__Core.h Test__Stub.h
-X10_SOURCES     = RPX10.x10 Solver.x10 Solver1.x10 Test.x10
+X10_SOURCES     = RPX10.x10 Solver.x10 PipelineSolver.x10 VariableSelector.x10 Test.x10
 X10_CPP_SOURCES = Solver__Core.cc Test__Stub.cc
 
 %.o:%.cc
@@ -25,7 +25,7 @@ X10_CPP_SOURCES = Solver__Core.cc Test__Stub.cc
 
 ## X10 STUFF ##
 X10CXX          = x10c++ -STATIC_CHECKS
-X10CXX          += -O -NO_CHECKS
+#X10CXX          += -O -NO_CHECKS
 X10CXX         += -report postcompile=1
 OUTDIR          = out_dir
 OUTDIR_REVERSE  = ..

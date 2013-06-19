@@ -23,8 +23,8 @@
 #include "rp_search_strategy.h"
 #include "rp_exception.h"
 
-#include "Solver__Interval.h"
-#include "Solver__IntervalVec.h"
+#include "Interval.h"
+#include "IntervalVec.h"
 #include "Solver__Result.h"
 
 class Solver__Core : public x10::lang::X10Class {
@@ -45,7 +45,7 @@ public:
 
 	void initialize(x10::lang::String *);
 
-	Solver__IntervalVec *getInitialDomain();
+	IntervalVec *getInitialDomain();
 
 	x10_int solve();
 
@@ -55,7 +55,7 @@ public:
      */
 	rp::Solution calculateNext();
 
-	Solver__Result contract(Solver__IntervalVec *box);
+	Solver__Result contract(IntervalVec *box);
 
     /**
      * @return the next solution

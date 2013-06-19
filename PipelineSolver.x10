@@ -5,23 +5,23 @@ import x10.io.*;
 import x10.util.concurrent.AtomicBoolean;
 import x10.util.concurrent.AtomicInteger;
 
-public class Solver1 extends Solver {
+public class PipelineSolver extends Solver {
     //private var nProcs:AtomicInteger = new AtomicInteger(0);
     public var nSols:AtomicInteger = new AtomicInteger(0);
     public var nSplits:AtomicInteger = new AtomicInteger(0);
     private var request:AtomicBoolean = new AtomicBoolean(false);
     //private var finished:AtomicBoolean = new AtomicBoolean(false);
     private var finished:Boolean = false;
-    //public var sHandle:PlaceLocalHandle[Solver1];
+    //public var sHandle:PlaceLocalHandle[PipelineSolver];
 
-    public def this(filename:String, prec:Double) {
-        super(filename, prec);
+    public def this(selector:(box:IntervalVec)=>String, filename:String, prec:Double) {
+        super(selector, filename, prec);
     }
-    public def this(filename:String) {
-        super(filename);
+    public def this(selector:(box:IntervalVec)=>String, filename:String) {
+        super(selector, filename);
     }
 
-    public def setup(sHandle:PlaceLocalHandle[Solver1]) {
+    public def setup(sHandle:PlaceLocalHandle[PipelineSolver]) {
         // split the initial domain (#P-1) times
         for (i in 1..(Place.numPlaces()-1)) {
             val box:IntervalVec = list.removeFirst();
@@ -45,7 +45,7 @@ public class Solver1 extends Solver {
     }
 
 
-    protected def search(sHandle:PlaceLocalHandle[Solver1], box:IntervalVec) {
+    protected def search(sHandle:PlaceLocalHandle[PipelineSolver], box:IntervalVec) {
     //protected def search(box:IntervalVec) {
         //nProcs.getAndIncrement();
         //Console.OUT.println(here + ": nProcs: " + nProcs);
@@ -87,7 +87,7 @@ public class Solver1 extends Solver {
         //nProcs.getAndDecrement();
     }
 
-    protected def getNextBox(sHandle:PlaceLocalHandle[Solver1]) : IntervalVec {
+    protected def getNextBox(sHandle:PlaceLocalHandle[PipelineSolver]) : IntervalVec {
         if (!list.isEmpty())
             return list.removeFirst();
         else if (here.id() == 0) {
@@ -126,7 +126,7 @@ public class Solver1 extends Solver {
         }
     }
 
-    public def solve(sHandle:PlaceLocalHandle[Solver1]) {
+    public def solve(sHandle:PlaceLocalHandle[PipelineSolver]) {
     //public def solve() {
    		Console.OUT.println(here + ": start solving... ");
 

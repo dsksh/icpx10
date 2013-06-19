@@ -5,33 +5,15 @@ import x10.io.*;
 
 public class RPX10 {
 
-    /*@NativeRep("c++", "RPX10__Solver *", "RPX10__Solver", null)
-    @NativeCPPOutputFile("RPX10__Solver.h")
-    @NativeCPPCompilationUnit("RPX10__Solver.cc")
-
-    static class Solver {
-        public def this() : Solver { }
-        @Native("c++", "(#0)->solve((#1))")
-        public def solve (filename:String):int = 0;
-    } 
-    */
-
     static def format(t:Long) = (t as Double) * 1.0e-9;
-
-    /*public static def main(args:Array[String](1)) {
-        val solver = new Solver(args(0));
-        solver.solve();
-    }
-    */
 
     public static def main(args:Array[String](1)) {
         // create a solver at each place
         val everyone = Dist.makeUnique();
         //val sHandle = PlaceLocalHandle.make[Solver](everyone, 
-        //        () => new Solver(args(0)) );
-        val sHandle = PlaceLocalHandle.make[Solver1](everyone, 
-                () => new Solver1(args(0)) );
-        //val ref:GlobalRef[PlaceLocalHandle[Solver1]] = GlobalRef[PlaceLocalHandle[Solver1]](sHandle);
+        //        () => new Solver((box:IntervalVec)=>Solver.selectVariableTest(box), args(0)) );
+        val sHandle = PlaceLocalHandle.make[PipelineSolver](everyone, 
+            () => new PipelineSolver((box:IntervalVec)=>(new VariableSelector(1E-8)).selectLRR(box), args(0)) );
 
         val masterP = here;
 
@@ -57,7 +39,7 @@ public class RPX10 {
         Console.OUT.println();
         Console.OUT.println("time: " + format(time) + " s");
 
-        // sum up the # solutions at each place
+/*        // sum up the # solutions at each place
         val nSols = new GlobalRef(new Cell(0));
         Console.OUT.print("# sols:");
         for (p in Place.places()) at (p) {
@@ -80,6 +62,7 @@ public class RPX10 {
             }
         }
         Console.OUT.println(" = " + nSplits().value);
+*/
     }
 }
 

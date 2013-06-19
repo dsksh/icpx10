@@ -4,7 +4,7 @@ import x10.util.*;
 import x10.io.*;
 
 public class Solver {
-    public static struct Interval {
+/*    public static struct Interval {
         public val left:Double;
         public val right:Double;
     
@@ -74,6 +74,7 @@ public class Solver {
             return sb.result();
         }
     }
+*/
 
     public static struct Result {
         private val code:Int;
@@ -108,9 +109,11 @@ public class Solver {
     //val list:CircularQueue[IntervalVec];
     val solutions:List[Pair[Result,IntervalVec]];
     val precision:Double;
-    val dummy:Double; // kludge for a success of compilation
+    // kludge for a success of compilation
+    val dummy:Double;
+    val dummyI:Interval;
 
-    public def this(filename:String, prec:Double) {
+    public def this(selector:(box:IntervalVec)=>String, filename:String, prec:Double) {
         core = new Core();
         core.initialize(filename);
         list = new ArrayList[IntervalVec]();
@@ -119,8 +122,10 @@ public class Solver {
         solutions = new ArrayList[Pair[Result,IntervalVec]]();
         precision = prec;
         dummy = 0;
+        dummyI = new Interval(0.,0.);
+        selectVariable = selector;
     }
-    public def this(filename:String) { this(filename, 1E-1); }
+    public def this(selector:(box:IntervalVec)=>String, filename:String) { this(selector, filename, 1E-8); }
 
     public def getSolutions() : List[Pair[Result,IntervalVec]] { return solutions; }
     
@@ -134,9 +139,15 @@ public class Solver {
         return box.width() > precision;
     }
 
-    private var variableIt:Iterator[String] = null;
+    protected val selectVariable : (box:IntervalVec) => String;
+
+    public static def selectVariableTest(box:IntervalVec) : String {
+        return null;
+    }
+    
+/*    private var variableIt:Iterator[String] = null;
     // (global) round-robin selector
-    /*protected def selectVariable(box:IntervalVec) : String {
+    public def selectVariable(box:IntervalVec) : String {
         if (variableIt == null || !variableIt.hasNext()) variableIt = box.keySet().iterator();
         val v0 = variableIt.next();
         if (box(v0).value.width() > precision)
@@ -160,9 +171,9 @@ public class Solver {
         }
 
         return null;
-    }*/
+    }
     // (local) round-robin selector
-    protected def selectVariable(box:IntervalVec) : String {
+    public def selectVariableLRR(box:IntervalVec) : String {
         if (box.vit == null || !box.vit.hasNext()) box.vit = box.keySet().iterator();
         val v0 = box.vit.next();
         if (box(v0).value.width() > precision)
@@ -188,7 +199,7 @@ public class Solver {
         return null;
     }
     // largest-first selector
-    /*protected def selectVariable(box:IntervalVec) : String {
+    public def selectVariableLF(box:IntervalVec) : String {
         var variable:String = null;
         var maxW:Double = precision;
         val it = box.keySet().iterator();
@@ -201,7 +212,8 @@ public class Solver {
             }
         }
         return variable;
-    }*/
+    }
+    */
 
     protected def search(box:IntervalVec) {
 	    //Console.OUT.println(here + ": search:\n" + box + '\n');

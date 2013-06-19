@@ -12,7 +12,7 @@
 #include "Solver__Core.h"
 
 using namespace std;
-using namespace rp;
+//using namespace rp;
 
 RTT_CC_DECLS0(Solver__Core, "Solver.Core", x10aux::RuntimeType::class_kind)
 
@@ -22,7 +22,7 @@ Solver__Core *Solver__Core::_make() {
 
 void Solver__Core::initialize(x10::lang::String *filename) {
 	//string filename(problem->filename()->c_str());
-	Parser parser(filename->c_str());
+    rp::Parser parser(filename->c_str());
 	//Timer tim;
 	bool result;
 
@@ -51,20 +51,20 @@ void Solver__Core::initialize(x10::lang::String *filename) {
 	// ----------------------------------------------------------------------
 	// creation of propagator
 	// ----------------------------------------------------------------------
-    sp< ControlPropagator> control = new QueueControlPropagator(10);
-	sp< Propagator > propag = new Propagator(control);
-	FactoryHullBoxOperator facto(10,5);
-	FactoryOperator::vector_type vop;
+    rp::sp< rp::ControlPropagator> control = new rp::QueueControlPropagator(10);
+	rp::sp< rp::Propagator > propag = new rp::Propagator(control);
+    rp::FactoryHullBoxOperator facto(10,5);
+	rp::FactoryOperator::vector_type vop;
 	facto.generate(*parser.problem(),vop);
 	propag->insert(vop);
   
     // creation of Newton operator
-    FactoryMultiNewtonOperator facto_nwt(10);
-    FactoryOperator::vector_type vop_nwt;
+    rp::FactoryMultiNewtonOperator facto_nwt(10);
+    rp::FactoryOperator::vector_type vop_nwt;
     facto_nwt.generate(*parser.problem(),vop_nwt);
   
     // creation of solver contractor
-    sp< SequenceOperator > contractor = new SequenceOperator();
+    rp::sp< rp::SequenceOperator > contractor = new rp::SequenceOperator();
     contractor->insert(propag);
     if (vop_nwt.size())
     { 
@@ -88,22 +88,22 @@ void Solver__Core::initialize(x10::lang::String *filename) {
     currentSol_ = 0;
     contractor_ = contractor;
 
-    split_ = new SplitMidpoint();
-    selector_ = new SplitSelectRoundRobin(new SplitTestLocal(),
+    split_ = new rp::SplitMidpoint();
+    selector_ = new rp::SplitSelectRoundRobin(new rp::SplitTestLocal(),
                        parser.problem()->scope());
-    list_ = new SearchStrategyDFS();
-    list_->insert(new Box(parser.problem()->scope()),selector_,0);
+    list_ = new rp::SearchStrategyDFS();
+    list_->insert(new rp::Box(parser.problem()->scope()),selector_,0);
     list_->init();
 }
 
 // util
-Solver__IntervalVec *getIVFromBox(const Box& box) {
-    Solver__IntervalVec *iv = Solver__IntervalVec::_make();
+IntervalVec *getIVFromBox(const rp::Box& box) {
+    IntervalVec *iv = IntervalVec::_make();
 
-    Scope::const_iterator it = box.scope()->begin();
+    rp::Scope::const_iterator it = box.scope()->begin();
     for (; it != box.scope()->end(); ++it) {
-        Interval i = box.get_interval(**it);
-        Solver__Interval si = Solver__Interval::_make(i.left(), i.right());
+        rp::Interval i = box.get_interval(**it);
+        Interval si = Interval::_make(i.left(), i.right());
         iv->put(x10::lang::String::_make((*it)->name().c_str(), true), si);
     }
 
@@ -111,16 +111,16 @@ Solver__IntervalVec *getIVFromBox(const Box& box) {
 }
 
 // util
-void setIVIntoBox(Box& box, Solver__IntervalVec& iv) {
-    Scope::const_iterator it = box.scope()->begin();
+void setIVIntoBox(rp::Box& box, IntervalVec& iv) {
+    rp::Scope::const_iterator it = box.scope()->begin();
     for (int i = 0; it != box.scope()->end(); ++it, ++i) {
-        Solver__Interval si = iv.getOrThrow(x10::lang::String::_make((*it)->name().c_str(), true));
-        Interval i(si.FMGL(left), si.FMGL(right));
+        Interval si = iv.getOrThrow(x10::lang::String::_make((*it)->name().c_str(), true));
+        rp::Interval i(si.FMGL(left), si.FMGL(right));
         box.set_interval(**it, i);
     }
 }
 
-Solver__IntervalVec *Solver__Core::getInitialDomain() {
+IntervalVec *Solver__Core::getInitialDomain() {
     /*Solver__IntervalVec *iv = Solver__IntervalVec::_make();
 
     sp<Box> sbx = list_->get_cell()->box;
@@ -133,14 +133,14 @@ Solver__IntervalVec *Solver__Core::getInitialDomain() {
 
     return iv;
     */
-    sp<Box> sbx = list_->get_cell()->box;
+    rp::sp< rp::Box > sbx = list_->get_cell()->box;
     return getIVFromBox(*sbx);
 }
 
 x10_int Solver__Core::solve() {
     // solving
     //tim.restart();
-    Solution s;
+    rp::Solution s;
     do {
         list_->update();
         while (!list_->empty()) {
@@ -149,7 +149,7 @@ x10_int Solver__Core::solve() {
         cout << "Solution " << nsol() //<< " (" << tim << " s)" 
             << endl << *currentSolution() << endl << endl; 
     }
-    while (s != Solution::no());
+    while (s != rp::Solution::no());
 
     cout << nsol() << " solution(s)" << endl
          << nsplit() << " split(s)" << endl
@@ -160,42 +160,42 @@ x10_int Solver__Core::solve() {
 }
 
 
-Solution Solver__Core::calculateNext() {
+rp::Solution Solver__Core::calculateNext() {
     //list_->update();
     //while (!list_->empty()) {
-        sp<BoxCell> cell = extract();
-        sp<Box> sbx = cell->box;
+        rp::sp< rp::BoxCell > cell = extract();
+        rp::sp< rp::Box > sbx = cell->box;
       
         if (sbx->is_empty()) 
             //continue;
             calculateNext();
 
         // apply the contractor to the current item
-        Solution sol = contractor_->contract(*sbx);
+        rp::Solution sol = contractor_->contract(*sbx);
 
         RP_DEBUG("apres contraction\n" << *sbx);
 
-        if (sol!=Solution::no()) {
+        if (sol != rp::Solution::no()) {
 #if MANAGE_NEIGHBORS || MANAGE_HIDDEN_NEIGHBORS
             //cell->box = sbx;
     	    updateNeighbors(sol, *cell);
 #endif
 
         	// split?
-        	const Variable * v = cell->split_select->next(sol, *sbx);
+        	const rp::Variable *v = cell->split_select->next(sol, *sbx);
         	if (v) {
 //if (!v->is_projected())
-                ++ nsplit_;
+                ++nsplit_;
 
             	RP_DEBUG("split : " << v->name());
 //std::cout << std::endl << "split:" << v->name() << std::endl;
 
             	// domain of v has to be split
-            	Split::vector_type split_bx;
+                rp::Split::vector_type split_bx;
             	split_->apply(sbx,*v,split_bx);
             
             	// insert the new regions in the search space
-            	Split::vector_type::const_iterator iter;
+                rp::Split::vector_type::const_iterator iter;
             	for (iter=split_bx.begin(); iter!=split_bx.end(); ++iter) {
                     //cell_list::iterator pos;
                     list_->insert(*iter, cell->split_select->clone(), v);
@@ -212,25 +212,25 @@ Solution Solver__Core::calculateNext() {
         }
 }
 
-Solver__Result Solver__Core::contract(Solver__IntervalVec *iv) {
-    Box box( *list_->get_cell()->box );
+Solver__Result Solver__Core::contract(IntervalVec *iv) {
+    rp::Box box( *list_->get_cell()->box );
     setIVIntoBox(box, *iv);
 //std::cout << std::endl << "extracted:" << std::endl << box << std::endl;
 
-    Solution sol = contractor_->contract(box);
+    rp::Solution sol = contractor_->contract(box);
     *iv = *getIVFromBox(box);
-    if (sol == Solution::no())
+    if (sol == rp::Solution::no())
         return Solver__Result::noSolution();
     else
         return Solver__Result::unknown();
 }
 
-sp<BoxCell> Solver__Core::extract() {
+rp::sp<rp::BoxCell> Solver__Core::extract() {
 
-    sp<BoxCell> cell = list_->get_cell();
+    rp::sp<rp::BoxCell> cell = list_->get_cell();
     list_->remove();
 
-    sp<Box> sbx = cell->box;
+    rp::sp<rp::Box> sbx = cell->box;
 //std::cout << std::endl << "extracted:" << std::endl << *sbx << std::endl;
 //std::cout << std::endl << "extracted:" << std::endl << sbx->width() << std::endl;
 //assert(sbx->width() <= w_bak);
@@ -255,7 +255,7 @@ sp<BoxCell> Solver__Core::extract() {
   
 #if SETDIFF_EXTRACT
 void Solver__Core::sd_prune_cheap(Box& sbx) {
-    Box::neighbor_list& neighbors = sbx.get_neighbors();
+    rp::Box::neighbor_list& neighbors = sbx.get_neighbors();
 //std::cout << "nbors: " << neighbors.size() << std::endl;
     
 # if PROJ_LOGGING
@@ -265,15 +265,15 @@ void Solver__Core::sd_prune_cheap(Box& sbx) {
     nl_length_count++;
 # endif
     
-    Box::neighbor_list::const_iterator it( neighbors.begin() );
+    rp::Box::neighbor_list::const_iterator it( neighbors.begin() );
     for (int c(0); it != neighbors.end(); ++it, ++c) {
 # if MANAGE_NEIGHBORS_VECTOR
-        if (Box::is_empty_cell(*it)) 
+        if (rp::Box::is_empty_cell(*it)) 
             //continue;
             calculateNext();
 # endif
       
-        Box& nbor(*it->first);
+        rp::Box& nbor(*it->first);
       
         if (nbor.is_solution)
 	        if (set_difference_cheap(sbx, nbor)) {
@@ -285,8 +285,8 @@ void Solver__Core::sd_prune_cheap(Box& sbx) {
 }
   
 void Solver__Core::sd_prune(BoxCell& cell) {
-    sp<Box> sbx = cell.box;
-    Box::neighbor_list& neighbors = sbx->get_neighbors();
+    rp::sp<rp::Box> sbx = cell.box;
+    rp::Box::neighbor_list& neighbors = sbx->get_neighbors();
 //std::cout << "nbors: " << neighbors.size() << std::endl;
     
 # if PROJ_LOGGING
@@ -296,26 +296,26 @@ void Solver__Core::sd_prune(BoxCell& cell) {
     nl_length_count++;
 # endif
 
-    Box::neighbor_list::const_iterator it( neighbors.begin() );
+    rp::Box::neighbor_list::const_iterator it( neighbors.begin() );
     for (int c(0); it != neighbors.end(); ++it, ++c) {
 #if MANAGE_NEIGHBORS_VECTOR
-        if (Box::is_empty_cell(*it)) continue;
+        if (rp::Box::is_empty_cell(*it)) continue;
 #endif
 
-        Box& neighbor(*it->first);
+        rp::Box& neighbor(*it->first);
 
         if (neighbor.is_solution) {
-            BoxVec bv( set_difference(*sbx, neighbor) );
+            rp::BoxVec bv( set_difference(*sbx, neighbor) );
 
             if (bv.empty()) { // included in the neighbor
                 sbx->set_empty();
             }
             else {
-                BoxVec::iterator bv_it( bv.begin() );
+                rp::BoxVec::iterator bv_it( bv.begin() );
                 cell.box = *bv_it; ++bv_it;
 
                 for (; bv_it != bv.end(); ++bv_it) {
-                    sp<BoxCell> c(new BoxCell(*bv_it, cell.split_select->clone(), cell.variable));
+                    rp::sp<rp::BoxCell> c(new rp::BoxCell(*bv_it, cell.split_select->clone(), cell.variable));
                     list_->insert(c);
                 }
                 sd_prune(cell);
@@ -328,14 +328,14 @@ void Solver__Core::sd_prune(BoxCell& cell) {
 #endif
 
 
-void Solver__Core::postProcess(const Solution& sol, sp<Box> sbx) {
+void Solver__Core::postProcess(const rp::Solution& sol, rp::sp<rp::Box> sbx) {
 
     ++nsol_;
     currentSol_ = sbx;
     list_->solution(sbx);
     
 #if SETDIFF_EXTRACT
-    if (sol == Solution::only()) {
+    if (sol == rp::Solution::only()) {
         sbx->is_solution = true;
         solutions.push_back(sbx);
     }
@@ -343,7 +343,7 @@ void Solver__Core::postProcess(const Solution& sol, sp<Box> sbx) {
     
 #if PROJ_LOGGING && (SETDIFF_EXTRACT || MANAGE_HIDDEN_NEIGHBORS)
     timer.stop();
-    if (sol == Solution::only()) {
+    if (sol == rp::Solution::only()) {
         //volume += sbx->volume(*v_scope);
         volume += calculate_volume1(*this, *sbx, *v_scope);
       
@@ -358,7 +358,7 @@ void Solver__Core::postProcess(const Solution& sol, sp<Box> sbx) {
   
 
 #if MANAGE_NEIGHBORS || MANAGE_HIDDEN_NEIGHBORS
-void Solver__Core::updateNeighbors(const Solution& sol, BoxCell& cell) {
+void Solver__Core::updateNeighbors(const rp::Solution& sol, rp::BoxCell& cell) {
 
 # if !SETDIFF_PROVED
 #   if MANAGE_HIDDEN_NEIGHBORS
@@ -372,12 +372,12 @@ void Solver__Core::updateNeighbors(const Solution& sol, BoxCell& cell) {
 
 # else // SETDIFF_PROVED
 
-    sp< Box > box(cell.box);
+    rp::sp< rp::Box > box(cell.box);
 //std::cout << "update: " << *box << ", " << (sol == Solution::only()) << std::endl;
 
-    Box::neighbor_list& neighbors = box->get_neighbors();
+    rp::Box::neighbor_list& neighbors = box->get_neighbors();
 //std::cout << neighbors.size() << std::endl;
-    Box::neighbor_list::iterator it( neighbors.begin() );
+    rp::Box::neighbor_list::iterator it( neighbors.begin() );
     for (; it != neighbors.end(); ) {
 //std::cout << std::endl << "bx:" << std::endl << *it->first << std::endl;
 
@@ -386,11 +386,11 @@ void Solver__Core::updateNeighbors(const Solution& sol, BoxCell& cell) {
             it = neighbors.erase(it);
         }
         else {
-            if (sol != Solution::only())
+            if (sol != rp::Solution::only())
                 ++it;
             else {
                 // compute set difference.
-                Box& neighbor(*it->first);
+                rp::Box& neighbor(*it->first);
 
                 neighbor.remove_neighbor(it->second);
                 it = neighbors.erase(it);
@@ -398,10 +398,10 @@ void Solver__Core::updateNeighbors(const Solution& sol, BoxCell& cell) {
 #   if SD_CHEAP
                 set_difference_cheap(neighbor, *box);
 #   else
-                BoxVec bv( set_difference(neighbor, *box) );
-                BoxVec::iterator bv_it( bv.begin() );
+                rp::BoxVec bv( set_difference(neighbor, *box) );
+                rp::BoxVec::iterator bv_it( bv.begin() );
                 for (; bv_it != bv.end(); ++bv_it) {
-                    sp<BoxCell> c(new BoxCell(*bv_it, cell.split_select->clone(), cell.variable));
+                    rp::sp<rp::BoxCell> c(new rp::BoxCell(*bv_it, cell.split_select->clone(), cell.variable));
                     list_->insert_before(neighbor, c);
                 }
                 list_->remove(neighbor);
