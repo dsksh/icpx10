@@ -1,80 +1,11 @@
-import x10.io.Console; 
 import x10.compiler.*;
 import x10.util.*;
+import x10.util.concurrent.AtomicBoolean;
+import x10.util.concurrent.AtomicInteger;
 import x10.io.*;
+import x10.io.Console; 
 
 public class Solver {
-/*    public static struct Interval {
-        public val left:Double;
-        public val right:Double;
-    
-        public def this(left:Double, right:Double) : Interval {
-            this.left = left;
-            this.right = right;
-        }
-
-        public def width() : Double {
-            return right - left;
-        }
-        
-        public def split() : Pair[Interval,Interval] {
-            val mid = (left+right)/2;
-            return new Pair(new Interval(left,mid), new Interval(mid,right));
-        }
-    
-        public def toString() : String {
-            return "[" + left+ ", " + right + "]";
-        }
-    }
-
-    public static class IntervalVec extends HashMap[String,Interval] { 
-        public var vit:Iterator[String] = null;
-
-        public def this() : IntervalVec { } 
-        public def this(lhs:IntervalVec) : IntervalVec { 
-            super(lhs.serialize()); 
-            this.vit = lhs.vit;
-        } 
-
-        public def split(variable:String) : Pair[IntervalVec,IntervalVec] {
-            val b1 = new IntervalVec(this); 
-            val b2 = new IntervalVec(this); 
-            val ip = get(variable).value.split();
-            b1.put(variable, ip.first);
-            b2.put(variable, ip.second);
-            return new Pair[IntervalVec,IntervalVec](b1,b2);
-        }
-
-        public def width() : Double {
-            var width:Double = 0.;
-            val it = entries().iterator();
-            while (it.hasNext()) {
-                val e = it.next();
-                val w = e.getValue().width();
-                if (w > width) width = w;
-            }
-            return width;
-        }
-    
-        public def toString() :String {
-            val sb:StringBuilder = new StringBuilder();
-            sb.add('{');
-            sb.add("\"plot\" : 3,\n");
-            val it:Iterator[String] = keySet().iterator();
-            var b:Boolean = false;
-            while (it.hasNext()) {
-                if (b) sb.add(",\n"); else b = true;
-                val n:String = it.next();
-                sb.add('"');
-                sb.add(n);
-                sb.add("\" : ");
-                sb.add(get(n));
-            }
-            sb.add('}');
-            return sb.result();
-        }
-    }
-*/
 
     public static struct Result {
         private val code:Int;
@@ -108,24 +39,28 @@ public class Solver {
     val list:List[IntervalVec];
     //val list:CircularQueue[IntervalVec];
     val solutions:List[Pair[Result,IntervalVec]];
-    val precision:Double;
+
+    public var nSols:AtomicInteger = new AtomicInteger(0);
+    public var nContracts:AtomicInteger = new AtomicInteger(0);
+    public var nSplits:AtomicInteger = new AtomicInteger(0);
+
     // kludge for a success of compilation
     val dummy:Double;
     val dummyI:Interval;
 
-    public def this(selector:(box:IntervalVec)=>String, filename:String, prec:Double) {
+    public def this(selector:(box:IntervalVec)=>String, filename:String) {
         core = new Core();
         core.initialize(filename);
         list = new ArrayList[IntervalVec]();
         if (here.id() == 0)
             list.add(core.getInitialDomain());
         solutions = new ArrayList[Pair[Result,IntervalVec]]();
-        precision = prec;
         dummy = 0;
         dummyI = new Interval(0.,0.);
         selectVariable = selector;
     }
-    public def this(selector:(box:IntervalVec)=>String, filename:String) { this(selector, filename, 1E-8); }
+
+    public def setup(sHandle:PlaceLocalHandle[Solver]) { }
 
     public def getSolutions() : List[Pair[Result,IntervalVec]] { return solutions; }
     
@@ -135,103 +70,27 @@ public class Solver {
    		Console.OUT.println(here + ": done");
     }
 
-    protected def isSplittable(box:IntervalVec) : Boolean {
-        return box.width() > precision;
-    }
-
     protected val selectVariable : (box:IntervalVec) => String;
 
-    public static def selectVariableTest(box:IntervalVec) : String {
-        return null;
-    }
-    
-/*    private var variableIt:Iterator[String] = null;
-    // (global) round-robin selector
-    public def selectVariable(box:IntervalVec) : String {
-        if (variableIt == null || !variableIt.hasNext()) variableIt = box.keySet().iterator();
-        val v0 = variableIt.next();
-        if (box(v0).value.width() > precision)
-            return v0;
-
-        // try rest of the vars.
-        while (variableIt.hasNext()) {
-            val v = variableIt.next();
-            if (box(v).value.width() > precision)
-                return v;
-        }
-
-        // try the preceding vars.
-        variableIt = box.keySet().iterator();
-        while (variableIt.hasNext()) {
-            val v = variableIt.next();
-            if (v == v0)
-                break;
-            if (box(v).value.width() > precision)
-                return v;
-        }
-
-        return null;
-    }
-    // (local) round-robin selector
-    public def selectVariableLRR(box:IntervalVec) : String {
-        if (box.vit == null || !box.vit.hasNext()) box.vit = box.keySet().iterator();
-        val v0 = box.vit.next();
-        if (box(v0).value.width() > precision)
-            return v0;
-
-        // try rest of the vars.
-        while (box.vit.hasNext()) {
-            val v = box.vit.next();
-            if (box(v).value.width() > precision)
-                return v;
-        }
-
-        // try the preceding vars.
-        box.vit = box.keySet().iterator();
-        while (box.vit.hasNext()) {
-            val v = box.vit.next();
-            if (v == v0)
-                break;
-            if (box(v).value.width() > precision)
-                return v;
-        }
-
-        return null;
-    }
-    // largest-first selector
-    public def selectVariableLF(box:IntervalVec) : String {
-        var variable:String = null;
-        var maxW:Double = precision;
-        val it = box.keySet().iterator();
-        while (it.hasNext()) {
-            val v = it.next();
-            val c = box(v).value;
-            if (c.width() > maxW) {
-                variable = v; 
-                maxW = c.width();
-            }
-        }
-        return variable;
-    }
-    */
-
     protected def search(box:IntervalVec) {
-	    //Console.OUT.println(here + ": search:\n" + box + '\n');
+	    Console.OUT.println(here + ": search:\n" + box + '\n');
 
         //val res:Result = core.contract(box);
         var res:Result = Result.unknown();
         atomic { res = core.contract(box); }
 
         if (!res.hasNoSolution()) {
-            if (isSplittable(box)) {
-                val v = selectVariable(box);
+            val v = selectVariable(box);
+            if (v != null) {
                 val bp = box.split(v);
+                nSplits.getAndIncrement();
                 async search(bp.first);
                 async search(bp.second);
             }
             else {
                 atomic solutions.add(new Pair[Result,IntervalVec](res, box));
                 atomic Console.OUT.println(here + ": solution:\n" + box + '\n');
+                nSols.getAndIncrement();
             }
         }
         //else Console.OUT.println(here + ": no solution");
@@ -247,9 +106,10 @@ public class Solver {
             atomic { res = core.contract(box); }
 
             if (!res.hasNoSolution()) {
-                if (isSplittable(box)) {
-                    val v = selectVariable(box);
+                val v = selectVariable(box);
+                if (v != null) {
                     val bp = box.split(v);
+                    nSplits.getAndIncrement();
                     atomic list.add(bp.first);
                     atomic list.add(bp.second);
                     search1();
@@ -257,6 +117,7 @@ public class Solver {
                 else {
                     atomic solutions.add(new Pair[Result,IntervalVec](res, box));
                     atomic Console.OUT.println(here + ": solution:\n" + box + '\n');
+                    nSols.getAndIncrement();
                 }
             }
             else
@@ -264,7 +125,8 @@ public class Solver {
         }
     }
 
-    public def solve() {
+    public def solve(sHandle:PlaceLocalHandle[Solver]) {
+    //public def solve() {
    		Console.OUT.println(here + ": start solving... ");
 
         // main solving process

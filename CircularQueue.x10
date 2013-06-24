@@ -44,6 +44,7 @@ public class CircularQueue[T]{T haszero} {
     * @return this
     */
 	public def addLast(t: T): CircularQueue[T] {
+//Console.OUT.println(here + ": capa: " + (next - first));
 	   when(next - first < maximumSize) {
 	      this.buffer(next++ % this.maximumSize) = t;
 	   }
@@ -57,6 +58,9 @@ public class CircularQueue[T]{T haszero} {
 	   when(first < next) {
 	      return this.buffer(first++ % this.maximumSize);
 	   }
+	}
+	public def removeFirstUnsafe(): T {
+       return this.buffer(first++ % this.maximumSize);
 	}
 	/** returns the number of elements in the queue */
 	public def getSize(): Int { atomic { return next -first; }}

@@ -11,9 +11,11 @@ public class RPX10 {
         // create a solver at each place
         val everyone = Dist.makeUnique();
         //val sHandle = PlaceLocalHandle.make[Solver](everyone, 
-        //        () => new Solver((box:IntervalVec)=>Solver.selectVariableTest(box), args(0)) );
-        val sHandle = PlaceLocalHandle.make[PipelineSolver](everyone, 
-            () => new PipelineSolver((box:IntervalVec)=>(new VariableSelector(1E-8)).selectLRR(box), args(0)) );
+        //        () => new Solver((box:IntervalVec)=>(new VariableSelector(1E-8)).selectLRR(box), args(0)) );
+        //val sHandle = PlaceLocalHandle.make[PipelineSolver](everyone, 
+        //    () => new PipelineSolver((box:IntervalVec)=>(new VariableSelector(1E-8)).selectLRR(box), args(0)) );
+        val sHandle = PlaceLocalHandle.make[ClusterDFSSolver](everyone, 
+            () => new ClusterDFSSolver((box:IntervalVec)=>(new VariableSelector(1E-2)).selectLF(box), args(0)) );
 
         val masterP = here;
 
@@ -39,7 +41,7 @@ public class RPX10 {
         Console.OUT.println();
         Console.OUT.println("time: " + format(time) + " s");
 
-/*        // sum up the # solutions at each place
+        // sum up the # solutions at each place
         val nSols = new GlobalRef(new Cell(0));
         Console.OUT.print("# sols:");
         for (p in Place.places()) at (p) {
@@ -50,6 +52,18 @@ public class RPX10 {
             }
         }
         Console.OUT.println(" = " + nSols().value);
+
+        // sum up the # contracts at each place
+        val nContracts = new GlobalRef(new Cell(0));
+        Console.OUT.print("# contracts:");
+        for (p in Place.places()) at (p) {
+            val v = sHandle().nContracts.get();
+            at (masterP) {
+                Console.OUT.print((p == here ? " " : " + ") + v);
+                nContracts().value += v;
+            }
+        }
+        Console.OUT.println(" = " + nContracts().value);
 
         // sum up the # splits at each place
         val nSplits = new GlobalRef(new Cell(0));
@@ -62,7 +76,6 @@ public class RPX10 {
             }
         }
         Console.OUT.println(" = " + nSplits().value);
-*/
     }
 }
 

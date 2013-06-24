@@ -42,24 +42,29 @@ public class VariableSelector {
     }
 
     // (local) round-robin selector
-    public def selectLRR(box:IntervalVec) : String {
-        if (box.vit == null || !box.vit.hasNext()) box.vit = box.keySet().iterator();
+    /*public def selectLRR(box:IntervalVec) : String {
+        if (box.vit == null || !box.vit.hasNext()) box.vit = box.keyIterator();
         val v0 = box.vit.next();
+Console.OUT.println(here + ": v0: " + v0);
         if (box(v0).value.width() > precision)
             return v0;
 
         // try rest of the vars.
         while (box.vit.hasNext()) {
             val v = box.vit.next();
+Console.OUT.println(here + ": v: " + v);
             if (box(v).value.width() > precision)
                 return v;
         }
 
         // try the preceding vars.
-        box.vit = box.keySet().iterator();
+        box.vit = box.keyIterator();
         while (box.vit.hasNext()) {
             val v = box.vit.next();
+Console.OUT.println(here + ": v: " + v);
             if (v == v0)
+                break;
+            if (v.equals(v0))
                 break;
             if (box(v).value.width() > precision)
                 return v;
@@ -67,6 +72,7 @@ public class VariableSelector {
 
         return null;
     }
+    */
 
     // largest-first selector
     public def selectLF(box:IntervalVec) : String {

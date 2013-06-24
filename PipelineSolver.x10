@@ -1,22 +1,15 @@
-import x10.io.Console; 
-import x10.compiler.*;
-import x10.util.*;
 import x10.io.*;
+import x10.io.Console; 
+import x10.util.*;
 import x10.util.concurrent.AtomicBoolean;
-import x10.util.concurrent.AtomicInteger;
 
 public class PipelineSolver extends Solver {
     //private var nProcs:AtomicInteger = new AtomicInteger(0);
-    public var nSols:AtomicInteger = new AtomicInteger(0);
-    public var nSplits:AtomicInteger = new AtomicInteger(0);
     private var request:AtomicBoolean = new AtomicBoolean(false);
     //private var finished:AtomicBoolean = new AtomicBoolean(false);
     private var finished:Boolean = false;
     //public var sHandle:PlaceLocalHandle[PipelineSolver];
 
-    public def this(selector:(box:IntervalVec)=>String, filename:String, prec:Double) {
-        super(selector, filename, prec);
-    }
     public def this(selector:(box:IntervalVec)=>String, filename:String) {
         super(selector, filename);
     }
@@ -57,7 +50,6 @@ public class PipelineSolver extends Solver {
 
         if (!res.hasNoSolution()) {
             val v = selectVariable(box);
-            //if (isSplittable(box)) {
             if (v != null) {
                 val bp = box.split(v); 
                 nSplits.getAndIncrement();
