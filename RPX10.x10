@@ -15,7 +15,7 @@ public class RPX10 {
         //val sHandle = PlaceLocalHandle.make[PipelineSolver](everyone, 
         //    () => new PipelineSolver((box:IntervalVec)=>(new VariableSelector(1E-8)).selectLRR(box), args(0)) );
         val sHandle = PlaceLocalHandle.make[ClusterDFSSolver](everyone, 
-            () => new ClusterDFSSolver((box:IntervalVec)=>(new VariableSelector(1E-2)).selectLF(box), args(0)) );
+            () => new ClusterDFSSolver((box:IntervalVec)=>(new VariableSelector(1E-8)).selectLRR(box), args(0)) );
 
         val masterP = here;
 

@@ -61,13 +61,13 @@ public class ClusterDFSSolver extends Solver {
                 var id:Int = -1;
                 atomic if (reqQueue.getSize() > 0) {
                     id = reqQueue.removeFirstUnsafe();
-Console.OUT.println(here + ": got id: " + id);
+//Console.OUT.println(here + ": got id: " + id);
                 }
                 if (id >= 0) {
                     at (Place(id)) {
                         atomic sHandle().list.add(bp.first);
                     }
-                    Console.OUT.println(here + ": responded to " + id);
+//Console.OUT.println(here + ": responded to " + id);
                     if (id < here.id()) sentBw.set(true);
                 }
                 else {
@@ -108,7 +108,7 @@ Console.OUT.println(here + ": got id: " + id);
             //val t = getAndResetTerminate();
             if (here.id() == 0) {
                 at (here.next()) atomic sHandle().terminate = 1;
-   		        Console.OUT.println(here + ": sent token to " + here.next());
+//Console.OUT.println(here + ": sent token to " + here.next());
             }
             //if (1 <= t && t <= 2) {
             //    val v = sentBw.getAndSet(true) ? 2 : t;
@@ -117,25 +117,24 @@ Console.OUT.println(here + ": got id: " + id);
             //}
 
             if (!sentRequest.getAndSet(true)) {
-       		    //Console.OUT.println(here + ": request box to " + here.prev());
                 val id = here.id();
                 at (selectPlace()) {
                     sHandle().reqQueue.addLast(id);
-       		        Console.OUT.println(here + ": requested from " + id);
+//Console.OUT.println(here + ": requested from " + id);
                 }
             }
 
-Console.OUT.println(here + ": wait...");
+//Console.OUT.println(here + ": wait...");
 
             when (!list.isEmpty() || terminate > 0) {
-   		        Console.OUT.println(here + ": activated");
+//Console.OUT.println(here + ": activated");
                 if (!list.isEmpty()) {
                     sentRequest.set(false);
-   		            Console.OUT.println(here + ": got box");
+//Console.OUT.println(here + ": got box");
                     return list.removeFirst();
                 }
                 else {
-Console.OUT.println(here + ": " + terminate);
+//Console.OUT.println(here + ": " + terminate);
 /*                    if (here.id() == 0 && terminate == 1 || terminate == 3) {
                         //at (here.next()) atomic sHandle().terminate = 3;
                         return null;
@@ -169,7 +168,7 @@ Console.OUT.println(here + ": " + terminate);
                 if (here.id() > 0 && 1 <= t && t <= 2) {
                     val v = sentBw.getAndSet(false) ? 2 : t;
                     at (here.next()) atomic sHandle().terminate = v;
-        	        Console.OUT.println(here + ": passed the token " + v + " to " + here.next());
+//Console.OUT.println(here + ": passed the token " + v + " to " + here.next());
                     continue; 
                 }
 

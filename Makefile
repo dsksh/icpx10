@@ -8,7 +8,7 @@ all: $(TARGET)
 ## NOTE: the C++ compiler must match the one configured for x10c++.
 CC          = g++
 BUILD       = ar rs    # for static libraries
-INCLUDES	= -I $(RP_HOME)/src
+INCLUDES	= -I$(RP_HOME)/src
 CFLAGS      = -g $(INCLUDES)
 #CFLAGS      = -O3 -arch i386 -arch x86_64
 #CFLAGS      = -g -Wall
@@ -25,7 +25,7 @@ X10_CPP_SOURCES = Solver__Core.cc Test__Stub.cc
 
 ## X10 STUFF ##
 X10CXX          = x10c++ -STATIC_CHECKS
-#X10CXX          += -O -NO_CHECKS
+X10CXX          += -O -NO_CHECKS
 X10CXX         += -report postcompile=1
 OUTDIR          = out_dir
 OUTDIR_REVERSE  = ..

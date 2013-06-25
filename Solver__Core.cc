@@ -10,7 +10,7 @@
 #include "realpaver"
 
 #include "Solver__Core.h"
-#include "x10/util/MyHashMap__KeyIterator.h"
+//#include "x10/util/MyHashMap__KeyIterator.h"
 
 using namespace std;
 //using namespace rp;
@@ -218,11 +218,13 @@ Solver__Result Solver__Core::contract(IntervalVec *iv) {
     setIVIntoBox(box, *iv);
 //std::cout << std::endl << "extracted:" << std::endl << box << std::endl;
     //x10::util::MyHashMap__KeyIterator<x10::lang::String*, Interval> *vit = iv->FMGL(vit);
+    x10::lang::String *pv = iv->FMGL(prevVar);
 
     rp::Solution sol = contractor_->contract(box);
     *iv = *getIVFromBox(box);
 
     //iv->FMGL(vit) = vit;
+    iv->FMGL(prevVar) = pv;
 
     if (sol == rp::Solution::no())
         return Solver__Result::noSolution();

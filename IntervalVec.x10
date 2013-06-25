@@ -4,11 +4,13 @@ import x10.util.*;
 public class IntervalVec extends HashMap[String,Interval] { 
     public var vit:Iterator[String] = null;
     //public var vit:MyHashMap.KeyIterator[String,Interval] = null;
+    public var prevVar:String = null;
 
     public def this() : IntervalVec { } 
     public def this(lhs:IntervalVec) : IntervalVec { 
         super(lhs.serialize()); 
         //this.vit = lhs.vit.clone(this); // TODO: this cannot be compiled
+        this.prevVar = lhs.prevVar;
     } 
 
     public def split(variable:String) : Pair[IntervalVec,IntervalVec] {

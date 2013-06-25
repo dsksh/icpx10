@@ -42,6 +42,46 @@ public class VariableSelector {
     }
 
     // (local) round-robin selector
+    public def selectLRR(box:IntervalVec) : String {
+        var it:Iterator[String] = box.keySet().iterator();
+
+        // find the previously selected var
+        while (box.prevVar != null && it.hasNext()) {
+            val v = it.next();
+            if (v.equals(box.prevVar))
+                break;
+        }
+
+        if (!it.hasNext()) it = box.keySet().iterator();
+        val v0 = it.next();
+        if (box(v0).value.width() > precision) {
+            box.prevVar = v0;
+            return v0;
+        }
+
+        // try rest of the vars.
+        while (it.hasNext()) {
+            val v = it.next();
+            if (box(v).value.width() > precision) {
+                box.prevVar = v;
+                return v;
+            }
+        }
+
+        // try the preceding vars.
+        it = box.keySet().iterator();
+        while (it.hasNext()) {
+            val v = it.next();
+            if (v.equals(v0))
+                break;
+            if (box(v).value.width() > precision) {
+                box.prevVar = v;
+                return v;
+            }
+        }
+
+        return null;
+    }
     /*public def selectLRR(box:IntervalVec) : String {
         if (box.vit == null || !box.vit.hasNext()) box.vit = box.keyIterator();
         val v0 = box.vit.next();
