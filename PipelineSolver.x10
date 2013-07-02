@@ -15,7 +15,7 @@ public class PipelineSolver extends Solver {
     }
 
     public def setup(sHandle:PlaceLocalHandle[PipelineSolver]) {
-        // split the initial domain (#P-1) times
+        /*// split the initial domain (#P-1) times
         for (i in 1..(Place.numPlaces()-1)) {
             val box:IntervalVec = list.removeFirst();
             val v = selectVariable(box);
@@ -35,6 +35,7 @@ public class PipelineSolver extends Solver {
                 }
             }
         }
+        */
     }
 
 
@@ -47,6 +48,7 @@ public class PipelineSolver extends Solver {
 
         var res:Result = Result.unknown();
         atomic { res = core.contract(box); }
+        nContracts.getAndIncrement();
 
         if (!res.hasNoSolution()) {
             val v = selectVariable(box);
@@ -59,6 +61,7 @@ public class PipelineSolver extends Solver {
                     at (here.next()) {
                         atomic sHandle().list.add(bp.first);
                     }
+                    nSends.getAndIncrement();
                 }
                 else {
                     //nProcs.getAndIncrement();

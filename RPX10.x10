@@ -55,27 +55,43 @@ public class RPX10 {
 
         // sum up the # contracts at each place
         val nContracts = new GlobalRef(new Cell(0));
-        Console.OUT.print("# contracts:");
+        val nSplits = new GlobalRef(new Cell(0));
+        val nReqs = new GlobalRef(new Cell(0));
+        val nSends = new GlobalRef(new Cell(0));
+        val cContracts = new Cell[String]("# contracts:"); val gContracts = GlobalRef[Cell[String]](cContracts);
+        val cSplits = new Cell[String]("# splits:"); val gSplits = GlobalRef[Cell[String]](cSplits);
+        val cReqs = new Cell[String]("# reqs:"); val gReqs = GlobalRef[Cell[String]](cReqs);
+        val cSends = new Cell[String]("# sends:"); val gSends = GlobalRef[Cell[String]](cSends);
         for (p in Place.places()) at (p) {
-            val v = sHandle().nContracts.get();
-            at (masterP) {
+            val vContacts = sHandle().nContracts.get();
+            val vSplits = sHandle().nSplits.get();
+            val vReqs = sHandle().nReqs.get();
+            val vSends = sHandle().nSends.get();
+            /*at (masterP) {
                 Console.OUT.print((p == here ? " " : " + ") + v);
                 nContracts().value += v;
+            }*/
+            at (gContracts.home) {
+                gContracts().set(gContracts()() + (p == here ? " " : " + ") + vContacts);
+                nContracts().value += vContacts;
+            }
+            at (gSplits.home) {
+                gSplits().set(gSplits()() + (p == here ? " " : " + ") + vSplits);
+                nSplits().value += vSplits;
+            }
+            at (gReqs.home) {
+                gReqs().set(gReqs()() + (p == here ? " " : " + ") + vReqs);
+                nReqs().value += vReqs;
+            }
+            at (gSends.home) {
+                gSends().set(gSends()() + (p == here ? " " : " + ") + vSends);
+                nSends().value += vSends;
             }
         }
-        Console.OUT.println(" = " + nContracts().value);
-
-        // sum up the # splits at each place
-        val nSplits = new GlobalRef(new Cell(0));
-        Console.OUT.print("# splits:");
-        for (p in Place.places()) at (p) {
-            val v = sHandle().nSplits.get();
-            at (masterP) {
-                Console.OUT.print((p == here ? " " : " + ") + v);
-                nSplits().value += v;
-            }
-        }
-        Console.OUT.println(" = " + nSplits().value);
+        Console.OUT.println(cContracts() + " = " + nContracts().value);
+        Console.OUT.println(cSplits() + " = " + nSplits().value);
+        Console.OUT.println(cReqs() + " = " + nReqs().value);
+        Console.OUT.println(cSends() + " = " + nSends().value);
     }
 }
 

@@ -53,12 +53,28 @@ public class ClusterDFSSolver extends Solver {
         nContracts.getAndIncrement();
 
         if (!res.hasNoSolution()) {
+
+            var id:Int = -1;
+            atomic if (reqQueue.getSize() > 0) {
+                id = reqQueue.removeFirstUnsafe();
+//Console.OUT.println(here + ": got id: " + id);
+            }
+            if (id >= 0) {
+                at (Place(id)) {
+                    atomic sHandle().list.add(box);
+                }
+//Console.OUT.println(here + ": responded to " + id);
+                if (id < here.id()) sentBw.set(true);
+                nSends.getAndIncrement();
+                return;
+            }
+
             val v = selectVariable(box);
             if (v != null) {
                 val bp = box.split(v); 
                 nSplits.getAndIncrement();
                 
-                var id:Int = -1;
+                /*var id:Int = -1;
                 atomic if (reqQueue.getSize() > 0) {
                     id = reqQueue.removeFirstUnsafe();
 //Console.OUT.println(here + ": got id: " + id);
@@ -69,12 +85,16 @@ public class ClusterDFSSolver extends Solver {
                     }
 //Console.OUT.println(here + ": responded to " + id);
                     if (id < here.id()) sentBw.set(true);
+                    nSends.getAndIncrement();
                 }
                 else {
                     async search(sHandle, bp.first);
-                }
+                }*/
+                async 
+                search(sHandle, bp.first);
 
-                async search(sHandle, bp.second);
+                async 
+                search(sHandle, bp.second);
             }
             else {
                 atomic solutions.add(new Pair[Result,IntervalVec](res, box));
@@ -85,14 +105,20 @@ public class ClusterDFSSolver extends Solver {
         //else Console.OUT.println("no solution");
     }
 
+    var pl:Place = here;
     protected def selectPlace() : Place {
-        var id:Int;
+        /*var id:Int;
         do {
-            id = random.nextInt(Place.numPlaces());
-        } while (Place.numPlaces() > 1 && id == here.id());
-
+            //id = random.nextInt(Place.numPlaces());
+        } while (Place.numPlaces() > 1 && (id == here.id()));
 
         return Place(id);
+        */
+
+        do pl = pl.next(); while (Place.numPlaces() > 1 && pl == here);
+        return pl;
+
+        //return here.prev();
     }
 
     protected atomic def getAndResetTerminate() : Int {
@@ -117,23 +143,44 @@ public class ClusterDFSSolver extends Solver {
             //}
 
             if (!sentRequest.getAndSet(true)) {
+            //val srG = GlobalRef[AtomicBoolean](sentRequest);
+            //while (!sentRequest.get()) {
                 val id = here.id();
                 at (selectPlace()) {
+                    //if (sHandle().reqQueue.getSize() == 0) {
                     sHandle().reqQueue.addLast(id);
 //Console.OUT.println(here + ": requested from " + id);
+                    //at (srG.home) { srG().set(true); }
+                    //}
+                }
+                nReqs.getAndIncrement();
+            }
+
+/*            while (true) {
+                var id:Int = -1;
+                atomic if (reqQueue.getSize() > 0) 
+                    id = reqQueue.removeFirstUnsafe();
+                if (id == -1) break;           
+                else {
+Console.OUT.println(here + ": resend " + id);
+                    at (selectPlace()) {
+                        sHandle().reqQueue.addLast(id);
+                    }
                 }
             }
+*/
 
 //Console.OUT.println(here + ": wait...");
 
-            when (!list.isEmpty() || terminate > 0) {
+            when (!list.isEmpty() || terminate > 0 /*|| reqQueue.getSize() > 0*/) {
+            //when (!list.isEmpty() || terminate > 0) {
 //Console.OUT.println(here + ": activated");
                 if (!list.isEmpty()) {
                     sentRequest.set(false);
 //Console.OUT.println(here + ": got box");
                     return list.removeFirst();
                 }
-                else {
+                else if (terminate > 0) {
 //Console.OUT.println(here + ": " + terminate);
 /*                    if (here.id() == 0 && terminate == 1 || terminate == 3) {
                         //at (here.next()) atomic sHandle().terminate = 3;
@@ -146,6 +193,9 @@ public class ClusterDFSSolver extends Solver {
                     }
                     */
                     return null;
+                }
+                else {
+                    return getNextBox(sHandle);
                 }
             }
         }

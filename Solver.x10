@@ -43,6 +43,8 @@ public class Solver {
     public var nSols:AtomicInteger = new AtomicInteger(0);
     public var nContracts:AtomicInteger = new AtomicInteger(0);
     public var nSplits:AtomicInteger = new AtomicInteger(0);
+    public var nReqs:AtomicInteger = new AtomicInteger(0);
+    public var nSends:AtomicInteger = new AtomicInteger(0);
 
     // kludge for a success of compilation
     val dummy:Double;
