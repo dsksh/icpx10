@@ -4,7 +4,7 @@ import x10.util.*;
 import x10.util.concurrent.AtomicBoolean;
 import x10.util.concurrent.AtomicInteger;
 
-public class ClusterDFSSolver extends Solver {
+public class ClusterDFSSolver[K] extends Solver[K] {
     //private var nProcs:AtomicInteger = new AtomicInteger(0);
     private val reqQueue:CircularQueue[Int];
     private var sentRequest:AtomicBoolean = new AtomicBoolean(false);
@@ -12,20 +12,20 @@ public class ClusterDFSSolver extends Solver {
     //private var finished:AtomicBoolean = new AtomicBoolean(false);
     private var finished:Boolean = false;
     private var sentBw:AtomicBoolean = new AtomicBoolean(false);
-    //public var sHandle:PlaceLocalHandle[ClusterDFSSolver];
+    //public var sHandle:PlaceLocalHandle[ClusterDFSSolver[K];
     private random:Random;
 
-    public def this(selector:(box:IntervalVec)=>String, filename:String) {
-        super(selector, filename);
+    public def this(core:Core[K], selector:(box:IntervalVec[K])=>Box[K], filename:String) {
+        super(core, selector, filename);
         reqQueue = new CircularQueue[Int](2*Place.numPlaces()+10);
         random = new Random();
     }
 
-    public def setup(sHandle:PlaceLocalHandle[ClusterDFSSolver]) {
+    public def setup(sHandle:PlaceLocalHandle[ClusterDFSSolver[K]]) {
         // split the initial domain (#P-1) times
         for (i in 1..(Place.numPlaces()-1)) {
-            val box:IntervalVec = list.removeFirst();
-            val v = selectVariable(box);
+            val box:IntervalVec[K] = list.removeFirst();
+            val v = selectVariable(box)();
             val bp = box.split(v);
             nSplits.getAndIncrement();
             list.add(bp.first);
@@ -36,7 +36,7 @@ public class ClusterDFSSolver extends Solver {
         //finish for (p in Place.places()) async {
         for (p in Place.places()) {
             if (p != here) {
-                val box:IntervalVec = list.removeFirst();
+                val box:IntervalVec[K] = list.removeFirst();
                 at (p) {
                     sHandle().list.add(box);
                 }
@@ -45,7 +45,7 @@ public class ClusterDFSSolver extends Solver {
     }
 
 
-    protected def search(sHandle:PlaceLocalHandle[ClusterDFSSolver], box:IntervalVec) {
+    protected def search(sHandle:PlaceLocalHandle[ClusterDFSSolver[K]], box:IntervalVec[K]) {
 //Console.OUT.println(here + ": search:\n" + box + '\n');
 
         var res:Result = Result.unknown();
@@ -71,7 +71,7 @@ public class ClusterDFSSolver extends Solver {
 
             val v = selectVariable(box);
             if (v != null) {
-                val bp = box.split(v); 
+                val bp = box.split(v()); 
                 nSplits.getAndIncrement();
                 
                 /*var id:Int = -1;
@@ -97,7 +97,7 @@ public class ClusterDFSSolver extends Solver {
                 search(sHandle, bp.second);
             }
             else {
-                atomic solutions.add(new Pair[Result,IntervalVec](res, box));
+                atomic solutions.add(new Pair[Result,IntervalVec[K]](res, box));
                 Console.OUT.println(here + ": solution:\n" + box + '\n');
                 nSols.getAndIncrement();
             }
@@ -105,7 +105,7 @@ public class ClusterDFSSolver extends Solver {
         //else Console.OUT.println("no solution");
     }
 
-    var pl:Place = here;
+    var selected:Place = here;
     protected def selectPlace() : Place {
         /*var id:Int;
         do {
@@ -115,8 +115,8 @@ public class ClusterDFSSolver extends Solver {
         return Place(id);
         */
 
-        do pl = pl.next(); while (Place.numPlaces() > 1 && pl == here);
-        return pl;
+        do selected = selected.next(); while (Place.numPlaces() > 1 && selected == here);
+        return selected;
 
         //return here.prev();
     }
@@ -127,7 +127,7 @@ public class ClusterDFSSolver extends Solver {
         return t;
     }
 
-    protected def getNextBox(sHandle:PlaceLocalHandle[ClusterDFSSolver]) : IntervalVec {
+    protected def getNextBox(sHandle:PlaceLocalHandle[ClusterDFSSolver[K]]) : IntervalVec[K] {
         if (!list.isEmpty())
             return list.removeFirst();
         else {
@@ -136,11 +136,6 @@ public class ClusterDFSSolver extends Solver {
                 at (here.next()) atomic sHandle().terminate = 1;
 //Console.OUT.println(here + ": sent token to " + here.next());
             }
-            //if (1 <= t && t <= 2) {
-            //    val v = sentBw.getAndSet(true) ? 2 : t;
-   		    //    Console.OUT.println(here + ": passed the token " + v + " to " + here.next());
-            //    at (here.next()) sHandle().terminate = v;
-            //}
 
             if (!sentRequest.getAndSet(true)) {
             //val srG = GlobalRef[AtomicBoolean](sentRequest);
@@ -201,11 +196,11 @@ Console.OUT.println(here + ": resend " + id);
         }
     }
 
-    public def solve(sHandle:PlaceLocalHandle[ClusterDFSSolver]) {
+    public def solve(sHandle:PlaceLocalHandle[ClusterDFSSolver[K]]) {
    		Console.OUT.println(here + ": start solving... ");
 
         while (true) {
-            val box:IntervalVec = getNextBox(sHandle);
+            val box:IntervalVec[K] = getNextBox(sHandle);
             if (box != null) {
                 //nProcs.getAndIncrement();
                 finish search(sHandle, box);

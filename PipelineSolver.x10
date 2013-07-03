@@ -3,21 +3,21 @@ import x10.io.Console;
 import x10.util.*;
 import x10.util.concurrent.AtomicBoolean;
 
-public class PipelineSolver extends Solver {
+public class PipelineSolver[K] extends Solver[K] {
     //private var nProcs:AtomicInteger = new AtomicInteger(0);
     private var request:AtomicBoolean = new AtomicBoolean(false);
     //private var finished:AtomicBoolean = new AtomicBoolean(false);
     private var finished:Boolean = false;
-    //public var sHandle:PlaceLocalHandle[PipelineSolver];
+    //public var sHandle:PlaceLocalHandle[PipelineSolver[K]];
 
-    public def this(selector:(box:IntervalVec)=>String, filename:String) {
+    public def this(selector:(box:IntervalVec[K])=>Box[K], filename:String) {
         super(selector, filename);
     }
 
-    public def setup(sHandle:PlaceLocalHandle[PipelineSolver]) {
+    public def setup(sHandle:PlaceLocalHandle[PipelineSolver[K]]) {
         /*// split the initial domain (#P-1) times
         for (i in 1..(Place.numPlaces()-1)) {
-            val box:IntervalVec = list.removeFirst();
+            val box:IntervalVec[K] = list.removeFirst();
             val v = selectVariable(box);
             val bp = box.split(v);
             nSplits.getAndIncrement();
@@ -29,7 +29,7 @@ public class PipelineSolver extends Solver {
         //finish for (p in Place.places()) async {
         for (p in Place.places()) {
             if (p != here) {
-                val box:IntervalVec = list.removeFirst();
+                val box:IntervalVec[K] = list.removeFirst();
                 at (p) {
                     sHandle().list.add(box);
                 }
@@ -39,8 +39,8 @@ public class PipelineSolver extends Solver {
     }
 
 
-    protected def search(sHandle:PlaceLocalHandle[PipelineSolver], box:IntervalVec) {
-    //protected def search(box:IntervalVec) {
+    protected def search(sHandle:PlaceLocalHandle[PipelineSolver[K]], box:IntervalVec[K]) {
+    //protected def search(box:IntervalVec[K]) {
         //nProcs.getAndIncrement();
         //Console.OUT.println(here + ": nProcs: " + nProcs);
 
@@ -72,7 +72,7 @@ public class PipelineSolver extends Solver {
                 async search(sHandle, bp.second);
             }
             else {
-                atomic solutions.add(new Pair[Result,IntervalVec](res, box));
+                atomic solutions.add(new Pair[Result,IntervalVec[K]](res, box));
                 Console.OUT.println(here + ": solution:\n" + box + '\n');
                 nSols.getAndIncrement();
             }
@@ -82,7 +82,7 @@ public class PipelineSolver extends Solver {
         //nProcs.getAndDecrement();
     }
 
-    protected def getNextBox(sHandle:PlaceLocalHandle[PipelineSolver]) : IntervalVec {
+    protected def getNextBox(sHandle:PlaceLocalHandle[PipelineSolver[K]]) : IntervalVec[K] {
         if (!list.isEmpty())
             return list.removeFirst();
         else if (here.id() == 0) {
@@ -121,14 +121,14 @@ public class PipelineSolver extends Solver {
         }
     }
 
-    public def solve(sHandle:PlaceLocalHandle[PipelineSolver]) {
+    public def solve(sHandle:PlaceLocalHandle[PipelineSolver[K]]) {
     //public def solve() {
    		Console.OUT.println(here + ": start solving... ");
 
         //while (!finished.get()) {
         //while (!finished) {
         finish while (true) {
-            val box:IntervalVec = getNextBox(sHandle);
+            val box:IntervalVec[K] = getNextBox(sHandle);
             if (box != null) {
                 //nProcs.getAndIncrement();
                 search(sHandle, box);

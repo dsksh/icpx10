@@ -1,5 +1,5 @@
-#ifndef SOLVER__CORE_H 
-#define SOLVER__CORE_H 
+#ifndef RPX10__COREIMAP_H
+#define RPX10__COREIMAP_H
 
 //#include <x10aux/config.h>
 //#include <x10aux/RTT.h>
@@ -29,16 +29,16 @@
 #include "IntervalVec.h"
 #include "IntervalMap.h"
 #include "Solver__Result.h"
-#include "Solver__CoreI.h"
+#include "Solver__Core.h"
 
-class Solver__Core : public x10::lang::X10Class {
+class RPX10__CoreIMap : public x10::lang::X10Class {
 public:
     RTT_H_DECLS_CLASS
 
     static x10aux::itable_entry _itables[3];
-    virtual x10aux::itable_entry* _getITables() { return Solver__Core::_itables; }
-    static Solver__CoreI<x10::lang::String*>::itable<Solver__Core> _itable_0;
-    static x10::lang::Any::itable<Solver__Core> _itable_1;
+    virtual x10aux::itable_entry* _getITables() { return RPX10__CoreIMap::_itables; }
+    static Solver__Core<x10::lang::String*>::itable<RPX10__CoreIMap> _itable_0;
+    static x10::lang::Any::itable<RPX10__CoreIMap> _itable_1;
 
     // X10 serialization requires these functions be stubbed out.
     // We never intend to serialize instances of SatX10_Solver or
@@ -51,7 +51,7 @@ public:
 	//Solver__Core() {}
 	//~Solver__Core() {}
 
-    static Solver__Core* _make();
+    static RPX10__CoreIMap* _make();
 
 	virtual void initialize(x10::lang::String *);
 
@@ -118,13 +118,4 @@ private:
 	rp::sp<rp::Box> currentSol_;
 };
 
-#endif // SOLVER__CORE_H 
-
-class Solver__Core;
-
-#ifndef SOLVER__CORE_H_NODEPS
-#define SOLVER__CORE_H_NODEPS
-#ifndef SOLVER__CORE_H_GENERICS
-#define SOLVER__CORE_H_GENERICS
-#endif // SOLVER__CORE_H_GENERICS
-#endif // __SOLVER__CORE_H_NODEPS
+#endif // RPX10__COREIMAP_H

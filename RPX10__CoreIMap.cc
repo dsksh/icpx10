@@ -9,19 +9,18 @@
 #endif
 #include "realpaver"
 
-#include "Solver__Core.h"
-//#include "x10/util/MyHashMap__KeyIterator.h"
+#include "RPX10__CoreIMap.h"
 
 using namespace std;
 //using namespace rp;
 
-RTT_CC_DECLS0(Solver__Core, "Solver.Core", x10aux::RuntimeType::class_kind)
+RTT_CC_DECLS0(RPX10__CoreIMap, "RPX10.CoreIMap", x10aux::RuntimeType::class_kind)
     
-Solver__Core *Solver__Core::_make() {
-	return new Solver__Core();
+RPX10__CoreIMap *RPX10__CoreIMap::_make() {
+	return new RPX10__CoreIMap();
 }
 
-void Solver__Core::initialize(x10::lang::String *filename) {
+void RPX10__CoreIMap::initialize(x10::lang::String *filename) {
 	//string filename(problem->filename()->c_str());
     rp::Parser parser(filename->c_str());
 	//Timer tim;
@@ -133,8 +132,8 @@ void setBoxIntoIV(rp::Box& box, IntervalVec<x10::lang::String *>& iv) {
     }
 }
 
-//IntervalVec<x10::lang::String> *Solver__Core::getInitialDomain() {
-IntervalVec<x10::lang::String *> *Solver__Core::getInitialDomain() {
+//IntervalVec<x10::lang::String> *RPX10__CoreIMap::getInitialDomain() {
+IntervalVec<x10::lang::String *> *RPX10__CoreIMap::getInitialDomain() {
     /*Solver__IntervalVec *iv = Solver__IntervalVec::_make();
 
     sp<Box> sbx = list_->get_cell()->box;
@@ -152,7 +151,7 @@ IntervalVec<x10::lang::String *> *Solver__Core::getInitialDomain() {
     return getIVFromBox(*sbx);
 }
 
-x10_int Solver__Core::solve() {
+x10_int RPX10__CoreIMap::solve() {
     // solving
     //tim.restart();
     rp::Solution s;
@@ -175,7 +174,7 @@ x10_int Solver__Core::solve() {
 }
 
 
-rp::Solution Solver__Core::calculateNext() {
+rp::Solution RPX10__CoreIMap::calculateNext() {
     //list_->update();
     //while (!list_->empty()) {
         rp::sp< rp::BoxCell > cell = extract();
@@ -227,7 +226,7 @@ rp::Solution Solver__Core::calculateNext() {
         }
 }
 
-Solver__Result Solver__Core::contract(IntervalVec<x10::lang::String *> *iv) {
+Solver__Result RPX10__CoreIMap::contract(IntervalVec<x10::lang::String *> *iv) {
     rp::Box box( *list_->get_cell()->box );
     setIVIntoBox(*iv, box);
 //std::cout << std::endl << "extracted:" << std::endl << box << std::endl;
@@ -249,7 +248,7 @@ Solver__Result Solver__Core::contract(IntervalVec<x10::lang::String *> *iv) {
         return Solver__Result::unknown();
 }
 
-rp::sp<rp::BoxCell> Solver__Core::extract() {
+rp::sp<rp::BoxCell> RPX10__CoreIMap::extract() {
 
     rp::sp<rp::BoxCell> cell = list_->get_cell();
     list_->remove();
@@ -278,7 +277,7 @@ rp::sp<rp::BoxCell> Solver__Core::extract() {
 }
   
 #if SETDIFF_EXTRACT
-void Solver__Core::sd_prune_cheap(Box& sbx) {
+void RPX10__CoreIMap::sd_prune_cheap(Box& sbx) {
     rp::Box::neighbor_list& neighbors = sbx.get_neighbors();
 //std::cout << "nbors: " << neighbors.size() << std::endl;
     
@@ -308,7 +307,7 @@ void Solver__Core::sd_prune_cheap(Box& sbx) {
     }
 }
   
-void Solver__Core::sd_prune(BoxCell& cell) {
+void RPX10__CoreIMap::sd_prune(BoxCell& cell) {
     rp::sp<rp::Box> sbx = cell.box;
     rp::Box::neighbor_list& neighbors = sbx->get_neighbors();
 //std::cout << "nbors: " << neighbors.size() << std::endl;
@@ -352,7 +351,7 @@ void Solver__Core::sd_prune(BoxCell& cell) {
 #endif
 
 
-void Solver__Core::postProcess(const rp::Solution& sol, rp::sp<rp::Box> sbx) {
+void RPX10__CoreIMap::postProcess(const rp::Solution& sol, rp::sp<rp::Box> sbx) {
 
     ++nsol_;
     currentSol_ = sbx;
@@ -382,7 +381,7 @@ void Solver__Core::postProcess(const rp::Solution& sol, rp::sp<rp::Box> sbx) {
   
 
 #if MANAGE_NEIGHBORS || MANAGE_HIDDEN_NEIGHBORS
-void Solver__Core::updateNeighbors(const rp::Solution& sol, rp::BoxCell& cell) {
+void RPX10__CoreIMap::updateNeighbors(const rp::Solution& sol, rp::BoxCell& cell) {
 
 # if !SETDIFF_PROVED
 #   if MANAGE_HIDDEN_NEIGHBORS
@@ -437,25 +436,25 @@ void Solver__Core::updateNeighbors(const rp::Solution& sol, rp::BoxCell& cell) {
 }
 #endif
 
-Solver__CoreI<x10::lang::String*>::itable<Solver__Core>  Solver__Core::_itable_0(
-        &Solver__Core::contract, 
-        &Solver__Core::equals, 
-        &Solver__Core::getInitialDomain, 
-        &Solver__Core::hashCode, 
-        &Solver__Core::initialize, 
-        &Solver__Core::solve, 
-        &Solver__Core::toString, 
-        &Solver__Core::typeName );
+Solver__Core<x10::lang::String*>::itable<RPX10__CoreIMap>  RPX10__CoreIMap::_itable_0(
+        &RPX10__CoreIMap::contract, 
+        &RPX10__CoreIMap::equals, 
+        &RPX10__CoreIMap::getInitialDomain, 
+        &RPX10__CoreIMap::hashCode, 
+        &RPX10__CoreIMap::initialize, 
+        &RPX10__CoreIMap::solve, 
+        &RPX10__CoreIMap::toString, 
+        &RPX10__CoreIMap::typeName );
 
-x10::lang::Any::itable<Solver__Core>  Solver__Core::_itable_1(
-        &Solver__Core::equals, 
-        &Solver__Core::hashCode, 
-        &Solver__Core::toString, 
-        &Solver__Core::typeName );
+x10::lang::Any::itable<RPX10__CoreIMap>  RPX10__CoreIMap::_itable_1(
+        &RPX10__CoreIMap::equals, 
+        &RPX10__CoreIMap::hashCode, 
+        &RPX10__CoreIMap::toString, 
+        &RPX10__CoreIMap::typeName );
 
-x10aux::itable_entry Solver__Core::_itables[3] = 
-    {x10aux::itable_entry(&x10aux::getRTT<Solver__CoreI<x10::lang::String*> >, &_itable_0), 
+x10aux::itable_entry RPX10__CoreIMap::_itables[3] = 
+    {x10aux::itable_entry(&x10aux::getRTT<Solver__Core<x10::lang::String*> >, &_itable_0), 
      x10aux::itable_entry(&x10aux::getRTT<x10::lang::Any>, &_itable_1), 
-     x10aux::itable_entry(NULL, (void*)x10aux::getRTT<Solver__Core>()) };
+     x10aux::itable_entry(NULL, (void*)x10aux::getRTT<RPX10__CoreIMap>()) };
 
 // vim: shiftwidth=4:tabstop=4:softtabstop=0:expandtab

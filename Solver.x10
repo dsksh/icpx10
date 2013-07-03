@@ -5,40 +5,61 @@ import x10.util.concurrent.AtomicInteger;
 import x10.io.*;
 import x10.io.Console; 
 
-public class Solver {
+public class Solver[K] {
 
     public static struct Result {
         private val code:Int;
-        private def this(code:Int) : Result { this.code = code; }
+        private def this(code:Int) : Result { 
+            this.code = code; 
+        }
         public static def noSolution() : Result { return new Result(1); }
         public static def unknown()    : Result { return new Result(0); }
         public static def verified()   : Result { return new Result(2); }
         public def hasNoSolution() : Boolean { return code == 1; }
     }
 
-    @NativeRep("c++", "Solver__Core *", "Solver__Core", null)
-    @NativeCPPOutputFile("Solver__Core.h")
-    @NativeCPPCompilationUnit("Solver__Core.cc")
-    static class Core {
-        public def this() :Core {}
-        @Native("c++", "(#0)->initialize((#1))")
-        public def initialize(filename:String) :void {};
-        @Native("c++", "(#0)->getInitialDomain()")
-        public def getInitialDomain() :IntervalVec { 
-            return new IntervalVec(); 
-        };
-        @Native("c++", "(#0)->solve()")
-        public def solve():int = 0;
-        @Native("c++", "(#0)->calculateNext()")
-        public def calculateNext():int = 0;
-        @Native("c++", "(#0)->contract((#1))")
-        public atomic def contract(box:IntervalVec):Result { return Result.unknown(); };
+    public static interface Core[K] {
+        public def initialize(filename:String) : void;
+        public def getInitialDomain() :IntervalVec[K];
+        public def solve() : int;
+        //public def calculateNext() : int;
+        public atomic def contract(box:IntervalVec[K]) : Result;
     } 
 
-    val core:Core;
-    val list:List[IntervalVec];
-    //val list:CircularQueue[IntervalVec];
-    val solutions:List[Pair[Result,IntervalVec]];
+    /*@NativeRep("c++", "Solver__Core *", "Solver__Core", null)
+    @NativeCPPOutputFile("Solver__Core.h")
+    @NativeCPPCompilationUnit("Solver__Core.cc")
+    static class Core implements CoreI[String] {
+        public def this() : Core {}
+        @Native("c++", "(#0)->initialize((#1))")
+        public def initialize(filename:String) : void {};
+        @Native("c++", "(#0)->getInitialDomain()")
+        public def getInitialDomain() : IntervalMap { 
+            return new IntervalMap(); 
+        };
+        @Native("c++", "(#0)->solve()")
+        public def solve() : int = 0;
+        //@Native("c++", "(#0)->calculateNext()")
+        //public def calculateNext() : int = 0;
+
+        @Native("c++", "(#0)->contract((#1))")
+        public def contract(box:IntervalVec[String]) : Result { return Result.unknown(); };
+    }*/
+    /*static class Core implements CoreI[String] {
+        public def this() : Core {}
+        public def initialize(filename:String) : void {};
+        public def getInitialDomain() : IntervalMap { 
+            return new IntervalMap(); 
+        };
+        public def solve() : int = 0;
+
+        public def contract(box:IntervalVec[String]) : Result { return Result.unknown(); };
+    }*/
+
+    val core:Core[K];
+    val list:List[IntervalVec[K]];
+    //val list:CircularQueue[IntervalVec[K]];
+    val solutions:List[Pair[Result,IntervalVec[K]]];
 
     public var nSols:AtomicInteger = new AtomicInteger(0);
     public var nContracts:AtomicInteger = new AtomicInteger(0);
@@ -50,31 +71,33 @@ public class Solver {
     val dummy:Double;
     val dummyI:Interval;
 
-    public def this(selector:(box:IntervalVec)=>String, filename:String) {
-        core = new Core();
+    public def this(core:Core[K], selector:(box:IntervalVec[K])=>Box[K], filename:String) {
+        this.core = core;
         core.initialize(filename);
-        list = new ArrayList[IntervalVec]();
+        selectVariable = selector;
+
+        list = new ArrayList[IntervalVec[K]]();
         if (here.id() == 0)
             list.add(core.getInitialDomain());
-        solutions = new ArrayList[Pair[Result,IntervalVec]]();
+        solutions = new ArrayList[Pair[Result,IntervalVec[K]]]();
+
         dummy = 0;
         dummyI = new Interval(0.,0.);
-        selectVariable = selector;
     }
 
-    public def setup(sHandle:PlaceLocalHandle[Solver]) { }
+    public def setup(sHandle:PlaceLocalHandle[Solver[K]]) { }
 
-    public def getSolutions() : List[Pair[Result,IntervalVec]] { return solutions; }
+    public def getSolutions() : List[Pair[Result,IntervalVec[K]]] { return solutions; }
     
+    protected val selectVariable : (box:IntervalVec[K]) => Box[K];
+
     public def solve0() {
    		Console.OUT.println(here + ": start solving... ");
         core.solve();
    		Console.OUT.println(here + ": done");
     }
 
-    protected val selectVariable : (box:IntervalVec) => String;
-
-    protected def search(box:IntervalVec) {
+    protected def search(box:IntervalVec[K]) {
 	    Console.OUT.println(here + ": search:\n" + box + '\n');
 
         //val res:Result = core.contract(box);
@@ -84,13 +107,13 @@ public class Solver {
         if (!res.hasNoSolution()) {
             val v = selectVariable(box);
             if (v != null) {
-                val bp = box.split(v);
+                val bp = box.split(v());
                 nSplits.getAndIncrement();
                 async search(bp.first);
                 async search(bp.second);
             }
             else {
-                atomic solutions.add(new Pair[Result,IntervalVec](res, box));
+                atomic solutions.add(new Pair[Result,IntervalVec[K]](res, box));
                 atomic Console.OUT.println(here + ": solution:\n" + box + '\n');
                 nSols.getAndIncrement();
             }
@@ -110,14 +133,14 @@ public class Solver {
             if (!res.hasNoSolution()) {
                 val v = selectVariable(box);
                 if (v != null) {
-                    val bp = box.split(v);
+                    val bp = box.split(v());
                     nSplits.getAndIncrement();
                     atomic list.add(bp.first);
                     atomic list.add(bp.second);
                     search1();
                 }
                 else {
-                    atomic solutions.add(new Pair[Result,IntervalVec](res, box));
+                    atomic solutions.add(new Pair[Result,IntervalVec[K]](res, box));
                     atomic Console.OUT.println(here + ": solution:\n" + box + '\n');
                     nSols.getAndIncrement();
                 }
@@ -127,12 +150,12 @@ public class Solver {
         }
     }
 
-    public def solve(sHandle:PlaceLocalHandle[Solver]) {
+    public def solve(sHandle:PlaceLocalHandle[Solver[K]]) {
     //public def solve() {
    		Console.OUT.println(here + ": start solving... ");
 
         // main solving process
-        val box:IntervalVec = list.removeFirst();
+        val box:IntervalVec[K] = list.removeFirst();
         finish search(box);
         
         //finish search1();
