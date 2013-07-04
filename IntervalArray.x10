@@ -49,30 +49,28 @@ public class IntervalArray implements IntervalVec[Int] {
     public def split(variable:Int) : Pair[IntervalVec[Int],IntervalVec[Int]] {
         val b1 = new IntervalArray(this); 
         val b2 = new IntervalArray(this); 
-/*        val ip = get(variable).value.split();
-        b1(variable) = ip.first;
-        b2(variable) = ip.second;
-        */
+        val ip = get(variable).value.split();
+        b1.put(variable, ip.first);
+        b2.put(variable, ip.second);
         return new Pair[IntervalVec[Int],IntervalVec[Int]](b1,b2);
     }
 
     public def width() : Double {
         var width:Double = 0.;
-/*        val it = iterator();
+        val it = theArray.values().iterator();
         while (it.hasNext()) {
-            val intv = it.next();
-            val w = intv.getValue().width();
+            val intv:Interval = it.next();
+            val w = intv.width();
             if (w > width) width = w;
         }
-        */
         return width;
     }
 
     public def toString() :String {
         val sb:StringBuilder = new StringBuilder();
-/*        sb.add('{');
+        sb.add('{');
         sb.add("\"plot\" : 3,\n");
-        val it = iterator();
+        val it = theArray.values().iterator();
         var b:Boolean = false;
         for (var i:Int = 0; it.hasNext(); i++) {
             if (b) sb.add(",\n"); else b = true;
@@ -80,7 +78,6 @@ public class IntervalArray implements IntervalVec[Int] {
             sb.add(it.next());
         }
         sb.add('}');
-        */
         return sb.result();
     }
 
