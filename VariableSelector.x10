@@ -18,14 +18,16 @@ public class VariableSelector[K] {
     public def selectGRR(box:IntervalVec[K]) : Box[K] {
         if (variableIt == null || !variableIt.hasNext()) variableIt = box.varIterator();
         val v0 = variableIt.next();
-        if (box(v0).value.width() > precision)
+        if (box(v0).value.width() > precision) {
             return new Box[K](v0);
+        }
 
         // try rest of the vars.
         while (variableIt.hasNext()) {
             val v = variableIt.next();
-            if (box(v).value.width() > precision)
+            if (box(v).value.width() > precision) {
                 return new Box[K](v);
+            }
         }
 
         // try the preceding vars.
@@ -34,8 +36,9 @@ public class VariableSelector[K] {
             val v = variableIt.next();
             if (v == v0)
                 break;
-            if (box(v).value.width() > precision)
+            if (box(v).value.width() > precision) {
                 return new Box[K](v);
+            }
         }
 
         return null;
@@ -48,13 +51,16 @@ public class VariableSelector[K] {
         // find the previously selected var
         while (box.prevVar() != null && it.hasNext()) {
             val v = it.next();
-            if (v.equals(box.prevVar()()))
+            if (v.equals(box.prevVar()())) {
+//Console.OUT.println(here + ": select " + v);
                 break;
+            }
         }
 
         if (!it.hasNext()) it = box.varIterator();
         val v0 = it.next();
         if (box(v0).value.width() > precision) {
+//Console.OUT.println(here + ": select " + v0);
             box.setPrevVar(v0);
             return new Box[K](v0);
         }
@@ -63,6 +69,7 @@ public class VariableSelector[K] {
         while (it.hasNext()) {
             val v = it.next();
             if (box(v).value.width() > precision) {
+//Console.OUT.println(here + ": select " + v);
                 box.setPrevVar(v);
                 return new Box[K](v);
             }

@@ -21,40 +21,10 @@ public class Solver[K] {
     public static interface Core[K] {
         public def initialize(filename:String) : void;
         public def getInitialDomain() :IntervalVec[K];
-        public def solve() : int;
+        //public def solve() : int;
         //public def calculateNext() : int;
         public atomic def contract(box:IntervalVec[K]) : Result;
     } 
-
-    /*@NativeRep("c++", "Solver__Core *", "Solver__Core", null)
-    @NativeCPPOutputFile("Solver__Core.h")
-    @NativeCPPCompilationUnit("Solver__Core.cc")
-    static class Core implements CoreI[String] {
-        public def this() : Core {}
-        @Native("c++", "(#0)->initialize((#1))")
-        public def initialize(filename:String) : void {};
-        @Native("c++", "(#0)->getInitialDomain()")
-        public def getInitialDomain() : IntervalMap { 
-            return new IntervalMap(); 
-        };
-        @Native("c++", "(#0)->solve()")
-        public def solve() : int = 0;
-        //@Native("c++", "(#0)->calculateNext()")
-        //public def calculateNext() : int = 0;
-
-        @Native("c++", "(#0)->contract((#1))")
-        public def contract(box:IntervalVec[String]) : Result { return Result.unknown(); };
-    }*/
-    /*static class Core implements CoreI[String] {
-        public def this() : Core {}
-        public def initialize(filename:String) : void {};
-        public def getInitialDomain() : IntervalMap { 
-            return new IntervalMap(); 
-        };
-        public def solve() : int = 0;
-
-        public def contract(box:IntervalVec[String]) : Result { return Result.unknown(); };
-    }*/
 
     val core:Core[K];
     val list:List[IntervalVec[K]];
@@ -91,11 +61,11 @@ public class Solver[K] {
     
     protected val selectVariable : (box:IntervalVec[K]) => Box[K];
 
-    public def solve0() {
+    /*public def solve0() {
    		Console.OUT.println(here + ": start solving... ");
         core.solve();
    		Console.OUT.println(here + ": done");
-    }
+    }*/
 
     protected def search(box:IntervalVec[K]) {
 	    Console.OUT.println(here + ": search:\n" + box + '\n');

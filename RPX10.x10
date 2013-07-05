@@ -13,7 +13,6 @@ public class RPX10 {
         public def getInitialDomain() : IntervalVec[String] { 
             return new IntervalMap(); 
         };
-        public def solve() : int = 0;
 
         public def contract(box:IntervalVec[String]) : Solver.Result { return Solver.Result.unknown(); };
     }
@@ -23,13 +22,15 @@ public class RPX10 {
         public def getInitialDomain() : IntervalVec[Int] { 
             return new IntervalArray(1); 
         };
-        public def solve() : int = 0;
 
         public def contract(box:IntervalVec[Int]) : Solver.Result { return Solver.Result.unknown(); };
     }*/
     @NativeRep("c++", "RPX10__CoreIMap *", "RPX10__CoreIMap", null)
     @NativeCPPOutputFile("RPX10__CoreIMap.h")
     @NativeCPPCompilationUnit("RPX10__CoreIMap.cc")
+    @NativeCPPOutputFile("RPX10__CoreEx.h")
+    @NativeCPPOutputFile("RPX10__Core.h")
+    @NativeCPPCompilationUnit("RPX10__Core.cc")
     static class CoreIMap implements Solver.Core[String] {
         public def this() : CoreIMap {}
         @Native("c++", "(#0)->initialize((#1))")
@@ -38,8 +39,8 @@ public class RPX10 {
         public def getInitialDomain() : IntervalVec[String] { 
             return new IntervalMap(); 
         };
-        @Native("c++", "(#0)->solve()")
-        public def solve() : int = 0;
+        //@Native("c++", "(#0)->solve()")
+        //public def solve() : int = 0;
         //@Native("c++", "(#0)->calculateNext()")
         //public def calculateNext() : int = 0;
         @Native("c++", "(#0)->contract((#1))")
@@ -48,6 +49,9 @@ public class RPX10 {
     @NativeRep("c++", "RPX10__CoreIArray *", "RPX10__CoreIArray", null)
     @NativeCPPOutputFile("RPX10__CoreIArray.h")
     @NativeCPPCompilationUnit("RPX10__CoreIArray.cc")
+    @NativeCPPOutputFile("RPX10__CoreEx.h")
+    @NativeCPPOutputFile("RPX10__Core.h")
+    @NativeCPPCompilationUnit("RPX10__Core.cc")
     static class CoreIArray implements Solver.Core[Int] {
         public def this() : CoreIArray {}
         @Native("c++", "(#0)->initialize((#1))")
@@ -56,8 +60,6 @@ public class RPX10 {
         public def getInitialDomain() : IntervalVec[Int] { 
             return new IntervalArray(1); 
         };
-        @Native("c++", "(#0)->solve()")
-        public def solve() : int = 0;
         @Native("c++", "(#0)->contract((#1))")
         public def contract(box:IntervalVec[Int]) : Solver.Result { return Solver.Result.unknown(); };
     }
@@ -69,10 +71,10 @@ public class RPX10 {
         //        () => new Solver((box:IntervalVec)=>(new VariableSelector(1E-8)).selectLRR(box), args(0)) );
         //val sHandle = PlaceLocalHandle.make[PipelineSolver](everyone, 
         //    () => new PipelineSolver((box:IntervalVec)=>(new VariableSelector(1E-8)).selectLRR(box), args(0)) );
-        //val sHandle = PlaceLocalHandle.make[ClusterDFSSolver[String]](everyone, 
-        //    () => new ClusterDFSSolver[String](new CoreIMap(), (box:IntervalVec[String])=>(new VariableSelector[String](1E-8)).selectLRR(box), args(0)) );
-        val sHandle = PlaceLocalHandle.make[ClusterDFSSolver[Int]](everyone, 
-            () => new ClusterDFSSolver[Int](new CoreIArray(), (box:IntervalVec[Int])=>(new VariableSelector[Int](1E-8)).selectLRR(box), args(0)) );
+        val sHandle = PlaceLocalHandle.make[ClusterDFSSolver[String]](everyone, 
+            () => new ClusterDFSSolver[String](new CoreIMap(), (box:IntervalVec[String])=>(new VariableSelector[String](1E-8)).selectLRR(box), args(0)) );
+        //val sHandle = PlaceLocalHandle.make[ClusterDFSSolver[Int]](everyone, 
+        //    () => new ClusterDFSSolver[Int](new CoreIArray(), (box:IntervalVec[Int])=>(new VariableSelector[Int](1E-8)).selectLRR(box), args(0)) );
 
         val masterP = here;
 
