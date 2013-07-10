@@ -67,9 +67,12 @@ public class IntervalArray implements IntervalVec[Int] {
     }
 
     public def toString() :String {
+        return toString(3);
+    }
+    public def toString(plot:Int) :String {
         val sb:StringBuilder = new StringBuilder();
         sb.add('{');
-        sb.add("\"plot\" : 3,\n");
+        sb.add("\"plot\" : "+plot+",\n");
         val it = theArray.values().iterator();
         var b:Boolean = false;
         for (var i:Int = 0; it.hasNext(); i++) {

@@ -2,6 +2,7 @@
 #define RPX10__CORE_H
 
 #include <x10rt.h>
+#include <x10/lang/String.h>
 
 // x10aux::math undefines HUGE_VAL
 #ifndef DBL_MAX
@@ -26,7 +27,7 @@ public:
 	//RPX10__Core() {}
 	//~RPX10__Core() {}
 
-	void initialize(const char *);
+	virtual void initialize(const char *);
 	void initialize(x10::lang::String *filename) {
    		initialize(filename->c_str());
 	}
@@ -81,7 +82,7 @@ protected:
 
 	rp::sp<rp::Operator> contractor_;
     rp::sp<rp::SearchStrategy> list_;
-private:
+protected:
     rp::sp<rp::Split> split_;
     rp::sp<rp::SplitSelect> selector_;
 

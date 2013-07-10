@@ -54,7 +54,8 @@ Solver__Core<x10_int>::itable<RPX10__CoreIArray>  RPX10__CoreIArray::_itable_0(
         &RPX10__CoreIArray::equals, 
         &RPX10__CoreIArray::getInitialDomain, 
         &RPX10__CoreIArray::hashCode, 
-        &RPX10__CoreIArray::initialize, 
+        &RPX10__Core::initialize, 
+        &RPX10__CoreIArray::isProjected, 
         &RPX10__CoreIArray::toString, 
         &RPX10__CoreIArray::typeName );
 

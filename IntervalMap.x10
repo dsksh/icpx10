@@ -51,9 +51,12 @@ implements IntervalVec[String] {
     }
 
     public def toString() :String {
+        return toString(3);
+    }
+    public def toString(plot:Int) :String {
         val sb:StringBuilder = new StringBuilder();
         sb.add('{');
-        sb.add("\"plot\" : 3,\n");
+        sb.add("\"plot\" : "+plot+",\n");
         val it:Iterator[String] = keySet().iterator();
         var b:Boolean = false;
         while (it.hasNext()) {

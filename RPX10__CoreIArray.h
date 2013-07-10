@@ -13,6 +13,9 @@ class RPX10__CoreIArray : public x10::lang::X10Class, public RPX10__CoreEx<x10_i
 public:
     RTT_H_DECLS_CLASS
 
+	RPX10__CoreIArray() : RPX10__CoreEx<x10_int>() { }
+	//~RPX10__CoreIArray() { }
+
     static x10aux::itable_entry _itables[3];
     virtual x10aux::itable_entry *_getITables() { return _itables; }
     static Solver__Core<x10_int>::itable<RPX10__CoreIArray> _itable_0;
@@ -26,6 +29,10 @@ public:
     virtual void _serialize_body(x10aux::serialization_buffer &) { abort(); }
 
     static RPX10__CoreIArray *_make();
+
+    virtual x10_boolean isProjected(x10_int v) {
+		return false;
+	}
 
 protected:
 	virtual IntervalVec<x10_int> *getIVFromBox(const rp::Box& box);

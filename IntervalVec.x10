@@ -15,6 +15,7 @@ public interface IntervalVec[K] {
 
     public def split(variable:K) : Pair[IntervalVec[K],IntervalVec[K]];
     public def width() : Double;
+    public def toString(plot:Int) :String;
     public def toString() :String;
 
     public def vit() : Iterator[K];

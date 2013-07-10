@@ -13,9 +13,14 @@ public class Solver[K] {
             this.code = code; 
         }
         public static def noSolution() : Result { return new Result(1); }
-        public static def unknown()    : Result { return new Result(0); }
-        public static def verified()   : Result { return new Result(2); }
+        public static def unknown()    : Result { return new Result(2); }
+        public static def inner()   : Result { return new Result(12); }
+        public static def regular()   : Result { return new Result(4); }
         public def hasNoSolution() : Boolean { return code == 1; }
+        public def entails(res:Result) : Boolean { return (code & res.code) == res.code; }
+        public def toString() : String {
+            return "Result["+code+"]";
+        }
     }
 
     public static interface Core[K] {
@@ -24,12 +29,16 @@ public class Solver[K] {
         //public def solve() : int;
         //public def calculateNext() : int;
         public atomic def contract(box:IntervalVec[K]) : Result;
+        public def isProjected(v:K) : Boolean;
     } 
 
     val core:Core[K];
     val list:List[IntervalVec[K]];
     //val list:CircularQueue[IntervalVec[K]];
     val solutions:List[Pair[Result,IntervalVec[K]]];
+
+    val reqQueue:CircularQueue[Int];
+    var terminate : Int = 0;
 
     public var nSols:AtomicInteger = new AtomicInteger(0);
     public var nContracts:AtomicInteger = new AtomicInteger(0);
@@ -41,7 +50,7 @@ public class Solver[K] {
     val dummy:Double;
     val dummyI:Interval;
 
-    public def this(core:Core[K], selector:(box:IntervalVec[K])=>Box[K], filename:String) {
+    public def this(core:Core[K], selector:(Result, IntervalVec[K])=>Box[K], filename:String) {
         this.core = core;
         core.initialize(filename);
         selectVariable = selector;
@@ -51,6 +60,8 @@ public class Solver[K] {
             list.add(core.getInitialDomain());
         solutions = new ArrayList[Pair[Result,IntervalVec[K]]]();
 
+        reqQueue = new CircularQueue[Int](2*Place.numPlaces()+10);
+
         dummy = 0;
         dummyI = new Interval(0.,0.);
     }
@@ -59,7 +70,7 @@ public class Solver[K] {
 
     public def getSolutions() : List[Pair[Result,IntervalVec[K]]] { return solutions; }
     
-    protected val selectVariable : (box:IntervalVec[K]) => Box[K];
+    protected val selectVariable : (res:Result, box:IntervalVec[K]) => Box[K];
 
     /*public def solve0() {
    		Console.OUT.println(here + ": start solving... ");
@@ -68,14 +79,14 @@ public class Solver[K] {
     }*/
 
     protected def search(box:IntervalVec[K]) {
-	    Console.OUT.println(here + ": search:\n" + box + '\n');
+//Console.OUT.println(here + ": search:\n" + box + '\n');
 
         //val res:Result = core.contract(box);
         var res:Result = Result.unknown();
         atomic { res = core.contract(box); }
 
         if (!res.hasNoSolution()) {
-            val v = selectVariable(box);
+            val v = selectVariable(res, box);
             if (v != null) {
                 val bp = box.split(v());
                 nSplits.getAndIncrement();
@@ -101,7 +112,7 @@ public class Solver[K] {
             atomic { res = core.contract(box); }
 
             if (!res.hasNoSolution()) {
-                val v = selectVariable(box);
+                val v = selectVariable(res, box);
                 if (v != null) {
                     val bp = box.split(v());
                     nSplits.getAndIncrement();

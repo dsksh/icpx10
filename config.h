@@ -1,0 +1,10 @@
+//#define RPR_DEBUG
+#define RPR_LOG_VOLUME
+//#define RPR_COND_NUM
+#define RPR_OUTPUT_CSV
+
+//#define RPR_DOM_INFLATION
+//#define RPR_TAKE_INFLATED_BOX
+#define RPR_CENTERED_FORM
+//#define RPR_CYCLIC_X3
+//#define RPR_VALIDATE_CONNECTION

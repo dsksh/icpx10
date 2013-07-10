@@ -15,9 +15,9 @@ CFLAGS      += -g $(INCLUDES)
 #CFLAGS      += -O3 -Wall
 LDFLAGS     += -L$(RP_HOME)/src -lgaol -lgdtoa -lultim -lrealpaver
 
-X10_HEADERS     = RPX10__Core.h RPX10__CoreIArray.h RPX10__CoreIMap.h
+X10_HEADERS     = RPX10__Core.h RPX10__CoreProj.h RPX10__CoreEx.h RPX10__CoreIArray.h RPX10__CoreIMap.h
 X10_SOURCES     = RPX10.x10 Solver.x10 PipelineSolver.x10 ClusterDFSSolver.x10 VariableSelector.x10 Interval.x10 IntervalVec.x10 IntervalArray.x10 IntervalMap.x10 CircularQueue.x10 MyHashMap.x10
-X10_CPP_SOURCES = RPX10__Core.cc RPX10__CoreIArray.cc RPX10__CoreIMap.cc
+X10_CPP_SOURCES = RPX10__Core.cc RPX10__CoreProj.cc RPX10__CoreIArray.cc RPX10__CoreIMap.cc
 
 %.o:%.cc
 	$(CC) $(CFLAGS) -c $< -o $@

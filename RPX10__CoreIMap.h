@@ -12,6 +12,9 @@ class RPX10__CoreIMap : public x10::lang::X10Class, public RPX10__CoreEx<x10::la
 public:
     RTT_H_DECLS_CLASS
 
+	RPX10__CoreIMap() : RPX10__CoreEx<x10::lang::String *>() { }
+	//~RPX10__CoreIMap() { }
+
     static x10aux::itable_entry _itables[3];
     virtual x10aux::itable_entry *_getITables() { return RPX10__CoreIMap::_itables; }
     static Solver__Core<x10::lang::String *>::itable<RPX10__CoreIMap> _itable_0;
@@ -26,11 +29,12 @@ public:
 
     void _constructor() {}
 
-    static RPX10__CoreIMap* _make();
+    static RPX10__CoreIMap *_make();
 
-	//virtual void initialize(x10::lang::String *);
-    //virtual IntervalVec<x10::lang::String *> *getInitialDomain();
-	//virtual Solver__Result contract(IntervalVec<x10::lang::String *> *box);
+    virtual x10_boolean isProjected(x10::lang::String *vName) {
+		rp::sp<rp::Variable> var = proj_sc->find(vName->c_str());
+		return var != 0;
+	}
 
 protected:
 	virtual IntervalVec<x10::lang::String *> *getIVFromBox(const rp::Box& box);

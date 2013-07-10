@@ -57,12 +57,14 @@ void RPX10__CoreIMap::setBoxIntoIV(const rp::Box& box, IntervalVec<x10::lang::St
 }
 
 
+// alphabetical order?
 Solver__Core<x10::lang::String*>::itable<RPX10__CoreIMap>  RPX10__CoreIMap::_itable_0(
         &RPX10__CoreIMap::contract, 
         &RPX10__CoreIMap::equals, 
         &RPX10__CoreIMap::getInitialDomain, 
         &RPX10__CoreIMap::hashCode, 
-        &RPX10__CoreIMap::initialize, 
+        &RPX10__Core::initialize, 
+        &RPX10__CoreIMap::isProjected, 
         &RPX10__CoreIMap::toString, 
         &RPX10__CoreIMap::typeName );
 

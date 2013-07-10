@@ -10,7 +10,7 @@ public class PipelineSolver[K] extends Solver[K] {
     private var finished:Boolean = false;
     //public var sHandle:PlaceLocalHandle[PipelineSolver[K]];
 
-    public def this(selector:(box:IntervalVec[K])=>Box[K], filename:String) {
+    public def this(selector:(Result,IntervalVec[K])=>Box[K], filename:String) {
         super(selector, filename);
     }
 
@@ -18,7 +18,7 @@ public class PipelineSolver[K] extends Solver[K] {
         /*// split the initial domain (#P-1) times
         for (i in 1..(Place.numPlaces()-1)) {
             val box:IntervalVec[K] = list.removeFirst();
-            val v = selectVariable(box);
+            val v = selectVariable(res, box);
             val bp = box.split(v);
             nSplits.getAndIncrement();
             list.add(bp.first);
@@ -51,7 +51,7 @@ public class PipelineSolver[K] extends Solver[K] {
         nContracts.getAndIncrement();
 
         if (!res.hasNoSolution()) {
-            val v = selectVariable(box);
+            val v = selectVariable(res, box);
             if (v != null) {
                 val bp = box.split(v); 
                 nSplits.getAndIncrement();

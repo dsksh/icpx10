@@ -1,31 +1,44 @@
 import x10.util.*;
 
 public class VariableSelector[K] {
-    private val precision:Double;
-    private var variableIt:Iterator[K] = null;
-
-    //public val GRR : (IntervalVec[K])=>String;
-
-    public def this(precision:Double) {
-        this.precision = precision;
-        //this.GRR = ((box:IntervalVec[K]) => this.selectGRR(box));
+    public static class Tester[K] {
+        public def testPrec(prec:Double, res:Solver.Result, box:IntervalVec[K], v:K) : Boolean {
+            return box(v).value.width() > prec;
+        }
+        public def testRegularity(test:(Solver.Result,IntervalVec[K],K)=>Boolean, 
+                                  checkScope:(K)=>Boolean,
+                                  res:Solver.Result, box:IntervalVec[K], v:K) : Boolean {
+            if (res.entails(Solver.Result.regular()) && checkScope(v))
+                return false;
+            else
+                return test(res, box, v);
+        }
     }
 
-    /*public operator this(box:IntervalVec[K]) : K {
-        return null; 
-    }*/
+    //private val precision:Double;
+    private var variableIt:Iterator[K] = null;
 
-    public def selectGRR(box:IntervalVec[K]) : Box[K] {
+    public def this(precision:Double) {
+        this.test = (res:Solver.Result, box:IntervalVec[K], v:K) =>
+            box(v).value.width() > precision;
+    }
+    public def this(test:(Solver.Result,IntervalVec[K],K)=>Boolean) { 
+        this.test = test;
+    }
+
+    public val test : (Solver.Result,IntervalVec[K],K) => Boolean;
+
+    public def selectGRR(res:Solver.Result, box:IntervalVec[K]) : Box[K] {
         if (variableIt == null || !variableIt.hasNext()) variableIt = box.varIterator();
         val v0 = variableIt.next();
-        if (box(v0).value.width() > precision) {
+        if (test(res, box, v0)) {
             return new Box[K](v0);
         }
 
         // try rest of the vars.
         while (variableIt.hasNext()) {
             val v = variableIt.next();
-            if (box(v).value.width() > precision) {
+            if (test(res, box, v)) {
                 return new Box[K](v);
             }
         }
@@ -36,7 +49,7 @@ public class VariableSelector[K] {
             val v = variableIt.next();
             if (v == v0)
                 break;
-            if (box(v).value.width() > precision) {
+            if (test(res, box, v)) {
                 return new Box[K](v);
             }
         }
@@ -45,7 +58,7 @@ public class VariableSelector[K] {
     }
 
     // (local) round-robin selector
-    public def selectLRR(box:IntervalVec[K]) : Box[K] {
+    public def selectLRR(res:Solver.Result, box:IntervalVec[K]) : Box[K] {
         var it:Iterator[K] = box.varIterator();
 
         // find the previously selected var
@@ -59,7 +72,7 @@ public class VariableSelector[K] {
 
         if (!it.hasNext()) it = box.varIterator();
         val v0 = it.next();
-        if (box(v0).value.width() > precision) {
+        if (test(res, box, v0)) {
 //Console.OUT.println(here + ": select " + v0);
             box.setPrevVar(v0);
             return new Box[K](v0);
@@ -68,7 +81,7 @@ public class VariableSelector[K] {
         // try rest of the vars.
         while (it.hasNext()) {
             val v = it.next();
-            if (box(v).value.width() > precision) {
+            if (test(res, box, v)) {
 //Console.OUT.println(here + ": select " + v);
                 box.setPrevVar(v);
                 return new Box[K](v);
@@ -81,7 +94,7 @@ public class VariableSelector[K] {
             val v = it.next();
             if (v.equals(v0))
                 break;
-            if (box(v).value.width() > precision) {
+            if (test(res, box,v)) {
                 box.setPrevVar(v);
                 return new Box[K](v);
             }
@@ -89,18 +102,18 @@ public class VariableSelector[K] {
 
         return null;
     }
-    /*public def selectLRR(box:IntervalVec[K]) : String {
+/*    public def selectLRR(res:Solver.Result, box:IntervalVec[K]) : String {
         if (box.vit == null || !box.vit.hasNext()) box.vit = box.keyIterator();
         val v0 = box.vit.next();
-Console.OUT.println(here + ": v0: " + v0);
-        if (box(v0).value.width() > precision)
+//Console.OUT.println(here + ": v0: " + v0);
+        if (test(res, box, v0))
             return v0;
 
         // try rest of the vars.
         while (box.vit.hasNext()) {
             val v = box.vit.next();
-Console.OUT.println(here + ": v: " + v);
-            if (box(v).value.width() > precision)
+//Console.OUT.println(here + ": v: " + v);
+            if (test(res, box, v))
                 return v;
         }
 
@@ -108,23 +121,23 @@ Console.OUT.println(here + ": v: " + v);
         box.vit = box.keyIterator();
         while (box.vit.hasNext()) {
             val v = box.vit.next();
-Console.OUT.println(here + ": v: " + v);
+//Console.OUT.println(here + ": v: " + v);
             if (v == v0)
                 break;
             if (v.equals(v0))
                 break;
-            if (box(v).value.width() > precision)
+            if (test(res, box, v))
                 return v;
         }
 
         return null;
     }
-    */
+*/
 
     // largest-first selector
-    public def selectLF(box:IntervalVec[K]) : Box[K] {
+    public def selectLF(res:Solver.Result, box:IntervalVec[K]) : Box[K] {
         var variable:Box[K] = null;
-        var maxW:Double = precision;
+        var maxW:Double = 0.;
         val it = box.varIterator();
         while (it.hasNext()) {
             val v = it.next();
@@ -135,6 +148,14 @@ Console.OUT.println(here + ": v: " + v);
             }
         }
         return variable;
+    }
+
+    public def selectBoundary(select:(Solver.Result, IntervalVec[K])=>Box[K], 
+                              res:Solver.Result, box:IntervalVec[K]) : Box[K] {
+        if (res.entails(Solver.Result.inner()))
+            return null;
+        else
+            return select(res, box);
     }
 
     // kludge for "Interval is incomplete type" error

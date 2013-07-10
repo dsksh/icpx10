@@ -5,10 +5,15 @@
 #include "IntervalVec.h"
 #include "Solver__Result.h"
 #include "RPX10__Core.h"
+#include "RPX10__CoreProj.h"
 
 template<typename K>
-class RPX10__CoreEx : public RPX10__Core {
+//class RPX10__CoreEx : public RPX10__Core {
+class RPX10__CoreEx : public RPX10__CoreProj {
 public:
+
+	RPX10__CoreEx() : RPX10__CoreProj() { }
+	//~RPX10__CoreEx() { }
 
     virtual IntervalVec<K> *getInitialDomain();
 	virtual Solver__Result contract(IntervalVec<K> *box);
@@ -36,6 +41,10 @@ Solver__Result RPX10__CoreEx<K>::contract(IntervalVec<K> *iv) {
 
     if (sol == rp::Solution::no())
         return Solver__Result::noSolution();
+	else if (sol == rp::Solution::only())
+        return Solver__Result::inner();
+	else if (sol == rp::Solution::regular())
+        return Solver__Result::regular();
     else
         return Solver__Result::unknown();
 }
