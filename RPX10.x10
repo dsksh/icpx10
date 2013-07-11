@@ -77,22 +77,22 @@ public class RPX10 {
         public def isProjected(v:Int) : Boolean { return false; }
     }
 
-    private static def initSolverMap(filename:String) : Solver[String] {
+    private static def initSolverMap(fname:String, prec:Double) : Solver[String] {
         val core = new CoreIMap();
 
-        val prec = 1E-1;
+        //val prec = 1E-1;
         val tester = new VariableSelector.Tester[String]();
         val test = (res:Solver.Result, box:IntervalVec[String], v:String) => tester.testPrec(prec, res, box, v);
         val test1 = (res:Solver.Result, box:IntervalVec[String], v:String) => 
             tester.testRegularity(test, (v:String)=>!core.isProjected(v), res, box, v);
 
         //val selector = new VariableSelector[String](1E-2);
-        val selector = new VariableSelector[String](test);
+        val selector = new VariableSelector[String](test1);
 
         val select = (res:Solver.Result, box:IntervalVec[String])=>selector.selectLRR(res, box);
         val select1 = (res:Solver.Result, box:IntervalVec[String])=>selector.selectBoundary(select, res, box);
 
-        return new ClusterDFSSolver[String](core, select, filename);
+        return new ClusterDFSSolver[String](core, select1, fname);
     }
 
     public static def main(args:Array[String](1)) {
@@ -109,7 +109,7 @@ public class RPX10 {
         //    () => new ClusterDFSSolver[String](core, (res:Solver.Result, box:IntervalVec[String])=>selector.selectLRR(res, box), args(0)) );
         //val sHandle = PlaceLocalHandle.make[ClusterDFSSolver[Int]](everyone, 
         //    () => new ClusterDFSSolver[Int](new CoreIArray(), select, args(0)) );
-        val sHandle = PlaceLocalHandle.make[Solver[String]](everyone, ()=>initSolverMap(args(0)));
+        val sHandle = PlaceLocalHandle.make[Solver[String]](everyone, ()=>initSolverMap(args(0), Double.parse(args(1))));
 
         val masterP = here;
 

@@ -23,10 +23,10 @@ public class ClusterDFSSolver[K] extends Solver[K] {
 
     //public def setup(sHandle:PlaceLocalHandle[ClusterDFSSolver[K]]) {
     public def setup(sHandle:PlaceLocalHandle[Solver[K]]) {
-/*        // split the initial domain (#P-1) times
+        // split the initial domain (#P-1) times
         for (i in 1..(Place.numPlaces()-1)) {
             val box:IntervalVec[K] = list.removeFirst();
-            val v = selectVariable(box)();
+            val v = selectVariable(Result.unknown(), box)();
             val bp = box.split(v);
             nSplits.getAndIncrement();
             list.add(bp.first);
@@ -43,7 +43,6 @@ public class ClusterDFSSolver[K] extends Solver[K] {
                 }
             }
         }
-*/
     }
 
 
@@ -100,13 +99,13 @@ public class ClusterDFSSolver[K] extends Solver[K] {
                 search(sHandle, bp.second);
             }
             else {
-                atomic solutions.add(new Pair[Result,IntervalVec[K]](res, box));
+                //atomic solutions.add(new Pair[Result,IntervalVec[K]](res, box));
                 //Console.OUT.println(here + ": solution:");
-                val plot = res.entails(Solver.Result.regular()) ? 5 : 3;
+                /*val plot = res.entails(Solver.Result.inner()) ? 5 : 3;
                 atomic { 
                     Console.OUT.println(box.toString(plot));
                     Console.OUT.println(); 
-                }
+                }*/
                 nSols.getAndIncrement();
             }
         }
