@@ -3,6 +3,7 @@
 
 #include "Interval.h"
 #include "IntervalVec.h"
+#include "IntervalMap.h"
 #include "Solver__Result.h"
 #include "Solver__Core.h"
 
@@ -32,9 +33,18 @@ public:
     static RPX10__CoreIMap *_make();
 
     virtual x10_boolean isProjected(x10::lang::String *vName) {
+#if RPX_PROJ
 		rp::sp<rp::Variable> var = proj_sc->find(vName->c_str());
 		return var != 0;
+#else
+		return false;
+#endif
 	}
+
+	virtual IntervalVec<x10::lang::String *> *dummyBox() {
+    	return reinterpret_cast<IntervalVec<x10::lang::String *> *>(IntervalMap::_make());
+	}
+
 
 protected:
 	virtual IntervalVec<x10::lang::String *> *getIVFromBox(const rp::Box& box);

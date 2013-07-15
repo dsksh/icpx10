@@ -23,7 +23,7 @@ public class ClusterDFSSolver[K] extends Solver[K] {
 
     //public def setup(sHandle:PlaceLocalHandle[ClusterDFSSolver[K]]) {
     public def setup(sHandle:PlaceLocalHandle[Solver[K]]) {
-        // split the initial domain (#P-1) times
+/*        // split the initial domain (#P-1) times
         for (i in 1..(Place.numPlaces()-1)) {
             val box:IntervalVec[K] = list.removeFirst();
             val v = selectVariable(Result.unknown(), box)();
@@ -43,12 +43,13 @@ public class ClusterDFSSolver[K] extends Solver[K] {
                 }
             }
         }
+*/
     }
 
 
     //protected def search(sHandle:PlaceLocalHandle[ClusterDFSSolver[K]], box:IntervalVec[K]) {
     protected def search(sHandle:PlaceLocalHandle[Solver[K]], box:IntervalVec[K]) {
-//Console.OUT.println(here + ": search:\n" + box + '\n');
+Console.OUT.println(here + ": search:\n" + box + '\n');
 
         var res:Result = Result.unknown();
         atomic { res = core.contract(box); }
@@ -61,13 +62,13 @@ public class ClusterDFSSolver[K] extends Solver[K] {
                 var id:Int = -1;
                 atomic if (reqQueue.getSize() > 0) {
                     id = reqQueue.removeFirstUnsafe();
-//Console.OUT.println(here + ": got id: " + id);
+Console.OUT.println(here + ": got id: " + id);
                 }
                 if (id >= 0) {
                     at (Place(id)) {
                         atomic sHandle().list.add(box);
                     }
-//Console.OUT.println(here + ": responded to " + id);
+Console.OUT.println(here + ": responded to " + id);
                     if (id < here.id()) sentBw.set(true);
                     nSends.getAndIncrement();
                     return;
@@ -100,16 +101,16 @@ public class ClusterDFSSolver[K] extends Solver[K] {
             }
             else {
                 //atomic solutions.add(new Pair[Result,IntervalVec[K]](res, box));
-                //Console.OUT.println(here + ": solution:");
-                /*val plot = res.entails(Solver.Result.inner()) ? 5 : 3;
+                Console.OUT.println(here + ": solution:");
+                val plot = res.entails(Solver.Result.inner()) ? 5 : 3;
                 atomic { 
                     Console.OUT.println(box.toString(plot));
                     Console.OUT.println(); 
-                }*/
+                }
                 nSols.getAndIncrement();
             }
         }
-        //else Console.OUT.println("no solution");
+        else Console.OUT.println("no solution");
     }
 
     var selected:Place = here;
@@ -134,15 +135,19 @@ public class ClusterDFSSolver[K] extends Solver[K] {
         return t;
     }
 
-    //protected def getNextBox(sHandle:PlaceLocalHandle[ClusterDFSSolver[K]]) : IntervalVec[K] {
     protected def getNextBox(sHandle:PlaceLocalHandle[Solver[K]]) : IntervalVec[K] {
         if (!list.isEmpty())
             return list.removeFirst();
         else {
             //val t = getAndResetTerminate();
             if (here.id() == 0) {
-                at (here.next()) atomic sHandle().terminate = 1;
-//Console.OUT.println(here + ": sent token to " + here.next());
+                at (here.next()) {
+                    atomic sHandle().terminate = 1;
+                    // put a dummy box
+                    atomic sHandle().list.add(sHandle().core.dummyBox());
+                }
+atomic Console.OUT.println(here + ": sent token to " + here.next());
+                //return null;
             }
 
             if (!sentRequest.getAndSet(true)) {
@@ -152,40 +157,26 @@ public class ClusterDFSSolver[K] extends Solver[K] {
                 at (selectPlace()) {
                     //if (sHandle().reqQueue.getSize() == 0) {
                     sHandle().reqQueue.addLast(id);
-//Console.OUT.println(here + ": requested from " + id);
+Console.OUT.println(here + ": requested from " + id);
                     //at (srG.home) { srG().set(true); }
                     //}
                 }
                 nReqs.getAndIncrement();
             }
 
-/*            while (true) {
-                var id:Int = -1;
-                atomic if (reqQueue.getSize() > 0) 
-                    id = reqQueue.removeFirstUnsafe();
-                if (id == -1) break;           
-                else {
-Console.OUT.println(here + ": resend " + id);
-                    at (selectPlace()) {
-                        sHandle().reqQueue.addLast(id);
-                    }
-                }
-            }
-*/
+Console.OUT.println(here + ": wait...");
 
-//Console.OUT.println(here + ": wait...");
-
-            when (!list.isEmpty() || terminate > 0 /*|| reqQueue.getSize() > 0*/) {
+            when (!list.isEmpty() /*|| terminate > 0 || reqQueue.getSize() > 0*/) {
             //when (!list.isEmpty() || terminate > 0) {
-//Console.OUT.println(here + ": activated");
+Console.OUT.println(here + ": activated");
                 if (!list.isEmpty()) {
                     sentRequest.set(false);
-//Console.OUT.println(here + ": got box");
+Console.OUT.println(here + ": got box");
                     return list.removeFirst();
                 }
                 else if (terminate > 0) {
-//Console.OUT.println(here + ": " + terminate);
-/*                    if (here.id() == 0 && terminate == 1 || terminate == 3) {
+Console.OUT.println(here + ": " + terminate);
+                    /*if (here.id() == 0 && terminate == 1 || terminate == 3) {
                         //at (here.next()) atomic sHandle().terminate = 3;
                         return null;
                     }
@@ -204,25 +195,33 @@ Console.OUT.println(here + ": resend " + id);
         }
     }
 
-    //public def solve(sHandle:PlaceLocalHandle[ClusterDFSSolver[K]]) {
+/*    //public def solve(sHandle:PlaceLocalHandle[ClusterDFSSolver[K]]) {
     public def solve(sHandle:PlaceLocalHandle[Solver[K]]) {
    		Console.OUT.println(here + ": start solving... ");
 
         while (true) {
             val box:IntervalVec[K] = getNextBox(sHandle);
-            if (box != null) {
+            if (box != null && terminate == 0) {
                 //nProcs.getAndIncrement();
                 finish search(sHandle, box);
             }
             else {
                 val t = getAndResetTerminate();
-                if (here.id() == 0 && t == 2) 
-                    continue; 
+                if (here.id() == 0) {
+                    if (terminate > 0) {
+Console.OUT.println(here + ": " + terminate);
+                    if (terminate != 2) break;
+                    else continue;
+                }
 
                 if (here.id() > 0 && 1 <= t && t <= 2) {
                     val v = sentBw.getAndSet(false) ? 2 : t;
-                    at (here.next()) atomic sHandle().terminate = v;
-//Console.OUT.println(here + ": passed the token " + v + " to " + here.next());
+                    at (here.next()) {
+                        atomic sHandle().terminate = v;
+                        // put a dummy box
+                        atomic sHandle().list.add(sHandle().core.dummyBox());
+                    }
+Console.OUT.println(here + ": passed the token " + v + " to " + here.next());
                     continue; 
                 }
 
@@ -236,16 +235,68 @@ Console.OUT.println(here + ": resend " + id);
             at (here.next()) atomic sHandle().terminate = 3;
         //}
 
+   		Console.OUT.println(here + ": done");
+    }
+*/
+    public def solve(sHandle:PlaceLocalHandle[Solver[K]]) {
+   		Console.OUT.println(here + ": start solving... ");
 
-/*        //if (here.id() == Place.numPlaces()-1) 
-        at (here.next()) {
-            when (sHandle().list.isEmpty()) {
-	            //Console.OUT.println(here + ": set finished");
-                //sHandle().finished.set(true);
-                sHandle().finished = true;
+        while (true) {
+            if (!list.isEmpty()) {
+                val t = getAndResetTerminate();
+                val box = list.removeFirst();
+                finish search(sHandle, box);
+
+                if (t > 0 && here.id() == 0) {
+                    //val t = getAndResetTerminate();
+                    if (t == 1) {
+                        at (here.next()) atomic {
+                            sHandle().terminate = 3;
+                            sHandle().list.add(sHandle().core.dummyBox());
+                        }
+atomic Console.OUT.println(here + ": sent token 3 to " + here.next());
+                        break;
+                    }
+                    //else if (t == 2) continue;
+                }
+                else if (t > 0 && here.id() > 0) {
+                    val v = (t == 1 && sentBw.getAndSet(false)) ? 2 : t;
+                    at (here.next()) atomic {
+                        sHandle().terminate = v;
+                        sHandle().list.add(sHandle().core.dummyBox());
+                    }
+Console.OUT.println(here + ": sent token " + v + " to " + here.next());
+                    if (t == 3) break;
+                }
+            }
+
+            else { //if (list.isEmpty()) {
+                // begin termination detection
+                if (here.id() == 0) {
+                    at (here.next()) atomic {
+                        sHandle().terminate = 1;
+                        // put a dummy box
+                        sHandle().list.add(sHandle().core.dummyBox());
+                    }
+atomic Console.OUT.println(here + ": sent token 1 to " + here.next());
+                }
+
+                // request for a domain
+                if (!sentRequest.getAndSet(true)) {
+                    val id = here.id();
+                    at (selectPlace()) {
+                        sHandle().reqQueue.addLast(id);
+Console.OUT.println(here + ": requested from " + id);
+                    }
+                    nReqs.getAndIncrement();
+                }
+
+                when (!list.isEmpty()) {
+                    sentRequest.set(false);
+Console.OUT.println(here + ": got box");
+                }
             }
         }
-*/
 
    		Console.OUT.println(here + ": done");
     }

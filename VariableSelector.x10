@@ -142,7 +142,7 @@ public class VariableSelector[K] {
         while (it.hasNext()) {
             val v = it.next();
             val c = box(v).value;
-            if (c.width() > maxW) {
+            if (c.width() > maxW && test(res, box, v)) {
                 variable = new Box[K](v); 
                 maxW = c.width();
             }

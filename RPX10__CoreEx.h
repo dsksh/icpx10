@@ -8,11 +8,16 @@
 #include "RPX10__CoreProj.h"
 
 template<typename K>
-//class RPX10__CoreEx : public RPX10__Core {
+#if !RPX_PROJ
+class RPX10__CoreEx : public RPX10__Core {
+#else
 class RPX10__CoreEx : public RPX10__CoreProj {
+#endif
 public:
 
+#if RPX_PROJ
 	RPX10__CoreEx() : RPX10__CoreProj() { }
+#endif
 	//~RPX10__CoreEx() { }
 
     virtual IntervalVec<K> *getInitialDomain();
@@ -33,6 +38,9 @@ IntervalVec<K> *RPX10__CoreEx<K>::getInitialDomain() {
 
 template<typename K>
 Solver__Result RPX10__CoreEx<K>::contract(IntervalVec<K> *iv) {
+	if (IntervalVec<K>::size(iv) == 0)
+        return Solver__Result::noSolution();
+
     rp::Box box( *list_->get_cell()->box );
     setIVIntoBox(*iv, box);
 

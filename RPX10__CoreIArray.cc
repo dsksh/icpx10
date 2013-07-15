@@ -51,6 +51,7 @@ void RPX10__CoreIArray::setBoxIntoIV(const rp::Box& box, IntervalVec<x10_int>& i
 
 Solver__Core<x10_int>::itable<RPX10__CoreIArray>  RPX10__CoreIArray::_itable_0(
         &RPX10__CoreIArray::contract, 
+        &RPX10__CoreIArray::dummyBox, 
         &RPX10__CoreIArray::equals, 
         &RPX10__CoreIArray::getInitialDomain, 
         &RPX10__CoreIArray::hashCode, 

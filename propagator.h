@@ -146,7 +146,7 @@ namespace rp
 			if (sol != Solution::no()) {
 				//Interval val( constr_fun_->eval(bx) );
 				Interval val( constr_fun(bx) );
-#ifdef RPR_DEBUG
+#if RPR_DEBUG
 std::cout << "g: " << val << std::endl;
 #endif
 				if (val.is_empty() 

@@ -30,6 +30,7 @@ public class Solver[K] {
         //public def calculateNext() : int;
         public atomic def contract(box:IntervalVec[K]) : Result;
         public def isProjected(v:K) : Boolean;
+        public def dummyBox() : IntervalVec[K];
     } 
 
     val core:Core[K];

@@ -10,6 +10,7 @@ public interface IntervalVec[K] {
     public def get(key:K) : Box[Interval];
     public def getOrThrow(key:K) : Interval; //throws NoSuchElementException
     public def put(key:K, value:Interval) : Box[Interval];
+    public def size() : Int;
 
     public def varIterator() : Iterator[K];
 

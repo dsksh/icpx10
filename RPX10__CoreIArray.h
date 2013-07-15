@@ -34,6 +34,11 @@ public:
 		return false;
 	}
 
+	virtual IntervalVec<x10_int> *dummyBox() {
+    	return reinterpret_cast<IntervalVec<x10_int> *>(IntervalArray::_make(0));
+	}
+
+
 protected:
 	virtual IntervalVec<x10_int> *getIVFromBox(const rp::Box& box);
 	virtual void setIVIntoBox(IntervalVec<x10_int>& iv, rp::Box& box);

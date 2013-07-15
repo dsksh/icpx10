@@ -91,17 +91,17 @@ namespace rp {
 			REAL mag(0.0);
 			for (SIZE_TYPE j(0); j < dim; ++j)
 			{
-#ifdef RPR_DEBUG
+#if RPR_DEBUG
 std::cout << ' ' << CJ(i,j);
 #endif
 				if (i != j)
 					mag += CJ(i,j).mag();
 			}
-#ifdef RPR_DEBUG
+#if RPR_DEBUG
 std::cout << std::endl;
 #endif
 
-#ifdef RPR_DEBUG
+#if RPR_DEBUG
 			std::cout << CJ(i,i).mig() << " vs "<< mag << std::endl;
 #endif
 
@@ -162,16 +162,16 @@ std::cout << std::endl;
 				for (SIZE_TYPE j(0); dit != param_sc_.end(), mit != Jtr.end(); 
 					 ++dit, ++mit, ++j) {
 					(**mit)[i] = fun[i]->deriv(**dit).midpoint();
-#ifdef RPR_DEBUG
+#if RPR_DEBUG
 std::cout << ' ' << (**mit)[i];
 #endif
 
 					//J(i,j) = fun[i]->deriv(**dit);
-#ifdef RPR_DEBUG
+#if RPR_DEBUG
 std::cout << ' ' << J(i,j);
 #endif
 				}
-#ifdef RPR_DEBUG
+#if RPR_DEBUG
 std::cout << std::endl;
 #endif
 			}
@@ -258,7 +258,7 @@ std::cout << std::endl;
 		inner_result result;		
 		result.regular_Ju = false;
 
-#ifdef RPR_DEBUG
+#if RPR_DEBUG
 		std::cout << "dom_bx" << std::endl;
 		std::cout << dom_bx << std::endl;
 #endif
@@ -271,7 +271,7 @@ std::cout << std::endl;
 		const IntervalVector dom_orig(get_interval_vector(dom_bx, param_sc));
 		IntervalVector dom(get_interval_vector(dom_bx, param_sc));
 
-#ifdef RPR_CENTERED_FORM
+#if RPR_CENTERED_FORM
 		IntervalVector range(get_interval_vector(dom_bx, proj_sc));
 		IntervalVector cnt_range(range - IntervalVector(range.midpoint()) );
 #endif
@@ -283,7 +283,7 @@ std::cout << std::endl;
 
 		double d(HUGE_VAL), d_prev(HUGE_VAL);
 
-//#ifdef RPR_DEBUG
+//#if RPR_DEBUG
 //		std::cout << dom_bx << std::endl;
 //#endif
 
@@ -299,7 +299,7 @@ std::cout << std::endl;
 			IntervalMatrix J(dim, dim);
 			Box box(dom_bx);
 			set_interval_vector(box, dom, param_sc);
-#ifdef RPR_CENTERED_FORM
+#if RPR_CENTERED_FORM
 			IntervalMatrix dxf(dim, proj_sc.size());
 			Box box1(dom_bx);
 			set_interval_vector(box1, IntervalVector(dom.midpoint()), param_sc);
@@ -310,7 +310,7 @@ std::cout << std::endl;
 			for (; dit != fixed_sc.end(); ++dit) {
 				box.set_interval(**dit, box.get_interval(**dit).midpoint());
 			}
-#ifdef RPR_CENTERED_FORM
+#if RPR_CENTERED_FORM
 			dit = fixed_sc.begin();
 			for (; dit != fixed_sc.end(); ++dit) {
 				box1.set_interval(**dit, box1.get_interval(**dit).midpoint());
@@ -324,7 +324,7 @@ std::cout << std::endl;
 				for (SIZE_TYPE j(0); dit != param_sc.end(); ++dit, ++j) {
 					J(i,j) = fun[i]->deriv(**dit);
 				}
-#ifdef RPR_CENTERED_FORM
+#if RPR_CENTERED_FORM
 				fun[i]->eval(box1);
 				dit = proj_sc.begin();
 				for (SIZE_TYPE j(0); dit != proj_sc.end(); ++dit, ++j) {
@@ -333,7 +333,7 @@ std::cout << std::endl;
 #endif
 			}
 
-/*#ifdef RPR_COND_NUM
+/*#if RPR_COND_NUM
 			IntervalMatrix dxf1(dim, dim);
 			for (SIZE_TYPE i(0); i < dim; ++i)
 			{
@@ -357,7 +357,7 @@ std::cout << std::endl;
 			}
 			C = IntervalMatrix(realC);
 
-#ifdef RPR_COND_NUM
+#if RPR_COND_NUM
 			/*RealMatrix mid_dxf(dxf1.midpoint());
 			RealMatrix dudx_inv(dim, dim, 0.0); // is zero, initially
 			RealMatrix dudx( dudx_inv - mid_dxf * C );
@@ -407,7 +407,7 @@ std::cout << std::endl;
 					);
 			}
 			catch (const std::runtime_error& err) {
-#ifdef RPR_DEBUG
+#if RPR_DEBUG
 std::cout << err.what() << std::endl;
 #endif
 
@@ -425,7 +425,7 @@ std::cout << err.what() << std::endl;
 			//else
 			//	result.regular_Ju = false;
 
-#ifdef RPR_DEBUG
+#if RPR_DEBUG
 			std::cout << std::endl;
 			std::cout << "k:  " << k << std::endl;
 			std::cout << "J:  " << J << std::endl;
@@ -449,7 +449,7 @@ std::cout << err.what() << std::endl;
 
 				if (reduce_box) {
 					set_interval_vector(dom_bx, contracted, param_sc);
-#ifdef RPR_COND_NUM
+#if RPR_COND_NUM
 					dom_bx.cond_number = result.cond;
 #endif
 				}
@@ -465,7 +465,7 @@ std::cout << err.what() << std::endl;
 				if (!reduced.is_empty())
 					set_interval_vector(dom_bx, reduced, param_sc);
 
-#ifdef RPR_COND_NUM
+#if RPR_COND_NUM
 				dom_bx.cond_number = result.cond;
 #endif
 			}
@@ -475,7 +475,7 @@ std::cout << err.what() << std::endl;
 			d_prev = d;
 			// TODO
 			d = distance(dom, contracted);
-#ifdef RPR_DEBUG
+#if RPR_DEBUG
 			std::cout << "d:  " << d << ", d-: " << Mu*d_prev << std::endl;
 #endif
 			// TODO

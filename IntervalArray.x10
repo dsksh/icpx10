@@ -42,6 +42,10 @@ public class IntervalArray implements IntervalVec[Int] {
         return new Box[Interval](old);
     }
 
+    public def size() : Int {
+        return theArray.size;
+    }
+
     public def varIterator() : Iterator[Int] {
         return (0..(theArray.size-1)).iterator();
     }
