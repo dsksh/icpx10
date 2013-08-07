@@ -10,8 +10,10 @@ using namespace std;
 
 RTT_CC_DECLS0(RPX10__CoreIArray, "RPX10.CoreIArray", x10aux::RuntimeType::class_kind)
     
-RPX10__CoreIArray *RPX10__CoreIArray::_make() {
-	return new RPX10__CoreIArray();
+RPX10__CoreIArray *RPX10__CoreIArray::_make(x10::lang::String *filename, x10_int n) {
+	RPX10__CoreIArray *core = new RPX10__CoreIArray();
+    core->initialize(filename, n);
+    return core;
 }
 
 
@@ -55,7 +57,7 @@ Solver__Core<x10_int>::itable<RPX10__CoreIArray>  RPX10__CoreIArray::_itable_0(
         &RPX10__CoreIArray::equals, 
         &RPX10__CoreIArray::getInitialDomain, 
         &RPX10__CoreIArray::hashCode, 
-        &RPX10__Core::initialize, 
+        //&RPX10__Core::initialize, 
         &RPX10__CoreIArray::isProjected, 
         &RPX10__CoreIArray::toString, 
         &RPX10__CoreIArray::typeName );

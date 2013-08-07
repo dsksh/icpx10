@@ -19,8 +19,10 @@ using namespace std;
 
 RTT_CC_DECLS0(RPX10__CoreIMap, "RPX10.CoreIMap", x10aux::RuntimeType::class_kind)
     
-RPX10__CoreIMap *RPX10__CoreIMap::_make() {
-	return new RPX10__CoreIMap();
+RPX10__CoreIMap *RPX10__CoreIMap::_make(x10::lang::String *filename, x10_int n) {
+	RPX10__CoreIMap *core = new RPX10__CoreIMap();
+    core->initialize(filename, n);
+    return core;
 }
 
 
@@ -51,7 +53,9 @@ void RPX10__CoreIMap::setBoxIntoIV(const rp::Box& box, IntervalVec<x10::lang::St
     rp::Scope::const_iterator it = box.scope()->begin();
     for (; it != box.scope()->end(); ++it) {
         rp::Interval intv = box.get_interval(**it);
+//cout << "int: [" << intv.left() << ", " << intv.right() << "]" << endl;
         Interval si = Interval::_make(intv.left(), intv.right());
+//cout << "Int: [" << si.FMGL(left) << ", " << si.FMGL(right) << "]" << endl;
         IntervalVec<x10::lang::String *>::put(&iv, x10::lang::String::_make((*it)->name().c_str(), true), si);
     }
 }
@@ -70,7 +74,7 @@ Solver__Core<x10::lang::String*>::itable<RPX10__CoreIMap>  RPX10__CoreIMap::_ita
         &RPX10__CoreIMap::equals, 
         &RPX10__CoreIMap::getInitialDomain, 
         &RPX10__CoreIMap::hashCode, 
-        &RPX10__Core::initialize, 
+        //&RPX10__Core::initialize, 
         &RPX10__CoreIMap::isProjected, 
         &RPX10__CoreIMap::toString, 
         &RPX10__CoreIMap::typeName );

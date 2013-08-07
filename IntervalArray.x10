@@ -14,14 +14,14 @@ public class IntervalArray implements IntervalVec[Int] {
     public var prevVar:Int = -1;
     public def prevVar() : Box[Int] { return (prevVar >= 0) ? new Box(prevVar) : null; }
     //public def prevVar() : Box[Point] { return (prevVar != null) ? new Box(prevVar) : null; }
-    public def setPrevVar(variable:Int) : void { prevVar = variable; }
+    public def setPrevVar(v:Box[Int]) : void { prevVar = v != null ? v() : -1; }
 
     public def this(size:Int) : IntervalArray { 
         theArray = new Array[Interval](size);
     } 
-    public def this(lhs:IntervalArray) : IntervalArray { 
-        theArray = new Array[Interval](lhs.theArray);
-        this.prevVar = lhs.prevVar;
+    public def this(rhs:IntervalArray) : IntervalArray { 
+        theArray = new Array[Interval](rhs.theArray);
+        this.prevVar = rhs.prevVar;
     } 
 
     public operator this(k:Int) : Box[Interval] = get(k);

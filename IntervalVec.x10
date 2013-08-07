@@ -21,7 +21,7 @@ public interface IntervalVec[K] {
 
     public def vit() : Iterator[K];
     public def prevVar() : Box[K];
-    public def setPrevVar(variable:K) : void;
+    public def setPrevVar(variable:Box[K]) : void;
 }
 
 // vim: shiftwidth=4:tabstop=4:expandtab

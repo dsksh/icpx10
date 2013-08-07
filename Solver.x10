@@ -24,7 +24,7 @@ public class Solver[K] {
     }
 
     public static interface Core[K] {
-        public def initialize(filename:String) : void;
+        //public def initialize(filename:String, n:Int) : void;
         public def getInitialDomain() :IntervalVec[K];
         //public def solve() : int;
         //public def calculateNext() : int;
@@ -40,6 +40,8 @@ public class Solver[K] {
 
     val reqQueue:CircularQueue[Int];
     var terminate : Int = 0;
+    var sentRequest:AtomicBoolean = new AtomicBoolean(false);
+    var sentBw:AtomicBoolean = new AtomicBoolean(false);
 
     public var nSols:AtomicInteger = new AtomicInteger(0);
     public var nContracts:AtomicInteger = new AtomicInteger(0);
@@ -51,9 +53,11 @@ public class Solver[K] {
     val dummy:Double;
     val dummyI:Interval;
 
-    public def this(core:Core[K], selector:(Result, IntervalVec[K])=>Box[K], filename:String) {
+    public def this(core:Core[K], selector:(Result, IntervalVec[K])=>Box[K]
+        //, filename:String, n:Int
+    ) {
         this.core = core;
-        core.initialize(filename);
+        //core.initialize(filename, n);
         selectVariable = selector;
 
         list = new ArrayList[IntervalVec[K]]();
@@ -61,7 +65,7 @@ public class Solver[K] {
             list.add(core.getInitialDomain());
         solutions = new ArrayList[Pair[Result,IntervalVec[K]]]();
 
-        reqQueue = new CircularQueue[Int](2*Place.numPlaces()+10);
+        reqQueue = new CircularQueue[Int](2*Place.numPlaces()+100);
 
         dummy = 0;
         dummyI = new Interval(0.,0.);

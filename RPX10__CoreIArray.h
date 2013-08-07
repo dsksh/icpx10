@@ -28,7 +28,7 @@ public:
     virtual x10aux::serialization_id_t _get_serialization_id() { abort(); return -1; }
     virtual void _serialize_body(x10aux::serialization_buffer &) { abort(); }
 
-    static RPX10__CoreIArray *_make();
+    static RPX10__CoreIArray *_make(x10::lang::String *filename, x10_int n);
 
     virtual x10_boolean isProjected(x10_int v) {
 		return false;

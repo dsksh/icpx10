@@ -27,9 +27,9 @@ public:
 	//RPX10__Core() {}
 	//~RPX10__Core() {}
 
-	virtual void initialize(const char *);
-	void initialize(x10::lang::String *filename) {
-   		initialize(filename->c_str());
+	virtual void initialize(const char *, const int n);
+	void initialize(x10::lang::String *filename, x10_int n) {
+   		initialize(filename->c_str(), n);
 	}
 
 	x10_int solve();

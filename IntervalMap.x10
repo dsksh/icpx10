@@ -15,7 +15,7 @@ implements IntervalVec[String] {
 
     public var prevVar:String = null;
     public def prevVar() : Box[String] { return (prevVar != null) ? new Box(prevVar) : null; }
-    public def setPrevVar(variable:String) : void { prevVar = variable; }
+    public def setPrevVar(v:Box[String]) : void { prevVar = v != null ? v() : null; }
 
     public def this() : IntervalMap { } 
     public def this(lhs:IntervalMap) : IntervalMap { 

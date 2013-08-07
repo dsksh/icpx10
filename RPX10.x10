@@ -15,7 +15,7 @@ public class RPX10 {
 
     static class CoreIMap0 implements Solver.Core[String] {
         public def this() : CoreIMap0 {}
-        public def initialize(filename:String) : void {};
+        public def initialize(filename:String, n:Int) : void {};
         public def getInitialDomain() : IntervalVec[String] { 
             return new IntervalMap(); 
         };
@@ -25,7 +25,7 @@ public class RPX10 {
     }
     /*static class CoreIArray0 implements Solver.Core[Int] {
         public def this() : CoreIArray0 {}
-        public def initialize(filename:String) : void {};
+        public def initialize(filename:String, n:Int) : void {};
         public def getInitialDomain() : IntervalVec[Int] { 
             return new IntervalArray(1); 
         };
@@ -46,9 +46,9 @@ public class RPX10 {
     @NativeCPPCompilationUnit("prover.cc")
     @NativeCPPOutputFile("config.h")
     static class CoreIArray implements Solver.Core[Int] {
-        public def this() : CoreIArray {}
+        public def this(filename:String, n:Int) : CoreIArray {}
         @Native("c++", "(#0)->initialize((#1))")
-        public def initialize(filename:String) : void {};
+        public def initialize(filename:String, n:Int) : void {};
         @Native("c++", "(#0)->getInitialDomain()")
         public def getInitialDomain() : IntervalVec[Int] { 
             return new IntervalArray(1); 
@@ -63,9 +63,9 @@ public class RPX10 {
     @NativeCPPOutputFile("RPX10__CoreIMap.h")
     @NativeCPPCompilationUnit("RPX10__CoreIMap.cc")
     static class CoreIMap implements Solver.Core[String] {
-        public def this() : CoreIMap {}
+        public def this(filename:String, n:Int) : CoreIMap {}
         @Native("c++", "(#0)->initialize((#1))")
-        public def initialize(filename:String) : void {};
+        public def initialize(filename:String, n:Int) : void {};
         @Native("c++", "(#0)->getInitialDomain()")
         public def getInitialDomain() : IntervalVec[String] { 
             return new IntervalMap(); 
@@ -83,8 +83,8 @@ public class RPX10 {
     }
 
 
-    private static def initSolverArray(fname:String, prec:Double) : Solver[Int] {
-        val core = new CoreIArray();
+    private static def initSolverArray(fname:String, prec:Double, n:Int) : Solver[Int] {
+        val core = new CoreIArray(fname, n);
 
         val tester = new VariableSelector.Tester[Int]();
         val test = (res:Solver.Result, box:IntervalVec[Int], v:Int) => tester.testPrec(prec, res, box, v);
@@ -96,11 +96,11 @@ public class RPX10 {
         val select = (res:Solver.Result, box:IntervalVec[Int])=>selector.selectLRR(res, box);
         val select1 = (res:Solver.Result, box:IntervalVec[Int])=>selector.selectBoundary(select, res, box);
 
-        return new ClusterDFSSolver[Int](core, select, fname);
+        return new ClusterDFSSolver[Int](core, select);
     }
 
-    private static def initSolverMap(fname:String, prec:Double) : Solver[String] {
-        val core = new CoreIMap();
+    private static def initSolverMap(fname:String, prec:Double, n:Int) : Solver[String] {
+        val core = new CoreIMap(fname, n);
 
         //val prec = 1E-1;
         val tester = new VariableSelector.Tester[String]();
@@ -108,16 +108,20 @@ public class RPX10 {
         val test1 = (res:Solver.Result, box:IntervalVec[String], v:String) => 
             tester.testRegularity(test, (v:String)=>!core.isProjected(v), res, box, v);
 
-        //val selector = new VariableSelector[String](1E-2);
         val selector = new VariableSelector[String](test);
 
         val select = (res:Solver.Result, box:IntervalVec[String])=>selector.selectLF(res, box);
         val select1 = (res:Solver.Result, box:IntervalVec[String])=>selector.selectBoundary(select, res, box);
 
-        return new ClusterDFSSolver[String](core, select, fname);
+        return new ClusterDFSSolver[String](core, select);
     }
 
     public static def main(args:Array[String](1)) {
+
+        if (args.size < 3) {
+            Console.OUT.println("usage: RPX10 prob.rp prec n");
+            return;
+        }
 
         // create a solver at each place
         val everyone = Dist.makeUnique();
@@ -132,18 +136,21 @@ public class RPX10 {
         //val sHandle = PlaceLocalHandle.make[ClusterDFSSolver[Int]](everyone, 
         //    () => new ClusterDFSSolver[Int](new CoreIArray(), select, args(0)) );
 
-        //val sHandle = PlaceLocalHandle.make[Solver[Int]](everyone, ()=>initSolverArray(args(0), Double.parse(args(1))));
-        val sHandle = PlaceLocalHandle.make[Solver[String]](everyone, ()=>initSolverMap(args(0), Double.parse(args(1))));
+        val sHandle = PlaceLocalHandle.make[Solver[Int]](everyone, ()=>initSolverArray(args(0), Double.parse(args(1)), Int.parse(args(2))));
+        //val sHandle = PlaceLocalHandle.make[Solver[String]](everyone, ()=>initSolverMap(args(0), Double.parse(args(1)), Int.parse(args(2))));
 
         val masterP = here;
 
         var time:Long = -System.nanoTime();
-        sHandle().setup(sHandle);
+        //sHandle().setup(sHandle);
+        finish for (p in Place.places()) at (p) async 
+            sHandle().setup(sHandle);
 
         finish for (p in Place.places()) at (p) async {
 Console.OUT.println(here + ": solve");
 		    val solver = sHandle();
             //solver.solve();
+            //solver.setup(sHandle);
             solver.solve(sHandle);
         }
 

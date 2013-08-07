@@ -104,7 +104,9 @@ IntervalVec<x10::lang::String *> *getIVFromBox(const rp::Box& box) {
     rp::Scope::const_iterator it = box.scope()->begin();
     for (; it != box.scope()->end(); ++it) {
         rp::Interval i = box.get_interval(**it);
+cout << "int: [" << i.left() << ", " << i.right() << "]" << endl;
         Interval si = Interval::_make(i.left(), i.right());
+cout << "Int: [" << si.FMGL(left) << ", " << si.FMGL(right) << "]" << endl;
         iv->put(x10::lang::String::_make((*it)->name().c_str(), true), si);
     }
 

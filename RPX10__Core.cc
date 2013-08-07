@@ -21,9 +21,14 @@
 using namespace std;
 //using namespace rp;
 
-void RPX10__Core::initialize(const char *filename) {
+void RPX10__Core::initialize(const char *filename, const int n) {
+    cout.precision(16);
+
     rp::Parser parser(filename);
-	//Timer tim;
+
+    parser.insert_param("n", rp::Interval(rp::REAL(n)));    
+    
+    //Timer tim;
 	bool result;
 
 	try {

@@ -74,8 +74,9 @@ public class VariableSelector[K] {
         val v0 = it.next();
         if (test(res, box, v0)) {
 //Console.OUT.println(here + ": select " + v0);
-            box.setPrevVar(v0);
-            return new Box[K](v0);
+            val bv = new Box[K](v0);
+            box.setPrevVar(bv);
+            return bv;
         }
 
         // try rest of the vars.
@@ -83,8 +84,9 @@ public class VariableSelector[K] {
             val v = it.next();
             if (test(res, box, v)) {
 //Console.OUT.println(here + ": select " + v);
-                box.setPrevVar(v);
-                return new Box[K](v);
+                val bv = new Box[K](v);
+                box.setPrevVar(bv);
+                return bv;
             }
         }
 
@@ -95,8 +97,9 @@ public class VariableSelector[K] {
             if (v.equals(v0))
                 break;
             if (test(res, box,v)) {
-                box.setPrevVar(v);
-                return new Box[K](v);
+                val bv = new Box[K](v);
+                box.setPrevVar(bv);
+                return bv;
             }
         }
 

@@ -30,7 +30,7 @@ public:
 
     void _constructor() {}
 
-    static RPX10__CoreIMap *_make();
+    static RPX10__CoreIMap *_make(x10::lang::String *filename, x10_int n);
 
     virtual x10_boolean isProjected(x10::lang::String *vName) {
 #if RPX_PROJ
