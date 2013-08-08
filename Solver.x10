@@ -65,7 +65,7 @@ public class Solver[K] {
             list.add(core.getInitialDomain());
         solutions = new ArrayList[Pair[Result,IntervalVec[K]]]();
 
-        reqQueue = new CircularQueue[Int](2*Place.numPlaces()+100);
+        reqQueue = new CircularQueue[Int](2*Place.numPlaces()+10);
 
         dummy = 0;
         dummyI = new Interval(0.,0.);

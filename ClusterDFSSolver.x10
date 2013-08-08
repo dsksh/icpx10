@@ -7,15 +7,17 @@ import x10.util.concurrent.AtomicInteger;
 public class ClusterDFSSolver[K] extends Solver[K] {
     //private var nProcs:AtomicInteger = new AtomicInteger(0);
     //private var finished:AtomicBoolean = new AtomicBoolean(false);
-    private var finished:Boolean = false;
+    //private var finished:Boolean = false;
     private random:Random;
+    private var initPhase:Boolean;
 
     static val SendWhenContracted = false;
 
     public def this(core:Core[K], selector:(Result,IntervalVec[K])=>Box[K]) {
         super(core, selector);
         //reqQueue = new CircularQueue[Int](2*Place.numPlaces()+10);
-        random = new Random();
+        random = new Random(System.nanoTime());
+        initPhase = here.id() != 0;
     }
 
     public def setup(sHandle:PlaceLocalHandle[Solver[K]]) {
@@ -37,14 +39,6 @@ public class ClusterDFSSolver[K] extends Solver[K] {
                 at (p) {
                     sHandle().list.add(box);
                 }
-            }
-        }
-*/
-
-/*        if (here.next().id() != 0) {
-            reqQueue.addLast(here.next().id());
-            at (here.next()) {
-                sHandle().sentRequest.set(true);
             }
         }
 */
@@ -91,12 +85,13 @@ if (SendWhenContracted) {
 
                 val bp = box.split(v()); 
                 nSplits.getAndIncrement();
+//Console.OUT.println(here + ": split");
                 
 if (!SendWhenContracted) {
                 var id:Int = -1;
                 atomic if (reqQueue.getSize() > 0) {
                     id = reqQueue.removeFirstUnsafe();
-//Console.OUT.println(here + ": got id: " + id);
+//Console.OUT.println(here + ": got req from: " + id);
                 }
                 if (id >= 0) {
                     at (Place(id)) {
@@ -130,20 +125,19 @@ if (!SendWhenContracted) {
                 nSols.getAndIncrement();
             }
         }
-        //else Console.OUT.println("no solution");
+        //else Console.OUT.println(here + ": no solution");
     }
 
     var selected:Iterator[Place] = null;
     protected def selectPlace() : Place {
-        /*var id:Int;
+        var id:Int;
         do {
             id = random.nextInt(Place.numPlaces());
         } while (Place.numPlaces() > 1 && (id == here.id()));
 
         return Place(id);
-        */
 
-        if (selected == null || !selected.hasNext())
+/*        if (selected == null || !selected.hasNext())
             selected = Place.places().iterator();
         val p = selected.next();
         if (p != here) {
@@ -152,8 +146,7 @@ if (!SendWhenContracted) {
         }
         else
             return selectPlace();
-
-        //return here.prev();
+*/
     }
 
     protected atomic def getAndResetTerminate() : Int {
@@ -168,10 +161,21 @@ if (!SendWhenContracted) {
         while (true) {
             if (!list.isEmpty()) {
                 val box = list.removeFirst();
-                finish async search(sHandle, box);
+                //finish async search(sHandle, box);
+                finish search(sHandle, box);
             }
 
             else { //if (list.isEmpty()) {
+
+                // cancel the received requests.
+                while (!initPhase && reqQueue.getSize() > 0) {
+//Console.OUT.println(here + ": canceling...");
+                    val id:Int = reqQueue.removeFirstUnsafe();
+                    at (Place(id)) {
+                        sHandle().sentRequest.set(false);
+                        atomic sHandle().list.add(sHandle().core.dummyBox());
+                    }
+                }
 
                 val t = getAndResetTerminate();
 
@@ -212,10 +216,14 @@ if (!SendWhenContracted) {
                 // request for a domain
                 if (Place.numPlaces() > 1 && !sentRequest.getAndSet(true)) {
                     val id = here.id();
-                    at (selectPlace()) {
+                    val p = selectPlace();
+//val before = System.nanoTime();
+                    at (p) async {
                         sHandle().reqQueue.addLast(id);
-//Console.OUT.println(here + ": requested from " + id);
+                        atomic sHandle().list.add(sHandle().core.dummyBox());
+//Console.OUT.println(here + ": requested from " + id + " in " + RPX10.format(System.nanoTime()-before) + "s");
                     }
+//Console.OUT.println(here + ": requested to " + p);
                     nReqs.getAndIncrement();
                 }
 
