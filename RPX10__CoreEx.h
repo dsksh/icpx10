@@ -7,6 +7,8 @@
 #include "RPX10__Core.h"
 #include "RPX10__CoreProj.h"
 
+#include "config.h"
+
 template<typename K>
 #if !RPX_PROJ
 class RPX10__CoreEx : public RPX10__Core {

@@ -91,12 +91,12 @@ public class RPX10 {
         val test1 = (res:Solver.Result, box:IntervalVec[Int], v:Int) => 
             tester.testRegularity(test, (v:Int)=>!core.isProjected(v), res, box, v);
 
-        val selector = new VariableSelector[Int](test);
+        val selector = new VariableSelector[Int](test1);
 
         val select = (res:Solver.Result, box:IntervalVec[Int])=>selector.selectLRR(res, box);
         val select1 = (res:Solver.Result, box:IntervalVec[Int])=>selector.selectBoundary(select, res, box);
 
-        return new ClusterDFSSolver[Int](core, select);
+        return new ClusterDFSSolver[Int](core, select1);
     }
 
     private static def initSolverMap(fname:String, prec:Double, n:Int) : Solver[String] {
@@ -108,12 +108,12 @@ public class RPX10 {
         val test1 = (res:Solver.Result, box:IntervalVec[String], v:String) => 
             tester.testRegularity(test, (v:String)=>!core.isProjected(v), res, box, v);
 
-        val selector = new VariableSelector[String](test);
+        val selector = new VariableSelector[String](test1);
 
-        val select = (res:Solver.Result, box:IntervalVec[String])=>selector.selectLF(res, box);
+        val select = (res:Solver.Result, box:IntervalVec[String])=>selector.selectLRR(res, box);
         val select1 = (res:Solver.Result, box:IntervalVec[String])=>selector.selectBoundary(select, res, box);
 
-        return new ClusterDFSSolver[String](core, select);
+        return new ClusterDFSSolver[String](core, select1);
     }
 
     public static def main(args:Array[String](1)) {
@@ -125,78 +125,67 @@ public class RPX10 {
 
         // create a solver at each place
         val everyone = Dist.makeUnique();
-        //val sHandle = PlaceLocalHandle.make[Solver[String]](everyone, 
-        //    () => new Solver[String](core, select, args(0)) );
-        //val sHandle = PlaceLocalHandle.make[PipelineSolver](everyone, 
-        //    () => new PipelineSolver(select, args(0)) );
-        //val sHandle = PlaceLocalHandle.make[ClusterDFSSolver[String]](everyone, 
-        //    () => new ClusterDFSSolver[String](new CoreIMap(), select, args(0)) );
-        //val sHandle = PlaceLocalHandle.make[ClusterDFSSolver[String]](everyone, 
-        //    () => new ClusterDFSSolver[String](core, (res:Solver.Result, box:IntervalVec[String])=>selector.selectLRR(res, box), args(0)) );
-        //val sHandle = PlaceLocalHandle.make[ClusterDFSSolver[Int]](everyone, 
-        //    () => new ClusterDFSSolver[Int](new CoreIArray(), select, args(0)) );
-
         val sHandle = PlaceLocalHandle.make[Solver[Int]](everyone, ()=>initSolverArray(args(0), Double.parse(args(1)), Int.parse(args(2))));
         //val sHandle = PlaceLocalHandle.make[Solver[String]](everyone, ()=>initSolverMap(args(0), Double.parse(args(1)), Int.parse(args(2))));
 
         val masterP = here;
 
         var time:Long = -System.nanoTime();
-        //sHandle().setup(sHandle);
-        finish for (p in Place.places()) at (p) async 
-            sHandle().setup(sHandle);
+        //finish for (p in Place.places()) at (p) async 
+        sHandle().setup(sHandle);
 
         finish for (p in Place.places()) at (p) async {
-Console.OUT.println(here + ": solve");
-		    val solver = sHandle();
-            //solver.solve();
-            //solver.setup(sHandle);
-            solver.solve(sHandle);
+            sHandle().solve(sHandle);
         }
-
-        /*val it = solutions.iterator();
-        for (var i:Int = 0; it.hasNext(); ++i) {
-            val p = it.next();
-   		    //Console.OUT.println("solution " + i + ":");
-   		    Console.OUT.println(p.second);
-   		    Console.OUT.println();
-        }
-        */
 
         time += System.nanoTime();
+
+        // output the solutions.
         Console.OUT.println();
-        Console.OUT.println("time: " + format(time) + " s");
+        for (p in Place.places()) at (p) atomic {
+            val it = sHandle().solutions.iterator();
+            for (var i:Int = 0; it.hasNext(); ++i) {
+                val pair = it.next();
+                val plot = pair.first.entails(Solver.Result.inner()) ? 5 : 3;
+                Console.OUT.println(pair.second.toString(plot));
+                Console.OUT.println(); 
+            }
+            Console.OUT.flush();
+        }
+
+        // output description of the solving process.
+        val sb = new StringBuilder();
+        val sbG = new GlobalRef[StringBuilder](sb);
+        sb.add("{\"desc\" : \"");
+        sb.add("time: " + format(time) + " s,\n");
 
         // sum up the # solutions at each place
         val nSols = new GlobalRef(new Cell(0));
-        Console.OUT.print("# sols:");
+        sb.add("  # sols:");
         for (p in Place.places()) at (p) {
             val v = sHandle().nSols.get();
             at (masterP) {
-                Console.OUT.print((p == here ? " " : " + ") + v);
+                at (sbG.home)
+                    sbG().add((p == here ? " " : " + ") + v);
                 nSols().value += v;
             }
         }
-        Console.OUT.println(" = " + nSols().value);
+        sb.add(" = " + nSols().value + ",\n");
 
         // sum up the # contracts at each place
         val nContracts = new GlobalRef(new Cell(0));
         val nSplits = new GlobalRef(new Cell(0));
         val nReqs = new GlobalRef(new Cell(0));
         val nSends = new GlobalRef(new Cell(0));
-        val cContracts = new Cell[String]("# contracts:"); val gContracts = GlobalRef[Cell[String]](cContracts);
-        val cSplits = new Cell[String]("# splits:"); val gSplits = GlobalRef[Cell[String]](cSplits);
-        val cReqs = new Cell[String]("# reqs:"); val gReqs = GlobalRef[Cell[String]](cReqs);
-        val cSends = new Cell[String]("# sends:"); val gSends = GlobalRef[Cell[String]](cSends);
+        val cContracts = new Cell[String]("  # contracts:"); val gContracts = GlobalRef[Cell[String]](cContracts);
+        val cSplits = new Cell[String]("  # splits:"); val gSplits = GlobalRef[Cell[String]](cSplits);
+        val cReqs = new Cell[String]("  # reqs:"); val gReqs = GlobalRef[Cell[String]](cReqs);
+        val cSends = new Cell[String]("  # sends:"); val gSends = GlobalRef[Cell[String]](cSends);
         for (p in Place.places()) at (p) {
             val vContacts = sHandle().nContracts.get();
             val vSplits = sHandle().nSplits.get();
             val vReqs = sHandle().nReqs.get();
             val vSends = sHandle().nSends.get();
-            //at (masterP) {
-            //    Console.OUT.print((p == here ? " " : " + ") + v);
-            //    nContracts().value += v;
-            //}
             at (gContracts.home) {
                 gContracts().set(gContracts()() + (p == here ? " " : " + ") + vContacts);
                 nContracts().value += vContacts;
@@ -214,10 +203,14 @@ Console.OUT.println(here + ": solve");
                 nSends().value += vSends;
             }
         }
-        Console.OUT.println(cContracts() + " = " + nContracts().value);
-        Console.OUT.println(cSplits() + " = " + nSplits().value);
-        Console.OUT.println(cReqs() + " = " + nReqs().value);
-        Console.OUT.println(cSends() + " = " + nSends().value);
+        sb.add(cContracts() + " = " + nContracts().value + ",\n");
+        sb.add(cSplits() + " = " + nSplits().value + ",\n");
+        sb.add(cReqs() + " = " + nReqs().value + ",\n");
+        sb.add(cSends() + " = " + nSends().value);
+        sb.add("\" }");
+
+        Console.OUT.flush();
+        Console.OUT.println(sb);
     }
 }
 

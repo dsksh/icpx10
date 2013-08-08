@@ -137,7 +137,6 @@ public class Solver[K] {
     }
 
     public def solve(sHandle:PlaceLocalHandle[Solver[K]]) {
-    //public def solve() {
    		Console.OUT.println(here + ": start solving... ");
 
         // main solving process

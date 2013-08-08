@@ -40,6 +40,27 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
                  sp<Scope> cyclic_sc,
                  sp<IntervalFunctionVector> constr_if)
 {
+    switch (prob_id) {
+    case 5: 
+        xl[0] = "0"; xu[0] = "10";
+        xl[1] = "-pi"; xu[1] = "pi";
+        yl[0] = "-pi/2"; yu[0] = "pi/2";
+        yl[1] = "-pi/2"; yu[1] = "pi/2";
+        break;
+    case 6: 
+        xl[0] = "-10"; xu[0] = "10";
+        xl[1] = "-10"; xu[1] = "10";
+        yl[0] = "0"; yu[0] = "4";
+        yl[1] = "-2"; yu[1] = "2";
+        break;
+    case 7: 
+    case 8: 
+        xl[0] = "-20"; xu[0] = "20";
+        xl[1] = "-20"; xu[1] = "20";
+        yl[0] = "-pi"; yu[0] = "pi"; yc[0] = true;
+        yl[1] = "-pi"; yu[1] = "pi"; yc[1] = true;
+    }
+
     // variable declarations:
     sp<Variable> x[MaxDim], y[MaxDim], su[MaxDim];
 
@@ -250,7 +271,7 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
 }
 
 
-void RPX10__CoreProj::initialize(const char *filename) {
+void RPX10__CoreProj::initialize(x10::lang::String *filename, x10_int n) {
     /*rp::Parser parser(filename);
 	//Timer tim;
 	bool result;
@@ -302,7 +323,7 @@ void RPX10__CoreProj::initialize(const char *filename) {
     yl[2] = "0"; yu[2] = "0";
     yl[3] = "0"; yu[3] = "0";
     */
-    prob_id = 2;
+    prob_id = n;
     prec = 1E-1;
     op_id = 4;
 

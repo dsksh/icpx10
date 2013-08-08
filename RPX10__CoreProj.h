@@ -16,7 +16,7 @@ public:
 	{ }
 	//~RPX10__CoreProj() { }
 
-	virtual void initialize(const char *);
+	void initialize(x10::lang::String *filename, x10_int n);
 
 protected:
     rp::sp<rp::Problem> problem;

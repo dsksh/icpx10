@@ -31,7 +31,11 @@ public:
     static RPX10__CoreIArray *_make(x10::lang::String *filename, x10_int n);
 
     virtual x10_boolean isProjected(x10_int v) {
+#if RPX_PROJ
+		return v < proj_sc->size();
+#else
 		return false;
+#endif
 	}
 
 	virtual IntervalVec<x10_int> *dummyBox() {
