@@ -68,7 +68,7 @@ if (SendWhenContracted) {
                 var id:Int = -1;
                 atomic if (reqQueue.getSize() > 0) {
                     id = reqQueue.removeFirstUnsafe();
-//Console.OUT.println(here + ": got id: " + id);
+//Console.OUT.println(here + ": got req from " + id);
                 }
                 if (id >= 0) {
                     at (Place(id)) {

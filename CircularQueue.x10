@@ -62,6 +62,9 @@ public class CircularQueue[T]{T haszero} {
 	public def removeFirstUnsafe(): T {
        return this.buffer(first++ % this.maximumSize);
 	}
+	public def getFirstUnsafe(): T {
+       return this.buffer(first % this.maximumSize);
+	}
 	/** returns the number of elements in the queue */
 	public def getSize(): Int { atomic { return next -first; }}
 }
