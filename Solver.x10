@@ -39,9 +39,11 @@ public class Solver[K] {
     val solutions:List[Pair[Result,IntervalVec[K]]];
 
     val reqQueue:CircularQueue[Int];
-    var terminate : Int = 0;
+    var terminate:Int = 0;
     var sentRequest:AtomicBoolean = new AtomicBoolean(false);
     var sentBw:AtomicBoolean = new AtomicBoolean(false);
+
+    val maxNSplits:Int = 2;
 
     public var nSols:AtomicInteger = new AtomicInteger(0);
     public var nContracts:AtomicInteger = new AtomicInteger(0);

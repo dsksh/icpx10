@@ -43,14 +43,24 @@ public class ClusterDFSSolver[K] extends Solver[K] {
         }
 */
 
-        var pos:Int = 0;
+/*        var pos:Int = 0;
         for (i in 1..(Place.numPlaces()-1)) {
             at (Place(pos)) sHandle().reqQueue.addLast(i);
             at (Place(i)) sHandle().sentRequest.set(true);
             if (pos+1 < i) pos++; else pos = 0;
         }
-    }
+*/
 
+        var dst:Int = 0;
+        var i:Int = 0;
+        for (p in 1..(Place.numPlaces()-1)) {
+            at (Place(dst)) sHandle().reqQueue.addLast(p);
+            at (Place(p)) sHandle().sentRequest.set(true);
+            if (++i >= Math.pow2(maxNSplits)-1) {
+                if (dst+1 < p) dst++; else dst = 0;
+            }
+        }
+    }
 
     protected def search(sHandle:PlaceLocalHandle[Solver[K]], box:IntervalVec[K]) {
 //Console.OUT.println(here + ": search:\n" + box + '\n');
@@ -58,62 +68,43 @@ public class ClusterDFSSolver[K] extends Solver[K] {
         var res:Result = Result.unknown();
         atomic { res = core.contract(box); }
         nContracts.getAndIncrement();
+//Console.OUT.println(here + ": contracted:\n" + box + '\n');
 
         if (!res.hasNoSolution()) {
-            val pv:Box[K] = box.prevVar();
-            val v = selectVariable(res, box);
-            if (v != null) {
-
-if (SendWhenContracted) {
-                var id:Int = -1;
-                atomic if (reqQueue.getSize() > 0) {
-                    id = reqQueue.removeFirstUnsafe();
-//Console.OUT.println(here + ": got req from " + id);
-                }
-                if (id >= 0) {
-                    at (Place(id)) {
-                        sHandle().sentRequest.set(false);
-                        box.setPrevVar(pv);
-                        atomic sHandle().list.add(box);
-                    }
-//Console.OUT.println(here + ": responded to " + id);
-                    if (id < here.id()) sentBw.set(true);
-                    nSends.getAndIncrement();
-                    return;
-                }
-}
-
-                val bp = box.split(v()); 
-                nSplits.getAndIncrement();
-//Console.OUT.println(here + ": split");
-                
-if (!SendWhenContracted) {
-                var id:Int = -1;
-                atomic if (reqQueue.getSize() > 0) {
-                    id = reqQueue.removeFirstUnsafe();
-//Console.OUT.println(here + ": got req from: " + id);
-                }
-                if (id >= 0) {
-                    at (Place(id)) {
-                        sHandle().sentRequest.set(false);
-                        atomic sHandle().list.add(bp.first);
-                    }
-//Console.OUT.println(here + ": responded to " + id);
-                    if (id < here.id()) sentBw.set(true);
-                    nSends.getAndIncrement();
-                }
-                else {
-                    //async 
-                    search(sHandle, bp.first);
-                }
-} else {
-                async 
-                search(sHandle, bp.first);
-}
-                //async 
-                search(sHandle, bp.second);
+            // destination list
+            var nS:Int = -1;
+            var ids:ArrayList[Int] = null;
+            atomic {
+                nS = Math.min(maxNSplits, Math.log2(reqQueue.getSize()+1));
+                ids = new ArrayList[Int](2^nS);
+                for (i in 2..Math.pow2(nS)) ids.add(reqQueue.removeFirstUnsafe());
+                ids.add(here.id());
             }
-            else {
+            if (ids.size() == 1) { ids.add(here.id()); nS++; }
+//Console.OUT.println(here+": ids.size' = "+ids.size());
+//Console.OUT.println(here+": nS: "+nS);
+
+            // prepare n boxes
+            val boxes = new ArrayList[IntervalVec[K]](ids.size());
+            boxes.add(box);
+            var nB:Int = 1;
+            if (nS > 0)
+            for (i in 0..(nS-1)) {
+                val prev = i>0 ? Math.pow2(i-1) : 1;
+                for (j in 0..(prev-1)) {
+                    var v:Box[K] = selectVariable(res, boxes.get(j));
+                    if (v != null) {
+                        val bp = boxes.get(j).split(v()); 
+                        nSplits.getAndIncrement();
+                        boxes.set(bp.first, j);
+                        boxes.add(bp.second); nB++;
+//Console.OUT.println(here+": ("+i+","+j+"), bp.second: "+bp.second);
+                    }
+                    else break;
+                }
+            }
+
+            if (nB == 1) { // cannot split
                 atomic solutions.add(new Pair[Result,IntervalVec[K]](res, box));
                 /*Console.OUT.println(here + ": solution:");
                 val plot = res.entails(Solver.Result.inner()) ? 5 : 3;
@@ -123,6 +114,41 @@ if (!SendWhenContracted) {
                 }
                 */
                 nSols.getAndIncrement();
+            }
+            /*else if (ids.size() == 1) {
+                //async 
+                search(sHandle, boxes.get(0));
+                //async 
+                search(sHandle, boxes.get(1));
+            }*/
+            else {
+                val pv:Box[K] = box.prevVar();
+                for (i in 0..(ids.size()-1)) {
+                    if (i < nB) {
+                        val src = here.id();
+                        val dst = ids.get(i);
+                        val b = boxes.get(i);
+                        if (src == dst) {
+                            async
+                            search(sHandle, b);
+                        }
+                        else {
+                            async at (Place(dst)) {
+                                sHandle().sentRequest.set(false);
+                                b.setPrevVar(pv);
+                                atomic sHandle().list.add(b);
+                            }
+//Console.OUT.println(here + ": responded to " + dst);
+//Console.OUT.println(b);
+
+                            if (dst < src) sentBw.set(true);
+                            nSends.getAndIncrement();
+                        }
+                    }
+                    else {
+                        reqQueue.addLast(ids.get(i));
+                    }
+                }
             }
         }
         //else Console.OUT.println(here + ": no solution");
