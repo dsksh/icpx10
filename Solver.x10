@@ -36,14 +36,14 @@ public class Solver[K] {
     val core:Core[K];
     val list:List[IntervalVec[K]];
     //val list:CircularQueue[IntervalVec[K]];
+    val list1:List[Pair[Result,IntervalVec[K]]];
     val solutions:List[Pair[Result,IntervalVec[K]]];
 
     val reqQueue:CircularQueue[Int];
     var terminate:Int = 0;
     var sentRequest:AtomicBoolean = new AtomicBoolean(false);
     var sentBw:AtomicBoolean = new AtomicBoolean(false);
-
-    val maxNSplits:Int = 2;
+    var initPhase:Boolean;
 
     public var nSols:AtomicInteger = new AtomicInteger(0);
     public var nContracts:AtomicInteger = new AtomicInteger(0);
@@ -65,6 +65,7 @@ public class Solver[K] {
         list = new ArrayList[IntervalVec[K]]();
         if (here.id() == 0)
             list.add(core.getInitialDomain());
+        list1 = new ArrayList[Pair[Result,IntervalVec[K]]]();
         solutions = new ArrayList[Pair[Result,IntervalVec[K]]]();
 
         reqQueue = new CircularQueue[Int](2*Place.numPlaces()+10);
@@ -74,6 +75,16 @@ public class Solver[K] {
     }
 
     public def setup(sHandle:PlaceLocalHandle[Solver[K]]) { }
+
+    atomic def addDom(res:Result, box:IntervalVec[K]) {
+        list1.add(new Pair[Result,IntervalVec[K]](res, box));
+    }
+    atomic def removeFirstDom() : Pair[Result,IntervalVec[K]] {
+        return list1.removeFirst();
+    }
+    atomic def removeLastDom() : Pair[Result,IntervalVec[K]] {
+        return list1.removeFirst();
+    }
 
     public def getSolutions() : List[Pair[Result,IntervalVec[K]]] { return solutions; }
     

@@ -38,6 +38,9 @@ public class CircularQueue[T]{T haszero} {
 	   this.maximumSize = sizeLimit;
 	   this.buffer = new Array[T](sizeLimit, initialValue);
 	}
+    public def clear() {
+       first = 0; next = 0;
+    }
    /**
     * Addition of an element at the end of the queue.
     * @param t the item to be added

@@ -59,6 +59,15 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
         xl[1] = "-20"; xu[1] = "20";
         yl[0] = "-pi"; yu[0] = "pi"; yc[0] = true;
         yl[1] = "-pi"; yu[1] = "pi"; yc[1] = true;
+        break;
+    case 15: 
+        xl[0] = "-50"; xu[0] = "50";
+        xl[1] = "-50"; xu[1] = "50";
+        xl[2] = "-pi"; xu[2] = "pi";
+        yl[0] = "10"; yu[0] = "32";
+        yl[1] = "10"; yu[1] = "32";
+        yl[2] = "10"; yu[2] = "32";
+        break;
     }
 
     // variable declarations:
@@ -236,6 +245,76 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
         f[2] = new Term(  sqr(x[0] + CX3*cos(y[3]) - CY3*sin(y[3]) - AX3 - L3*cos(y[2]))
                         + sqr(x[1] + CX3*sin(y[3]) + CY3*cos(y[3]) - AY3 - L3*sin(y[2]))
                         - sqr(M3));
+        break;
+    }
+
+    case 10: { // Sphere (2x2x1)
+        dim = 2; dim_f = 1;
+        f[0] = new Term(sqr(x[0]) + sqr(x[1]) + sqr(y[0]) + sqr(y[1]) - 1);
+        //f[1] = new Term(x[0] + x[1] + y[0] + y[1]);
+        break;
+    }
+
+    case 11: { // Sphere (2x3x2, CP'06)
+        dim = 3; dim_f = 2;
+        f[0] = new Term(sqr(x[0]) + sqr(x[1]) + sqr(y[0]) + sqr(y[1]) + sqr(y[2]) - 1);
+        f[1] = new Term(x[0] + x[1] + y[0] + y[1] + y[2]);
+        break;
+    }
+
+    case 12: { // Sphere (2x3x2)
+        dim = 3; dim_f = 2;
+        f[0] = new Term(sqr(x[0]) + sqr(x[1]) + sqr(y[0]) + sqr(y[1]) + sqr(y[2]) - 1);
+        f[1] = new Term(x[0] + x[1] + y[0] + y[1]);
+        //f[2] = new Term(x[0] + x[1] + y[1] + y[2]);
+        break;
+    }
+
+    case 13: { // Sphere (2x4x3)
+        dim = 4; dim_f = 2;
+        f[0] = new Term(sqr(x[0]) + sqr(x[1]) + sqr(y[0]) + sqr(y[1]) + sqr(y[2]) + sqr(y[3]) - 1);
+        //f[1] = new Term(x[0] + x[1] + y[0] + y[1]);
+        f[1] = new Term(x[0] + x[1] + y[0] + y[1] + y[2] + y[3]);
+        //f[2] = new Term(x[0] + x[1] + y[1] + y[2]);
+        //f[3] = new Term(x[0] + x[1] + y[2] + y[3]);
+        break;
+    }
+
+    case 14: { // Robot (2x3x2, under-constrained)
+        dim = 3; dim_f = 2;
+        //const Constant L (2);
+        const Constant Cx(3);
+        const Constant Cy(1);
+        const Constant R (1);
+
+        f[0] = new Term(x[0] - (y[0] + y[2]*cos(y[1])));
+        f[1] = new Term(x[1] - (y[0] + y[2]*sin(y[1])));
+
+        // TODO: to be removed:
+        sp<Term> cf = new Term(sqr(x[0]-Cx) + sqr(x[1]-Cy) - R);
+        constr_if->insert(new IntervalFunction(cf));
+
+        break;
+    }
+
+    case 15: { // 3-RPR (3x3)
+        dim = dim_f = 3;
+        static const Constant Phi(0.8822);
+        static const Constant L2(17.0);
+        static const Constant L3(20.8);
+        static const Constant C2(15.9);
+        static const Constant C3(0.0);
+        static const Constant D3(10.0);
+
+        f[0] = new Term(  sqr(x[0])
+                        + sqr(x[1])
+                        - sqr(y[0]) );
+        f[1] = new Term(  sqr(x[0] + L2*cos(x[2]) - C2) 
+                        + sqr(x[1] + L2*sin(x[2]))
+                        - sqr(y[1]) );
+        f[2] = new Term(  sqr(x[0] + L3*cos(x[2] + Phi) - C3)
+                        + sqr(x[1] + L3*sin(x[2] + Phi) - D3) 
+                        - sqr(y[2]) );
         break;
     }
 

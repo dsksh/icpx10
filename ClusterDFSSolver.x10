@@ -5,6 +5,8 @@ import x10.util.concurrent.AtomicBoolean;
 import x10.util.concurrent.AtomicInteger;
 
 public class ClusterDFSSolver[K] extends Solver[K] {
+    val maxNSplits:Int = 1;
+
     //private var nProcs:AtomicInteger = new AtomicInteger(0);
     //private var finished:AtomicBoolean = new AtomicBoolean(false);
     //private var finished:Boolean = false;
@@ -68,6 +70,82 @@ public class ClusterDFSSolver[K] extends Solver[K] {
         var res:Result = Result.unknown();
         atomic { res = core.contract(box); }
         nContracts.getAndIncrement();
+
+        if (!res.hasNoSolution()) {
+            val pv:Box[K] = box.prevVar();
+            val v = selectVariable(res, box);
+            if (v != null) {
+
+if (SendWhenContracted) {
+                var id:Int = -1;
+                atomic if (reqQueue.getSize() > 0) {
+                    id = reqQueue.removeFirstUnsafe();
+//Console.OUT.println(here + ": got req from " + id);
+                }
+                if (id >= 0) {
+                    at (Place(id)) {
+                        sHandle().sentRequest.set(false);
+                        box.setPrevVar(pv);
+                        atomic sHandle().list.add(box);
+                    }
+//Console.OUT.println(here + ": responded to " + id);
+                    if (id < here.id()) sentBw.set(true);
+                    nSends.getAndIncrement();
+                    return;
+                }
+}
+
+                val bp = box.split(v()); 
+                nSplits.getAndIncrement();
+//Console.OUT.println(here + ": split");
+                
+if (!SendWhenContracted) {
+                var id:Int = -1;
+                atomic if (reqQueue.getSize() > 0) {
+                    id = reqQueue.removeFirstUnsafe();
+//Console.OUT.println(here + ": got req from: " + id);
+                }
+                if (id >= 0) {
+                    at (Place(id)) {
+                        sHandle().sentRequest.set(false);
+                        atomic sHandle().list.add(bp.first);
+                    }
+//Console.OUT.println(here + ": responded to " + id);
+                    if (id < here.id()) sentBw.set(true);
+                    nSends.getAndIncrement();
+                }
+                else {
+                    //async 
+                    search(sHandle, bp.first);
+                }
+} else {
+                async 
+                search(sHandle, bp.first);
+}
+                //async 
+                search(sHandle, bp.second);
+            }
+            else {
+                atomic solutions.add(new Pair[Result,IntervalVec[K]](res, box));
+                /*Console.OUT.println(here + ": solution:");
+                val plot = res.entails(Solver.Result.inner()) ? 5 : 3;
+                atomic { 
+                    Console.OUT.println(box.toString(plot));
+                    Console.OUT.println(); 
+                }
+                */
+                nSols.getAndIncrement();
+            }
+        }
+        //else Console.OUT.println(here + ": no solution");
+    }    
+
+    protected def search1(sHandle:PlaceLocalHandle[Solver[K]], box:IntervalVec[K]) {
+//Console.OUT.println(here + ": search1:\n" + box + '\n');
+
+        var res:Result = Result.unknown();
+        atomic { res = core.contract(box); }
+        nContracts.getAndIncrement();
 //Console.OUT.println(here + ": contracted:\n" + box + '\n');
 
         if (!res.hasNoSolution()) {
@@ -76,8 +154,12 @@ public class ClusterDFSSolver[K] extends Solver[K] {
             var ids:ArrayList[Int] = null;
             atomic {
                 nS = Math.min(maxNSplits, Math.log2(reqQueue.getSize()+1));
-                ids = new ArrayList[Int](2^nS);
-                for (i in 2..Math.pow2(nS)) ids.add(reqQueue.removeFirstUnsafe());
+                ids = new ArrayList[Int](Math.pow2(nS));
+                for (i in 2..Math.pow2(nS)) {
+                    val id = reqQueue.removeFirstUnsafe();
+//Console.OUT.println(here + ": got req from " + id);
+                    ids.add(id);
+                }
                 ids.add(here.id());
             }
             if (ids.size() == 1) { ids.add(here.id()); nS++; }
@@ -106,21 +188,14 @@ public class ClusterDFSSolver[K] extends Solver[K] {
 
             if (nB == 1) { // cannot split
                 atomic solutions.add(new Pair[Result,IntervalVec[K]](res, box));
-                /*Console.OUT.println(here + ": solution:");
-                val plot = res.entails(Solver.Result.inner()) ? 5 : 3;
-                atomic { 
-                    Console.OUT.println(box.toString(plot));
-                    Console.OUT.println(); 
-                }
-                */
+                //Console.OUT.println(here + ": solution:");
+                //val plot = res.entails(Solver.Result.inner()) ? 5 : 3;
+                //atomic { 
+                //    Console.OUT.println(box.toString(plot));
+                //    Console.OUT.println(); 
+                //}
                 nSols.getAndIncrement();
             }
-            /*else if (ids.size() == 1) {
-                //async 
-                search(sHandle, boxes.get(0));
-                //async 
-                search(sHandle, boxes.get(1));
-            }*/
             else {
                 val pv:Box[K] = box.prevVar();
                 for (i in 0..(ids.size()-1)) {
@@ -130,7 +205,7 @@ public class ClusterDFSSolver[K] extends Solver[K] {
                         val b = boxes.get(i);
                         if (src == dst) {
                             async
-                            search(sHandle, b);
+                            search1(sHandle, b);
                         }
                         else {
                             async at (Place(dst)) {
@@ -182,13 +257,13 @@ public class ClusterDFSSolver[K] extends Solver[K] {
     }
 
     public def solve(sHandle:PlaceLocalHandle[Solver[K]]) {
-   		//Console.OUT.println(here + ": start solving... ");
+   		Console.OUT.println(here + ": start solving... ");
 
         while (true) {
             if (!list.isEmpty()) {
                 val box = list.removeFirst();
                 //finish async search(sHandle, box);
-                finish search(sHandle, box);
+                finish search1(sHandle, box);
             }
 
             else { //if (list.isEmpty()) {
@@ -197,7 +272,7 @@ public class ClusterDFSSolver[K] extends Solver[K] {
                 while (!initPhase && reqQueue.getSize() > 0) {
 //Console.OUT.println(here + ": canceling...");
                     val id:Int = reqQueue.removeFirstUnsafe();
-                    at (Place(id)) {
+                    async at (Place(id)) {
                         sHandle().sentRequest.set(false);
                         atomic sHandle().list.add(sHandle().core.dummyBox());
                     }
@@ -207,7 +282,7 @@ public class ClusterDFSSolver[K] extends Solver[K] {
 
                 // begin termination detection
                 if (here.id() == 0 && (t == 0 || t == 2)) {
-                    at (here.next()) atomic {
+                    async at (here.next()) atomic {
                         sHandle().terminate = 1;
                         sHandle().sentBw.set(false);
                         // put a dummy box
@@ -219,7 +294,7 @@ public class ClusterDFSSolver[K] extends Solver[K] {
                 else if (here.id() == 0 && t == 1) {
                     //val t = getAndResetTerminate();
                     if (t == 1) {
-                        at (here.next()) atomic {
+                        async at (here.next()) atomic {
                             sHandle().terminate = 3;
                             sHandle().list.add(sHandle().core.dummyBox());
                         }
@@ -230,7 +305,7 @@ public class ClusterDFSSolver[K] extends Solver[K] {
                 }
                 else if (here.id() > 0 && t > 0) {
                     val v = (t == 1 && sentBw.get()) ? 2 : t;
-                    at (here.next()) atomic {
+                    async at (here.next()) atomic {
                         sHandle().terminate = v;
                         sHandle().sentBw.set(false);
                         sHandle().list.add(sHandle().core.dummyBox());
@@ -243,11 +318,10 @@ public class ClusterDFSSolver[K] extends Solver[K] {
                 if (Place.numPlaces() > 1 && !sentRequest.getAndSet(true)) {
                     val id = here.id();
                     val p = selectPlace();
-//val before = System.nanoTime();
-                    at (p) async {
+                    async at (p) {
                         sHandle().reqQueue.addLast(id);
                         atomic sHandle().list.add(sHandle().core.dummyBox());
-//Console.OUT.println(here + ": requested from " + id + " in " + RPX10.format(System.nanoTime()-before) + "s");
+//Console.OUT.println(here + ": requested from " + id);
                     }
 //Console.OUT.println(here + ": requested to " + p);
                     nReqs.getAndIncrement();
@@ -262,7 +336,7 @@ public class ClusterDFSSolver[K] extends Solver[K] {
             }
         }
 
-   		//Console.OUT.println(here + ": done");
+   		Console.OUT.println(here + ": done");
     }
 }
 
