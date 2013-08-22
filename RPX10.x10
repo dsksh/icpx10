@@ -96,8 +96,9 @@ public class RPX10 {
         val select = (res:Solver.Result, box:IntervalVec[Int])=>selector.selectLRR(res, box);
         val select1 = (res:Solver.Result, box:IntervalVec[Int])=>selector.selectBoundary(select, res, box);
 
-        //return new ClusterDFSSolver[Int](core, select1);
-        return new ClusterSolver[Int](core, select1);
+        return new ClusterDFSSolver[Int](core, select1);
+        //return new ClusterDFSSolverDelayed[Int](core, select1);
+        //return new ClusterSolver[Int](core, select1);
     }
 
     private static def initSolverMap(fname:String, prec:Double, n:Int) : Solver[String] {
@@ -141,8 +142,8 @@ public class RPX10 {
 
         time += System.nanoTime();
 
-/*        // output the solutions.
-        Console.OUT.println();
+        // output the solutions.
+/*        Console.OUT.println();
         for (p in Place.places()) at (p) atomic {
             val it = sHandle().solutions.iterator();
             for (var i:Int = 0; it.hasNext(); ++i) {

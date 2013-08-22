@@ -36,7 +36,6 @@ public class Solver[K] {
     val core:Core[K];
     val list:List[IntervalVec[K]];
     //val list:CircularQueue[IntervalVec[K]];
-    val list1:List[Pair[Result,IntervalVec[K]]];
     val solutions:List[Pair[Result,IntervalVec[K]]];
 
     val reqQueue:CircularQueue[Int];
@@ -63,8 +62,6 @@ public class Solver[K] {
         selectVariable = selector;
 
         list = new ArrayList[IntervalVec[K]]();
-        if (here.id() == 0)
-            list.add(core.getInitialDomain());
         list1 = new ArrayList[Pair[Result,IntervalVec[K]]]();
         solutions = new ArrayList[Pair[Result,IntervalVec[K]]]();
 
@@ -74,16 +71,8 @@ public class Solver[K] {
         dummyI = new Interval(0.,0.);
     }
 
-    public def setup(sHandle:PlaceLocalHandle[Solver[K]]) { }
-
-    atomic def addDom(res:Result, box:IntervalVec[K]) {
-        list1.add(new Pair[Result,IntervalVec[K]](res, box));
-    }
-    atomic def removeFirstDom() : Pair[Result,IntervalVec[K]] {
-        return list1.removeFirst();
-    }
-    atomic def removeLastDom() : Pair[Result,IntervalVec[K]] {
-        return list1.removeFirst();
+    public def setup(sHandle:PlaceLocalHandle[Solver[K]]) { 
+        list.add(core.getInitialDomain());
     }
 
     public def getSolutions() : List[Pair[Result,IntervalVec[K]]] { return solutions; }
@@ -168,6 +157,18 @@ public class Solver[K] {
         }
 
    		Console.OUT.println(here + ": done");
+    }
+
+    // auxiliary list
+    val list1:List[Pair[Result,IntervalVec[K]]];
+    atomic def addDom(res:Result, box:IntervalVec[K]) {
+        list1.add(new Pair[Result,IntervalVec[K]](res, box));
+    }
+    atomic def removeFirstDom() : Pair[Result,IntervalVec[K]] {
+        return list1.removeFirst();
+    }
+    atomic def removeLastDom() : Pair[Result,IntervalVec[K]] {
+        return list1.removeLast();
     }
 }
 

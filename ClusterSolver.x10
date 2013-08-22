@@ -19,13 +19,12 @@ public class ClusterSolver[K] extends Solver[K] {
     public def setup(sHandle:PlaceLocalHandle[Solver[K]]) {
         addDom(Result.unknown(), core.getInitialDomain());
 
-        var pos:Int = 0;
+        var dst:Int = 0;
         var pow2:Int = 1;
-        for (i in 1..(Place.numPlaces()-1)) {
-            at (Place(pos)) sHandle().reqQueue.addLast(i);
-            //at (Place(i)) sHandle().sentRequest.set(true);
-            if (pos+1 < pow2) pos++; 
-            else { pos = 0; pow2 *= 2; }
+        for (pi in 1..(Place.numPlaces()-1)) {
+            at (Place(dst)) sHandle().reqQueue.addLast(pi);
+            //at (Place(pi)) sHandle().sentRequest.set(true);
+            if (++dst == pow2) { dst = 0; pow2 *= 2; }
         }
 
 /*        while (list1.size() < frontierN) {
@@ -116,14 +115,14 @@ public class ClusterSolver[K] extends Solver[K] {
 
                 while (list1.size() < frontierN) {
                     if (list1.isEmpty()) break;
-                    val pair = removeFirstDom();
+                    val pair = removeLastDom();
                     finish search(sHandle, pair.first, pair.second);
                 }
         
                 val nB = list1.size();
                 var b:Boolean = true;
                 for (i in 1..nB) {
-                    val pair = removeFirstDom();
+                    val pair = removeLastDom();
                     at (b ? here : Place(pi)) sHandle().addDom(pair.first, pair.second);
 //Console.OUT.println(here + ": append at " + (b ? 0 : pi));
                     b = !b;
@@ -136,80 +135,11 @@ public class ClusterSolver[K] extends Solver[K] {
 
         while (true) {
             finish while (!list1.isEmpty()) {
-                val pair = removeFirstDom();
+                val pair = removeLastDom();
                 async search(sHandle, pair.first, pair.second);
             }
 
             if (list1.isEmpty()) break;
-
-/*            {
-                // cancel the received requests.
-                while (!initPhase && reqQueue.getSize() > 0) {
-//Console.OUT.println(here + ": canceling...");
-                    val id:Int = reqQueue.removeFirstUnsafe();
-                    async at (Place(id)) {
-                        sHandle().sentRequest.set(false);
-                        atomic sHandle().list.add(sHandle().core.dummyBox());
-                    }
-                }
-
-                val t = getAndResetTerminate();
-
-                // begin termination detection
-                if (here.id() == 0 && (t == 0 || t == 2)) {
-                    async at (here.next()) atomic {
-                        sHandle().terminate = 1;
-                        sHandle().sentBw.set(false);
-                        // put a dummy box
-                        sHandle().list.add(sHandle().core.dummyBox());
-                    }
-//Console.OUT.println(here + ": sent token 1 to " + here.next());
-                }
-                // termination token went round.
-                else if (here.id() == 0 && t == 1) {
-                    //val t = getAndResetTerminate();
-                    if (t == 1) {
-                        async at (here.next()) atomic {
-                            sHandle().terminate = 3;
-                            sHandle().list.add(sHandle().core.dummyBox());
-                        }
-//Console.OUT.println(here + ": sent token 3 to " + here.next());
-                        break;
-                    }
-                    //else if (t == 2) continue;
-                }
-                else if (here.id() > 0 && t > 0) {
-                    val v = (t == 1 && sentBw.get()) ? 2 : t;
-                    async at (here.next()) atomic {
-                        sHandle().terminate = v;
-                        sHandle().sentBw.set(false);
-                        sHandle().list.add(sHandle().core.dummyBox());
-                    }
-//Console.OUT.println(here + ": sent token " + v + " to " + here.next());
-                    if (t == 3) break;
-                }
-
-                // request for a domain
-                if (Place.numPlaces() > 1 && !sentRequest.getAndSet(true)) {
-                    val id = here.id();
-                    val p = selectPlace();
-                    async at (p) {
-                        sHandle().reqQueue.addLast(id);
-                        atomic sHandle().list.add(sHandle().core.dummyBox());
-//Console.OUT.println(here + ": requested from " + id);
-                    }
-//Console.OUT.println(here + ": requested to " + p);
-                    nReqs.getAndIncrement();
-                }
-
-//Console.OUT.println(here + ": wait...");
-
-                when (!list.isEmpty()) {
-                    //sentRequest.set(false);
-//Console.OUT.println(here + ": got box, terminate: " + terminate);
-                }
-            }
-*/
         }
 
    		Console.OUT.println(here + ": done");

@@ -8,6 +8,9 @@ class Dummy_IntervalArray {
 
 public class IntervalArray implements IntervalVec[Int] { 
     val theArray : Array[Interval]{self.rank==1};
+
+    var volume : Double;
+
     public var vit:Iterator[Int] = null;
     public def vit() : Iterator[Int] { return vit; }
     //public var vit:MyHashMap.KeyIterator[String,Interval] = null;
@@ -18,10 +21,12 @@ public class IntervalArray implements IntervalVec[Int] {
 
     public def this(size:Int) : IntervalArray { 
         theArray = new Array[Interval](size);
+        volume = -1;
     } 
     public def this(rhs:IntervalArray) : IntervalArray { 
         theArray = new Array[Interval](rhs.theArray);
         this.prevVar = rhs.prevVar;
+        this.volume = rhs.volume;
     } 
 
     public operator this(k:Int) : Box[Interval] = get(k);
@@ -38,6 +43,7 @@ public class IntervalArray implements IntervalVec[Int] {
     public def put(k:Int, value:Interval) : Box[Interval] {
         val old = theArray(k);
         theArray(k) = value;
+        volume = -1;
         // TODO
         return new Box[Interval](old);
     }
@@ -88,6 +94,15 @@ public class IntervalArray implements IntervalVec[Int] {
         return sb.result();
     }
 
+    public def volume() : Double {
+        if (volume == -1.) {
+            volume = 1.;
+            for (i in theArray)
+                volume *= theArray(i).width();
+        }
+
+        return volume;
+    }
 }
 
 // vim: shiftwidth=4:tabstop=4:expandtab

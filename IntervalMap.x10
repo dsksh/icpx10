@@ -135,6 +135,11 @@ implements IntervalVec[String] {
         }   
     }
 */
+
+    public def volume() : Double {
+        // FIXME
+        return -1.;
+    }
 }
 
 // vim: shiftwidth=4:tabstop=4:expandtab
