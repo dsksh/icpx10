@@ -96,7 +96,8 @@ public class RPX10 {
         val select = (res:Solver.Result, box:IntervalVec[Int])=>selector.selectLRR(res, box);
         val select1 = (res:Solver.Result, box:IntervalVec[Int])=>selector.selectBoundary(select, res, box);
 
-        return new ClusterDFSSolver[Int](core, select1);
+        //return new ClusterDFSSolver[Int](core, select1);
+        return new ClusterDFSSolverSwitched[Int](core, select1);
         //return new ClusterDFSSolverDelayed[Int](core, select1);
         //return new ClusterSolver[Int](core, select1);
     }

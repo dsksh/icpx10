@@ -54,6 +54,10 @@ public class ClusterDFSSolver[K] extends Solver[K] {
     protected def search(sHandle:PlaceLocalHandle[Solver[K]], box:IntervalVec[K]) {
 //Console.OUT.println(here + ": search:\n" + box + '\n');
 
+        // for dummy boxes
+        if (box.size() == 0)
+            return;
+
         var res:Result = Result.unknown();
         atomic { res = core.contract(box); }
         nContracts.getAndIncrement();
@@ -71,7 +75,7 @@ if (SendWhenContracted) {
                 }
                 if (id >= 0) {
                     val p = Place(id);
-                    at (p) {
+                    async at (p) {
                         sHandle().sentRequest.set(false);
                         box.setPrevVar(pv);
                         atomic sHandle().list.add(box);
@@ -83,8 +87,8 @@ if (SendWhenContracted) {
                 }
 }
 
-if (reqQueue.getSize() == 0)
-    initPhase = false;
+//if (reqQueue.getSize() == 0)
+//    initPhase = false;
 
                 val bp = box.split(v()); 
                 nSplits.getAndIncrement();
@@ -98,7 +102,7 @@ if (!SendWhenContracted) {
                 }
                 if (id >= 0) {
                     val p = Place(id);
-                    at (p) {
+                    async at (p) {
                         sHandle().sentRequest.set(false);
                         atomic sHandle().list.add(bp.first);
                     }
@@ -144,7 +148,7 @@ if (!SendWhenContracted) {
         while (true) {
             if (!list.isEmpty()) {
                 val box = list.removeFirst();
-                finish search(sHandle, box);
+                finish async search(sHandle, box);
             }
 
             else { //if (list.isEmpty()) {
@@ -153,7 +157,7 @@ if (!SendWhenContracted) {
                 while (!initPhase && reqQueue.getSize() > 0) {
 //Console.OUT.println(here + ": canceling...");
                     val id:Int = reqQueue.removeFirstUnsafe();
-                    at (Place(id)) {
+                    async at (Place(id)) {
                         sHandle().sentRequest.set(false);
                         atomic sHandle().list.add(sHandle().core.dummyBox());
                     }
@@ -167,7 +171,7 @@ if (!SendWhenContracted) {
                         sHandle().terminate = 1;
                         sHandle().sentBw.set(false);
                         // put a dummy box
-                        sHandle().list.add(sHandle().core.dummyBox());
+                        atomic sHandle().list.add(sHandle().core.dummyBox());
                     }
 //Console.OUT.println(here + ": sent token 1 to " + here.next());
                 }
@@ -177,7 +181,7 @@ if (!SendWhenContracted) {
                     if (t == 1) {
                         at (here.next()) atomic {
                             sHandle().terminate = 3;
-                            sHandle().list.add(sHandle().core.dummyBox());
+                            atomic sHandle().list.add(sHandle().core.dummyBox());
                         }
 //Console.OUT.println(here + ": sent token 3 to " + here.next());
                         break;
@@ -189,7 +193,7 @@ if (!SendWhenContracted) {
                     at (here.next()) atomic {
                         sHandle().terminate = v;
                         sHandle().sentBw.set(false);
-                        sHandle().list.add(sHandle().core.dummyBox());
+                        atomic sHandle().list.add(sHandle().core.dummyBox());
                     }
 //Console.OUT.println(here + ": sent token " + v + " to " + here.next());
                     if (t == 3) {
@@ -201,7 +205,7 @@ if (!SendWhenContracted) {
                 if (Place.numPlaces() > 1 && !sentRequest.getAndSet(true)) {
                     val id = here.id();
                     val p = selectPlace();
-                    at (p) {
+                    async at (p) {
                         sHandle().reqQueue.addLast(id);
                         atomic sHandle().list.add(sHandle().core.dummyBox());
 //Console.OUT.println(here + ": requested from " + id);
@@ -213,6 +217,7 @@ if (!SendWhenContracted) {
 //Console.OUT.println(here + ": wait...");
 
                 when (!list.isEmpty()) {
+initPhase = false;
                     //sentRequest.set(false);
 //Console.OUT.println(here + ": got box, terminate: " + terminate);
                 }
