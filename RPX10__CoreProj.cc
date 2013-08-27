@@ -68,6 +68,14 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
         yl[1] = "10"; yu[1] = "32";
         yl[2] = "10"; yu[2] = "32";
         break;
+    case 16: 
+        xl[0] = "-50"; xu[0] = "50";
+        xl[1] = "-50"; xu[1] = "50";
+        xl[2] = "-pi"; xu[2] = "pi";
+        yl[0] = "-pi"; yu[0] = "pi"; yc[0] = true;
+        yl[1] = "-pi"; yu[1] = "pi"; yc[1] = true;
+        yl[2] = "-pi"; yu[2] = "pi"; yc[2] = true;
+        break;
     }
 
     // variable declarations:
@@ -316,6 +324,38 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
                         + sqr(x[1] + L3*sin(x[2] + Phi) - D3) 
                         - sqr(y[2]) );
         break;
+    }
+
+    case 16: { // 3-RRR (3x3)
+        dim = dim_f = 3; 
+        static const Constant AX1(-10.0);
+        static const Constant AY1(-10.0);
+        static const Constant AX2( 10.0);
+        static const Constant AY2(-10.0);
+        static const Constant AX3(  0.0);
+        static const Constant AY3( 10.0);
+        static const Constant CX1(  0.0); // -a1-a5
+        static const Constant CY1(  0.0);
+        static const Constant CX2( 10.0);
+        static const Constant CY2(  0.0);
+        static const Constant CX3( 10.0);
+        static const Constant CY3( 10.0);
+        static const Constant L1(10.0);
+        static const Constant L2(10.0);
+        static const Constant L3(10.0);
+        static const Constant M1(10.0);
+        static const Constant M2(10.0);
+        static const Constant M3(10.0);
+         
+        f[0] = new Term(  sqr(x[0] + CX1*cos(x[2]) - CY1*sin(x[2]) - AX1 - L1*cos(y[0]))
+                        + sqr(x[1] + CX1*sin(x[2]) + CY1*cos(x[2]) - AY1 - L1*sin(y[0]))
+                                                                 - sqr(M1));
+        f[1] = new Term(  sqr(x[0] + CX2*cos(x[2]) - CY2*sin(x[2]) - AX2 - L2*cos(y[1]))
+                        + sqr(x[1] + CX2*sin(x[2]) + CY2*cos(x[2]) - AY2 - L2*sin(y[1]))
+                                                                 - sqr(M2));
+        f[2] = new Term(  sqr(x[0] + CX3*cos(x[2]) - CY3*sin(x[2]) - AX3 - L3*cos(y[2]))
+                        + sqr(x[1] + CX3*sin(x[2]) + CY3*cos(x[2]) - AY3 - L3*sin(y[2]))
+                                                                 - sqr(M3));
     }
 
     default:
