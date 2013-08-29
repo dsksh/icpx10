@@ -1,4 +1,5 @@
 import x10.util.*;
+import x10.util.concurrent.AtomicInteger;
 
 public class VariableSelector[K] {
     public static class Tester[K] {
@@ -9,6 +10,15 @@ public class VariableSelector[K] {
                                   checkScope:(K)=>Boolean,
                                   res:Solver.Result, box:IntervalVec[K], v:K) : Boolean {
             if (res.entails(Solver.Result.regular()) && checkScope(v))
+                return false;
+            else
+                return test(res, box, v);
+        }
+        public var nSplits:AtomicInteger;
+        public def testNSplits(test:(Solver.Result,IntervalVec[K],K)=>Boolean,
+                               maxNSplits:Int, 
+                               res:Solver.Result, box:IntervalVec[K], v:K) : Boolean {
+            if (nSplits.get() >= maxNSplits)
                 return false;
             else
                 return test(res, box, v);

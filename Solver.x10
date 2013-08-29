@@ -49,6 +49,8 @@ public class Solver[K] {
     public var nSplits:AtomicInteger = new AtomicInteger(0);
     public var nReqs:AtomicInteger = new AtomicInteger(0);
     public var nSends:AtomicInteger = new AtomicInteger(0);
+    public var nBranches:AtomicInteger = new AtomicInteger(0);
+    public var tContract:Long = 0;
 
     // kludge for a success of compilation
     val dummy:Double;

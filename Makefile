@@ -11,8 +11,8 @@ BUILD       = ar rs    # for static libraries
 INCLUDES	+= -I$(RP_HOME)/src
 CFLAGS      += -g $(INCLUDES)
 #CFLAGS      += -O3 -arch i386 -arch x86_64
-#CFLAGS      += -g -Wall
-#CFLAGS      += -O3 -Wall
+#CFLAGS      += -g -O3 -Wall
+#CFLAGS      += -pg -O0
 LDFLAGS     += -L$(RP_HOME)/src -lrealpaver -lgaol -lgdtoa -lultim
 
 X10_HEADERS     = RPX10__Core.h RPX10__CoreProj.h RPX10__CoreEx.h RPX10__CoreIArray.h RPX10__CoreIMap.h

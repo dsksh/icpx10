@@ -59,7 +59,11 @@ public class ClusterDFSSolver[K] extends Solver[K] {
             return;
 
         var res:Result = Result.unknown();
-        atomic { res = core.contract(box); }
+        atomic { 
+//tContract -= System.nanoTime();
+            res = core.contract(box); 
+//tContract += System.nanoTime();
+        }
         nContracts.getAndIncrement();
 
         if (!res.hasNoSolution()) {
@@ -205,7 +209,7 @@ if (!SendWhenContracted) {
                 if (Place.numPlaces() > 1 && !sentRequest.getAndSet(true)) {
                     val id = here.id();
                     val p = selectPlace();
-                    async at (p) {
+                    at (p) {
                         sHandle().reqQueue.addLast(id);
                         atomic sHandle().list.add(sHandle().core.dummyBox());
 //Console.OUT.println(here + ": requested from " + id);

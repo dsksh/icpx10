@@ -45,6 +45,7 @@ public class ClusterDFSSolverSwitched[K] extends ClusterDFSSolver[K] {
             val resR = contractBox(bp.second);
             if (!resL.hasNoSolution() && !resR.hasNoSolution()) {
 //Console.OUT.println(here + ": both");
+//nBranches.getAndIncrement();
                 val pv:Box[K] = box.prevVar();
                 var id:Int = -1;
                 atomic if (reqQueue.getSize() > 0) {
@@ -71,10 +72,14 @@ public class ClusterDFSSolverSwitched[K] extends ClusterDFSSolver[K] {
             }
             else if (!resL.hasNoSolution()) {
 //Console.OUT.println(here + ": left");
+//if (bp.first.width() > 1e-8)
+//nBranches.getAndIncrement();
                 async searchSw(sHandle, resL, bp.first);
             }
             else if (!resR.hasNoSolution()) {
 //Console.OUT.println(here + ": right");
+//if (bp.first.width() > 1e-8)
+//nBranches.getAndIncrement();
                 async searchSw(sHandle, resR, bp.second);
             }
             //else Console.OUT.println(here + ": no solution");
