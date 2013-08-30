@@ -164,6 +164,7 @@ public class Solver[K] {
     // auxiliary list
     val list1:List[Pair[Result,IntervalVec[K]]];
     atomic def addDom(res:Result, box:IntervalVec[K]) {
+        // add last.
         list1.add(new Pair[Result,IntervalVec[K]](res, box));
     }
     atomic def removeFirstDom() : Pair[Result,IntervalVec[K]] {

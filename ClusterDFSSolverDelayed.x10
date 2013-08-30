@@ -6,7 +6,8 @@ import x10.util.concurrent.AtomicInteger;
 
 public class ClusterDFSSolverDelayed[K] extends ClusterDFSSolver[K] {
 
-    static val cutoffD = 8;
+    // number of branches.
+    static val cutoffD = 7;
 
     public def this(core:Core[K], selector:(Result,IntervalVec[K])=>Box[K]) {
         super(core, selector);
@@ -33,8 +34,10 @@ public class ClusterDFSSolverDelayed[K] extends ClusterDFSSolver[K] {
         atomic { res = core.contract(box); }
         nContracts.getAndIncrement();
 
-        if (!res.hasNoSolution()) addDom(res, box);
-        //else Console.OUT.println(here + ": no solution");
+        if (!res.hasNoSolution()) {
+            addDom(res, box);
+        }
+        else Console.OUT.println(here + ": no solution");
     }
 
     protected def searchPP(sHandle:PlaceLocalHandle[Solver[K]], res:Result, box:IntervalVec[K]) {
@@ -77,18 +80,18 @@ Console.OUT.println(here + ": start pp");
         
                         var n:Int = 0;
                         while (!list1.isEmpty() && n++ < cutoffD) {
-                            val pair = removeLastDom();
+                            val pair = removeFirstDom();
                             finish searchPP(sHandle, pair.first, pair.second);
 
                             finish list1.sort(
                                 (e1:Pair[Result,IntervalVec[K]],e2:Pair[Result,IntervalVec[K]]) =>
-                                    e1.second.volume().compareTo(e2.second.volume()) );
+                                    e2.second.volume().compareTo(e1.second.volume()) );
                         }
                 
                         val nB = list1.size();
                         var b:Boolean = true;
                         finish for (i in 1..nB) {
-                            val pair = removeLastDom();
+                            val pair = removeFirstDom();
                             at (b ? here : Place(pi)) sHandle().addDom(pair.first, pair.second);
 //Console.OUT.println(here + ": append at " + (b ? 0 : pi));
 //Console.OUT.println(here + ": " + pair.second);
