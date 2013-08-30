@@ -27,12 +27,9 @@ public class ClusterDFSSolverDelayed[K] extends ClusterDFSSolver[K] {
         }
 
         if (reqQueue.getSize() > 0) {
-            val b0 = list1.getFirst().second;
-            val prec = b0.width() / (cutoffD - 1);
-            while (!list1.isEmpty()) {
+            val prec = list1.getFirst().second.width() / (cutoffD - 1);
+            while (list1.getFirst().second.width() >= prec) {
                 val pair = removeFirstDom();
-                if (pair.second.width() < prec)
-                    break;
                 finish searchPP(sHandle, pair.first, pair.second);
        
                 finish list1.sort(
@@ -115,6 +112,7 @@ Console.OUT.println(here + ": start pp");
 //Console.OUT.println(here + ": " + pair.second);
                             b = !b;
                         }
+
                         at (Place(pi)) atomic sHandle().initPhase = true;
                     }
                     while (!list1.isEmpty())
