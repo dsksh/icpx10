@@ -6,8 +6,8 @@ import x10.util.concurrent.AtomicInteger;
 
 public class ClusterDFSSolverDelayed[K] extends ClusterDFSSolver[K] {
 
-    // number of branches.
-    static val cutoffD = 7;
+    // number of.splitting each component
+    static val cutoffD = 4;
 
     public def this(core:Core[K], selector:(Result,IntervalVec[K])=>Box[K]) {
         super(core, selector);
@@ -26,6 +26,21 @@ public class ClusterDFSSolverDelayed[K] extends ClusterDFSSolver[K] {
             if (++dst == pow2) { dst = 0; pow2 *= 2; }
         }
 
+        if (reqQueue.getSize() > 0) {
+            val b0 = list1.getFirst().second;
+            val prec = b0.width() / (cutoffD - 1);
+            while (!list1.isEmpty()) {
+                val pair = removeFirstDom();
+                if (pair.second.width() < prec)
+                    break;
+                finish searchPP(sHandle, pair.first, pair.second);
+       
+                finish list1.sort(
+                    (e1:Pair[Result,IntervalVec[K]],e2:Pair[Result,IntervalVec[K]]) =>
+                        e2.second.volume().compareTo(e1.second.volume()) );
+            }
+        }
+
         initPhase = true;
     }
 
@@ -37,7 +52,7 @@ public class ClusterDFSSolverDelayed[K] extends ClusterDFSSolver[K] {
         if (!res.hasNoSolution()) {
             addDom(res, box);
         }
-        else Console.OUT.println(here + ": no solution");
+        //else Console.OUT.println(here + ": no solution");
     }
 
     protected def searchPP(sHandle:PlaceLocalHandle[Solver[K]], res:Result, box:IntervalVec[K]) {
@@ -76,24 +91,27 @@ Console.OUT.println(here + ": start pp");
                 }
                 else {
                     while (reqQueue.getSize() > 0) {
-                        val pi = reqQueue.removeFirstUnsafe();
-        
-                        var n:Int = 0;
-                        while (!list1.isEmpty() && n++ < cutoffD) {
+
+                        // split boxes for # boxes times.
+                        var n:Int = list1.size();
+                        for (i in 1..n) {
                             val pair = removeFirstDom();
                             finish searchPP(sHandle, pair.first, pair.second);
-
+    
                             finish list1.sort(
                                 (e1:Pair[Result,IntervalVec[K]],e2:Pair[Result,IntervalVec[K]]) =>
                                     e2.second.volume().compareTo(e1.second.volume()) );
                         }
-                
+
+                        val pi = reqQueue.removeFirstUnsafe();
+        
                         val nB = list1.size();
+//Console.OUT.println(here + ": nB: " + nB);
                         var b:Boolean = true;
                         finish for (i in 1..nB) {
                             val pair = removeFirstDom();
                             at (b ? here : Place(pi)) sHandle().addDom(pair.first, pair.second);
-//Console.OUT.println(here + ": append at " + (b ? 0 : pi));
+//Console.OUT.println(here + ": append at " + (b ? here.id : pi));
 //Console.OUT.println(here + ": " + pair.second);
                             b = !b;
                         }

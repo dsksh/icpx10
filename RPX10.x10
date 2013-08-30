@@ -151,7 +151,7 @@ public class RPX10 {
 
         time += System.nanoTime();
 
-        // output the solutions.
+/*        // output the solutions.
         Console.OUT.println();
         for (p in Place.places()) at (p) atomic {
             val it = sHandle().solutions.iterator();
@@ -163,6 +163,7 @@ public class RPX10 {
             }
             Console.OUT.flush();
         }
+*/
 
         // output description of the solving process.
         val sb = new StringBuilder();
