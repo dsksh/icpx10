@@ -306,7 +306,7 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
     }
 
     case 15: { // 3-RPR (3x3)
-        dim = dim_f = 3;
+        dim = dim_x = dim_f = 3;
         static const Constant Phi(0.8822);
         static const Constant L2(17.0);
         static const Constant L3(20.8);
@@ -327,7 +327,7 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
     }
 
     case 16: { // 3-RRR (3x3)
-        dim = dim_f = 3; 
+        dim = dim_x = dim_f = 3;
         static const Constant AX1(-10.0);
         static const Constant AY1(-10.0);
         static const Constant AX2( 10.0);
@@ -356,6 +356,7 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
         f[2] = new Term(  sqr(x[0] + CX3*cos(x[2]) - CY3*sin(x[2]) - AX3 - L3*cos(y[2]))
                         + sqr(x[1] + CX3*sin(x[2]) + CY3*cos(x[2]) - AY3 - L3*sin(y[2]))
                                                                  - sqr(M3));
+        break;
     }
 
     default:
