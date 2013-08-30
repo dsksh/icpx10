@@ -183,9 +183,9 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
 
         //Term constr_f(sqr(x[0]-Cx) + sqr(x[1]-Cy) - R);
         //Term constr_f(Cx);
-        //sp<Term> cf = new Term(sqr(x[0]-Cx) + sqr(x[1]-Cy) - R);
+        sp<Term> cf = new Term(sqr(x[0]-Cx) + sqr(x[1]-Cy) - R);
         //constr_if = sp<IntervalFunction>(new IntervalFunction(Cx));
-        //constr_if->insert(new IntervalFunction(cf));
+        constr_if->insert(new IntervalFunction(cf));
 
         break;
     }
@@ -470,8 +470,7 @@ void RPX10__CoreProj::initialize(x10::lang::String *filename, x10_int n) {
     sp<ControlPropagator> control(new QueueControlPropagator(10, evaluator));
     //sp<Propagator> contractor = new Propagator(control);
     sp<Propagator> contractor;
-    //if (prob_id == 6 || prob_id == 14)
-    if (prob_id == 14)
+    if (prob_id == 6 || prob_id == 14)
         contractor = new PropagatorDomainConstraint(
             control, proj_sc, param_sc, cyclic_sc, if_vec, nbors_thres,
             take_infl_box,
