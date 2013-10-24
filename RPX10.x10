@@ -83,29 +83,23 @@ public class RPX10 {
     }
 
 
-    private static def initSolverArray(fname:String, prec:Double, n:Int
-            //, ns:Int
-        ) : Solver[Int] {
+    private static def initSolverArray(fname:String, prec:Double, n:Int) : Solver[Int] {
         val core = new CoreIArray(fname, n);
 
         val tester = new VariableSelector.Tester[Int]();
         val test = (res:Solver.Result, box:IntervalVec[Int], v:Int) => tester.testPrec(prec, res, box, v);
         val test1 = (res:Solver.Result, box:IntervalVec[Int], v:Int) => 
             tester.testRegularity(test, (v:Int)=>!core.isProjected(v), res, box, v);
-        //val testBr = (res:Solver.Result, box:IntervalVec[Int], v:Int) => 
-        //    tester.testNSplits(test, ns, res, box, v);
 
         val selector = new VariableSelector[Int](test1);
 
         val select = (res:Solver.Result, box:IntervalVec[Int])=>selector.selectLRR(res, box);
         val select1 = (res:Solver.Result, box:IntervalVec[Int])=>selector.selectBoundary(select, res, box);
 
-        //return new ClusterDFSSolver[Int](core, select1);
+        return new ClusterDFSSolver[Int](core, select1);
         //return new ClusterDFSSolverSwitched[Int](core, select1);
-        //val solver = new ClusterDFSSolverSwitched[Int](core, select1);
-        //tester.nSplits = solver.nSplits;
-        //return solver;
-        return new ClusterDFSSolverDelayed[Int](core, select1);
+        //return new ClusterDFSSolverDelayed[Int](core, select1);
+        //return new ClusterDFSSolverSplitN[Int](core, select1);
         //return new ClusterSolver[Int](core, select1);
     }
 
@@ -135,13 +129,12 @@ public class RPX10 {
 
         // create a solver at each place
         val everyone = Dist.makeUnique();
-        val sHandle = PlaceLocalHandle.make[Solver[Int]](everyone, ()=>initSolverArray(args(0), Double.parse(args(1)), Int.parse(args(2))
-            //, Int.parse(args(3))
-            ));
+        val sHandle = PlaceLocalHandle.make[Solver[Int]](everyone, ()=>initSolverArray(args(0), Double.parse(args(1)), Int.parse(args(2))));
         //val sHandle = PlaceLocalHandle.make[Solver[String]](everyone, ()=>initSolverMap(args(0), Double.parse(args(1)), Int.parse(args(2))));
 
-        var time:Long = -System.nanoTime();
+        val masterP = here;
 
+        var time:Long = -System.nanoTime();
         //finish for (p in Place.places()) at (p) async 
         sHandle().setup(sHandle);
 
@@ -152,7 +145,7 @@ public class RPX10 {
         time += System.nanoTime();
 
         // output the solutions.
-        Console.OUT.println();
+/*        Console.OUT.println();
         for (p in Place.places()) at (p) atomic {
             val it = sHandle().solutions.iterator();
             for (var i:Int = 0; it.hasNext(); ++i) {
@@ -163,7 +156,7 @@ public class RPX10 {
             }
             Console.OUT.flush();
         }
-
+*/
 
         // output description of the solving process.
         val sb = new StringBuilder();
@@ -174,7 +167,6 @@ public class RPX10 {
         // sum up the # solutions at each place
         val nSols = new GlobalRef(new Cell(0));
         sb.add("  # sols:");
-        val masterP = here;
         for (p in Place.places()) at (p) {
             val v = sHandle().nSols.get();
             at (masterP) {
@@ -190,26 +182,21 @@ public class RPX10 {
         val nSplits = new GlobalRef(new Cell(0));
         val nReqs = new GlobalRef(new Cell(0));
         val nSends = new GlobalRef(new Cell(0));
-        val nBranches = new GlobalRef(new Cell(0));
-        val tContract = new GlobalRef(new Cell[Long](0));
         val cContracts = new Cell[String]("  # contracts:"); val gContracts = GlobalRef[Cell[String]](cContracts);
         val cSplits = new Cell[String]("  # splits:"); val gSplits = GlobalRef[Cell[String]](cSplits);
         val cReqs = new Cell[String]("  # reqs:"); val gReqs = GlobalRef[Cell[String]](cReqs);
         val cSends = new Cell[String]("  # sends:"); val gSends = GlobalRef[Cell[String]](cSends);
-        val cBranches = new Cell[String]("  # branches:"); val gBranches = GlobalRef[Cell[String]](cBranches);
         for (p in Place.places()) at (p) {
             val vContacts = sHandle().nContracts.get();
             val vSplits = sHandle().nSplits.get();
             val vReqs = sHandle().nReqs.get();
             val vSends = sHandle().nSends.get();
-            val vBranches = sHandle().nBranches.get();
-            val vTContract = sHandle().tContract;
             at (gContracts.home) {
                 gContracts().set(gContracts()() + (p == here ? " " : " + ") + vContacts);
                 nContracts().value += vContacts;
             }
             at (gSplits.home) {
-                gSplits().set(gSplits()() + (p == here ? " " : " + ") + vSplits);
+                gSplits().set(gSplits()() + "\n" + vSplits);
                 nSplits().value += vSplits;
             }
             at (gReqs.home) {
@@ -220,20 +207,11 @@ public class RPX10 {
                 gSends().set(gSends()() + (p == here ? " " : " + ") + vSends);
                 nSends().value += vSends;
             }
-            at (gBranches.home) {
-                gBranches().set(gBranches()() + (p == here ? " " : " + ") + vBranches);
-                nBranches().value += vBranches;
-            }
-            at (tContract.home) {
-                tContract().value += vTContract;
-            }
         }
         sb.add(cContracts() + " = " + nContracts().value + ",\n");
-        sb.add(cSplits() + " = " + nSplits().value + ",\n");
+        sb.add(cSplits() + "\n = " + nSplits().value + "\n");
         sb.add(cReqs() + " = " + nReqs().value + ",\n");
-        sb.add(cSends() + " = " + nSends().value + ",\n");
-        //sb.add(cBranches() + " = " + nBranches().value + ",\n");
-        sb.add("  time contract: " + (100.* tContract().value / time) + " %");
+        sb.add(cSends() + " = " + nSends().value);
         sb.add("\" }");
 
         Console.OUT.flush();

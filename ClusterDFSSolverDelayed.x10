@@ -78,13 +78,14 @@ public class ClusterDFSSolverDelayed[K] extends ClusterDFSSolver[K] {
     }    
 
     public def solve(sHandle:PlaceLocalHandle[Solver[K]]) {
-Console.OUT.println(here + ": start pp");
+//Console.OUT.println(here + ": start pp");
 
         while (true) 
             if (initPhase) {
                 if (reqQueue.getSize() == 0) {
                     while (!list1.isEmpty())
                         list.add(removeLastDom().second);
+                        //atomic solutions.add(removeLastDom());
                 }
                 else {
                     while (reqQueue.getSize() > 0) {
@@ -110,6 +111,7 @@ Console.OUT.println(here + ": start pp");
                             at (b ? here : Place(pi)) sHandle().addDom(pair.first, pair.second);
 //Console.OUT.println(here + ": append at " + (b ? here.id : pi));
 //Console.OUT.println(here + ": " + pair.second);
+nSends.getAndIncrement();
                             b = !b;
                         }
 

@@ -41,6 +41,10 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
                  sp<IntervalFunctionVector> constr_if)
 {
     switch (prob_id) {
+    case 3: 
+    case 4: 
+        yl[2] = "-1"; yu[2] = "1";
+		break;
     case 5: 
         xl[0] = "0"; xu[0] = "10";
         xl[1] = "-pi"; xu[1] = "pi";
@@ -94,8 +98,8 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
                                          prec*1, false, true));
     y[2] = sp<Variable>(new RealVariable("y3", Interval('['+yl[2]+','+yu[2]+']'),
                                          prec, false, true));
-    //y[3] = sp<Variable>(new RealVariable("y4", Interval("[-1,1]"), 
-    //                                   prec, false, true));
+    y[3] = sp<Variable>(new RealVariable("y4", Interval("[-1,1]"), 
+                                         prec, false, true));
     //y[3] = sp<Variable>(new RealVariable("y4", Interval('['+yl[3]+','+yu[3]+']'),
     //                                     prec, false, true));
     //y[4] = sp<Variable>(new RealVariable("y5", Interval('['+yl[3]+','+yu[3]+']'),

@@ -59,11 +59,7 @@ public class ClusterDFSSolver[K] extends Solver[K] {
             return;
 
         var res:Result = Result.unknown();
-        atomic { 
-//tContract -= System.nanoTime();
-            res = core.contract(box); 
-//tContract += System.nanoTime();
-        }
+//        atomic { res = core.contract(box); }
         nContracts.getAndIncrement();
 
         if (!res.hasNoSolution()) {
@@ -147,7 +143,7 @@ if (!SendWhenContracted) {
     }
 
     public def solve(sHandle:PlaceLocalHandle[Solver[K]]) {
-   		Console.OUT.println(here + ": start solving... ");
+   		//Console.OUT.println(here + ": start solving... ");
 
         while (true) {
             if (!list.isEmpty()) {
@@ -161,7 +157,8 @@ if (!SendWhenContracted) {
                 while (!initPhase && reqQueue.getSize() > 0) {
 //Console.OUT.println(here + ": canceling...");
                     val id:Int = reqQueue.removeFirstUnsafe();
-                    async at (Place(id)) {
+//async
+                    at (Place(id)) {
                         sHandle().sentRequest.set(false);
                         atomic sHandle().list.add(sHandle().core.dummyBox());
                     }
@@ -171,6 +168,7 @@ if (!SendWhenContracted) {
 
                 // begin termination detection
                 if (here.id() == 0 && (t == 0 || t == 2)) {
+//async
                     at (here.next()) atomic {
                         sHandle().terminate = 1;
                         sHandle().sentBw.set(false);
@@ -183,6 +181,7 @@ if (!SendWhenContracted) {
                 else if (here.id() == 0 && t == 1) {
                     //val t = getAndResetTerminate();
                     if (t == 1) {
+//async
                         at (here.next()) atomic {
                             sHandle().terminate = 3;
                             atomic sHandle().list.add(sHandle().core.dummyBox());
@@ -194,6 +193,7 @@ if (!SendWhenContracted) {
                 }
                 else if (here.id() > 0 && t > 0) {
                     val v = (t == 1 && sentBw.get()) ? 2 : t;
+//async
                     at (here.next()) atomic {
                         sHandle().terminate = v;
                         sHandle().sentBw.set(false);
@@ -209,6 +209,7 @@ if (!SendWhenContracted) {
                 if (Place.numPlaces() > 1 && !sentRequest.getAndSet(true)) {
                     val id = here.id();
                     val p = selectPlace();
+//async
                     at (p) {
                         sHandle().reqQueue.addLast(id);
                         atomic sHandle().list.add(sHandle().core.dummyBox());
@@ -228,7 +229,7 @@ initPhase = false;
             }
         }
 
-   		Console.OUT.println(here + ": done");
+   		//Console.OUT.println(here + ": done");
     }
 }
 
