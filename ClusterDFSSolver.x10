@@ -8,7 +8,7 @@ import x10.util.concurrent.AtomicInteger;
 
 public class ClusterDFSSolver[K] extends Solver[K] {
     private random:Random;
-    //private var initPhase:Boolean;
+    private var initPhase:Boolean;
     private var selected:Iterator[Place] = null;
 
     static val SendWhenContracted = false;
@@ -51,20 +51,25 @@ public class ClusterDFSSolver[K] extends Solver[K] {
 */
     }
 
-    protected def search(sHandle:PlaceLocalHandle[Solver[K]], box:IntervalVec[K]) {
-//Console.OUT.println(here + ": search:\n" + box + '\n');
+    var sidG:AtomicInteger = new AtomicInteger(0);
 
+    protected def search(sid:Int, sHandle:PlaceLocalHandle[Solver[K]], 
+                         box:IntervalVec[K]) {
+Console.OUT.println(here + "," + sid + ": search:\n" + box + '\n');
+//try {
         // for dummy boxes
         if (box.size() == 0)
             return;
 
         var res:Result = Result.unknown();
-//        atomic { res = core.contract(box); }
+        atomic { res = core.contract(box); }
         nContracts.getAndIncrement();
 
         if (!res.hasNoSolution()) {
+//Console.OUT.println(here + "," + sid + ": hasNoSol");
             val v = selectVariable(res, box);
             if (v != null) {
+//Console.OUT.println(here + "," + sid + ": select: " + v);
                 val pv:Box[K] = box.prevVar();
 
 if (SendWhenContracted) {
@@ -92,14 +97,18 @@ if (SendWhenContracted) {
 
                 val bp = box.split(v()); 
                 nSplits.getAndIncrement();
-//Console.OUT.println(here + ": split");
+Console.OUT.println(here + "," + sid + ": split");
                 
+finish
+{
+                val sid1 = sidG.getAndIncrement();
 if (!SendWhenContracted) {
                 var id:Int = -1;
                 atomic if (reqQueue.getSize() > 0) {
                     id = reqQueue.removeFirstUnsafe();
 //Console.OUT.println(here + ": got req from: " + id);
                 }
+
                 if (id >= 0) {
                     val p = Place(id);
                     async at (p) {
@@ -112,28 +121,39 @@ if (!SendWhenContracted) {
                 }
                 else {
                     async 
-                    search(sHandle, bp.first);
+                    search(sid1, sHandle, bp.first);
                 }
-} else {
+} else 
+{
+Console.OUT.println(here + "," + sid + ": rec " + sid1);
                 async 
-                search(sHandle, bp.first);
+                search(sid1, sHandle, bp.first);
 }
+                val sid2 = sidG.getAndIncrement();
+Console.OUT.println(here + "," + sid + ": rec " + sid2);
                 async 
-                search(sHandle, bp.second);
+                search(sid2, sHandle, bp.second);
+}
             }
             else {
                 atomic solutions.add(new Pair[Result,IntervalVec[K]](res, box));
-                /*Console.OUT.println(here + ": solution:");
+//Console.OUT.println(here + "," + sid + ": solution:\n" + box);
+                Console.OUT.println(here + ": solution:");
                 val plot = res.entails(Solver.Result.inner()) ? 5 : 3;
                 atomic { 
                     Console.OUT.println(box.toString(plot));
                     Console.OUT.println(); 
                 }
-                */
                 nSols.getAndIncrement();
             }
         }
         //else Console.OUT.println(here + ": no solution");
+//Console.OUT.println(here + "," + sid + ": done");
+
+//} catch (exp:Exception) {
+//    Console.OUT.println(here + "," + sid + ": exception thrown:");
+//    exp.printStackTrace(Console.ERR);
+//}
     }    
 
     protected atomic def getAndResetTerminate() : Int {
@@ -143,12 +163,17 @@ if (!SendWhenContracted) {
     }
 
     public def solve(sHandle:PlaceLocalHandle[Solver[K]]) {
-   		//Console.OUT.println(here + ": start solving... ");
+   		Console.OUT.println(here + ": start solving... ");
+
+//val box = list.removeFirst();
+//finish search(0, sHandle, box);
 
         while (true) {
             if (!list.isEmpty()) {
                 val box = list.removeFirst();
-                finish async search(sHandle, box);
+                val sid = sidG.getAndIncrement();
+                finish search(sid, sHandle, box);
+Console.OUT.println(here + ": search finished");
             }
 
             else { //if (list.isEmpty()) {
@@ -165,6 +190,7 @@ if (!SendWhenContracted) {
                 }
 
                 val t = getAndResetTerminate();
+Console.OUT.println(here + ": t: " + t);
 
                 // begin termination detection
                 if (here.id() == 0 && (t == 0 || t == 2)) {
@@ -175,7 +201,7 @@ if (!SendWhenContracted) {
                         // put a dummy box
                         atomic sHandle().list.add(sHandle().core.dummyBox());
                     }
-//Console.OUT.println(here + ": sent token 1 to " + here.next());
+Console.OUT.println(here + ": sent token 1 to " + here.next());
                 }
                 // termination token went round.
                 else if (here.id() == 0 && t == 1) {
@@ -186,7 +212,7 @@ if (!SendWhenContracted) {
                             sHandle().terminate = 3;
                             atomic sHandle().list.add(sHandle().core.dummyBox());
                         }
-//Console.OUT.println(here + ": sent token 3 to " + here.next());
+Console.OUT.println(here + ": sent token 3 to " + here.next());
                         break;
                     }
                     //else if (t == 2) continue;
@@ -199,7 +225,7 @@ if (!SendWhenContracted) {
                         sHandle().sentBw.set(false);
                         atomic sHandle().list.add(sHandle().core.dummyBox());
                     }
-//Console.OUT.println(here + ": sent token " + v + " to " + here.next());
+Console.OUT.println(here + ": sent token " + v + " to " + here.next());
                     if (t == 3) {
                         break;
                     }
@@ -219,17 +245,17 @@ if (!SendWhenContracted) {
                     nReqs.getAndIncrement();
                 }
 
-//Console.OUT.println(here + ": wait...");
+Console.OUT.println(here + ": wait...");
 
                 when (!list.isEmpty()) {
 initPhase = false;
                     //sentRequest.set(false);
-//Console.OUT.println(here + ": got box, terminate: " + terminate);
+Console.OUT.println(here + ": got box, terminate: " + terminate);
                 }
             }
         }
 
-   		//Console.OUT.println(here + ": done");
+   		Console.OUT.println(here + ": done");
     }
 }
 

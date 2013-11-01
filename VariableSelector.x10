@@ -3,21 +3,21 @@ import x10.util.concurrent.AtomicInteger;
 
 public class VariableSelector[K] {
     public static class Tester[K] {
-        public def testPrec(prec:Double, res:Solver.Result, box:IntervalVec[K], v:K) : Boolean {
+        public def testPrec(prec:Double, res:BAPSolver.Result, box:IntervalVec[K], v:K) : Boolean {
             return box(v).value.width() > prec;
         }
-        public def testRegularity(test:(Solver.Result,IntervalVec[K],K)=>Boolean, 
+        public def testRegularity(test:(BAPSolver.Result,IntervalVec[K],K)=>Boolean, 
                                   checkScope:(K)=>Boolean,
-                                  res:Solver.Result, box:IntervalVec[K], v:K) : Boolean {
-            if (res.entails(Solver.Result.regular()) && checkScope(v))
+                                  res:BAPSolver.Result, box:IntervalVec[K], v:K) : Boolean {
+            if (res.entails(BAPSolver.Result.regular()) && checkScope(v))
                 return false;
             else
                 return test(res, box, v);
         }
         public var nSplits:AtomicInteger;
-        public def testNSplits(test:(Solver.Result,IntervalVec[K],K)=>Boolean,
+        public def testNSplits(test:(BAPSolver.Result,IntervalVec[K],K)=>Boolean,
                                maxNSplits:Int, 
-                               res:Solver.Result, box:IntervalVec[K], v:K) : Boolean {
+                               res:BAPSolver.Result, box:IntervalVec[K], v:K) : Boolean {
             if (nSplits.get() >= maxNSplits)
                 return false;
             else
@@ -29,16 +29,17 @@ public class VariableSelector[K] {
     private var variableIt:Iterator[K] = null;
 
     public def this(precision:Double) {
-        this.test = (res:Solver.Result, box:IntervalVec[K], v:K) =>
+        this.test = (res:BAPSolver.Result, box:IntervalVec[K], v:K) =>
             box(v).value.width() > precision;
     }
-    public def this(test:(Solver.Result,IntervalVec[K],K)=>Boolean) { 
+    public def this(test:(BAPSolver.Result,IntervalVec[K],K)=>Boolean) { 
         this.test = test;
     }
 
-    public val test : (Solver.Result,IntervalVec[K],K) => Boolean;
+    public val test : (BAPSolver.Result,IntervalVec[K],K) => Boolean;
 
-    public def selectGRR(res:Solver.Result, box:IntervalVec[K]) : Box[K] {
+    public def selectGRR(res:BAPSolver.Result, box:IntervalVec[K]) : Box[K] {
+atomic {
         if (variableIt == null || !variableIt.hasNext()) variableIt = box.varIterator();
         val v0 = variableIt.next();
         if (test(res, box, v0)) {
@@ -65,10 +66,11 @@ public class VariableSelector[K] {
         }
 
         return null;
+}
     }
 
     // (local) round-robin selector
-    public def selectLRR(res:Solver.Result, box:IntervalVec[K]) : Box[K] {
+    public def selectLRR(res:BAPSolver.Result, box:IntervalVec[K]) : Box[K] {
         var it:Iterator[K] = box.varIterator();
 
         // find the previously selected var
@@ -115,7 +117,7 @@ public class VariableSelector[K] {
 
         return null;
     }
-/*    public def selectLRR(res:Solver.Result, box:IntervalVec[K]) : String {
+/*    public def selectLRR(res:BAPSolver.Result, box:IntervalVec[K]) : String {
         if (box.vit == null || !box.vit.hasNext()) box.vit = box.keyIterator();
         val v0 = box.vit.next();
 //Console.OUT.println(here + ": v0: " + v0);
@@ -148,7 +150,7 @@ public class VariableSelector[K] {
 */
 
     // largest-first selector
-    public def selectLF(res:Solver.Result, box:IntervalVec[K]) : Box[K] {
+    public def selectLF(res:BAPSolver.Result, box:IntervalVec[K]) : Box[K] {
         var variable:Box[K] = null;
         var maxW:Double = 0.;
         val it = box.varIterator();
@@ -163,9 +165,9 @@ public class VariableSelector[K] {
         return variable;
     }
 
-    public def selectBoundary(select:(Solver.Result, IntervalVec[K])=>Box[K], 
-                              res:Solver.Result, box:IntervalVec[K]) : Box[K] {
-        if (res.entails(Solver.Result.inner()))
+    public def selectBoundary(select:(BAPSolver.Result, IntervalVec[K])=>Box[K], 
+                              res:BAPSolver.Result, box:IntervalVec[K]) : Box[K] {
+        if (res.entails(BAPSolver.Result.inner()))
             return null;
         else
             return select(res, box);

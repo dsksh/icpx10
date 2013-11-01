@@ -4,8 +4,8 @@
 #include "Interval.h"
 #include "IntervalVec.h"
 #include "IntervalArray.h"
-#include "Solver__Result.h"
-#include "Solver__Core.h"
+#include "BAPSolver__Result.h"
+#include "BAPSolver__Core.h"
 
 #include "RPX10__CoreEx.h"
 
@@ -18,7 +18,7 @@ public:
 
     static x10aux::itable_entry _itables[3];
     virtual x10aux::itable_entry *_getITables() { return _itables; }
-    static Solver__Core<x10_int>::itable<RPX10__CoreIArray> _itable_0;
+    static BAPSolver__Core<x10_int>::itable<RPX10__CoreIArray> _itable_0;
     static x10::lang::Any::itable<RPX10__CoreIArray> _itable_1;
 
     // X10 serialization requires these functions be stubbed out.

@@ -57,12 +57,14 @@ public class IntervalArray implements IntervalVec[Int] {
     }
 
     public def split(variable:Int) : Pair[IntervalVec[Int],IntervalVec[Int]] {
+atomic {
         val b1 = new IntervalArray(this); 
         val b2 = new IntervalArray(this); 
         val ip = get(variable).value.split();
         b1.put(variable, ip.first);
         b2.put(variable, ip.second);
         return new Pair[IntervalVec[Int],IntervalVec[Int]](b1,b2);
+}
     }
 
     public def width() : Double {

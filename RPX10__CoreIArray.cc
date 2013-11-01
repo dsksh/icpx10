@@ -51,7 +51,7 @@ void RPX10__CoreIArray::setBoxIntoIV(const rp::Box& box, IntervalVec<x10_int>& i
 }
 
 
-Solver__Core<x10_int>::itable<RPX10__CoreIArray>  RPX10__CoreIArray::_itable_0(
+BAPSolver__Core<x10_int>::itable<RPX10__CoreIArray>  RPX10__CoreIArray::_itable_0(
         &RPX10__CoreIArray::contract, 
         &RPX10__CoreIArray::dummyBox, 
         &RPX10__CoreIArray::equals, 
@@ -69,7 +69,7 @@ x10::lang::Any::itable<RPX10__CoreIArray>  RPX10__CoreIArray::_itable_1(
         &RPX10__CoreIArray::typeName );
 
 x10aux::itable_entry RPX10__CoreIArray::_itables[3] = 
-    {x10aux::itable_entry(&x10aux::getRTT<Solver__Core<x10_int> >, &_itable_0), 
+    {x10aux::itable_entry(&x10aux::getRTT<BAPSolver__Core<x10_int> >, &_itable_0), 
      x10aux::itable_entry(&x10aux::getRTT<x10::lang::Any>, &_itable_1), 
      x10aux::itable_entry(NULL, (void*)x10aux::getRTT<RPX10__CoreIArray>()) };
 
