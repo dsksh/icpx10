@@ -1,10 +1,7 @@
-import x10.io.*;
 import x10.io.Console; 
 import x10.util.*;
-import x10.util.concurrent.AtomicBoolean;
-import x10.util.concurrent.AtomicInteger;
 
-public class PlaceAgentDelayed1[K] extends PlaceAgent[K] {
+public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
 
     // number of splitting each component
     static val cutoffD = 4;
@@ -16,6 +13,7 @@ public class PlaceAgentDelayed1[K] extends PlaceAgent[K] {
 
         // create solverPP.
         val tester = new VariableSelector.Tester[K]();
+        // TODO: termination criterion
         val test = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => tester.testPrec(1., res, box, v);
 
         val selector = new VariableSelector[K](test);
@@ -33,28 +31,11 @@ public class PlaceAgentDelayed1[K] extends PlaceAgent[K] {
         // construct a btree-formed network.
         var dst:Int = 0;
         var pow2:Int = 1;
-        for (pi in 1..(Place.numPlaces()-1)) {
-            at (Place(dst)) sHandle().reqQueue.addLast(pi);
+        finish for (pi in 1..(Place.numPlaces()-1)) {
+            async at (Place(dst)) sHandle().reqQueue.addLast(pi);
 Console.OUT.println(here + ": linked "+dst+" -> "+pi);
             if (++dst == pow2) { dst = 0; pow2 *= 2; }
         }
-
-        //solverPP.search(sHandle, solver.core.getInitialDomain());
-
-/*        solverPP.addDom(BAPSolver.Result.unknown(), solver.core.getInitialDomain());
-
-        if (reqQueue.getSize() > 0) {
-            val prec = getFirstDom().second.width() / (cutoffD - 1);
-            while (getFirstDom().second.width() >= prec) {
-                val pair = removeFirstDom();
-                finish searchPP(pair.first, pair.second);
-       
-                finish sortDomList(
-                    (e1:Pair[BAPSolver.Result,IntervalVec[K]],e2:Pair[BAPSolver.Result,IntervalVec[K]]) =>
-                        e2.second.volume().compareTo(e1.second.volume()) );
-            }
-        }
-*/
 
         initPhase = true;
     }
@@ -74,10 +55,9 @@ Console.OUT.println(here + ": linked "+dst+" -> "+pi);
             while (reqQueue.getSize() > 0) { // has some requests...
                 // move from the PlaceAgent's list to the solverPP's list.
                 while (!list.isEmpty())
-                    solverPP.addDom(BAPSolver.Result.unknown(), list.removeLast());
+                    solverPP.addDom(list.removeLast());
 
                 solverPP.search(sHandle, solver.core.dummyBox());
-Console.OUT.println(here + ": search done");
 
                 // distribute the half of the search space.
                 val pi = reqQueue.removeFirstUnsafe();
