@@ -87,6 +87,7 @@ public class RPX10 {
 //        val select = (res:Solver.Result, box:IntervalVec[Int])=>selector.selectGRR(res, box);
 //        val select1 = (res:Solver.Result, box:IntervalVec[Int])=>selector.selectBoundary(select, res, box);
         val select = (res:BAPSolver.Result, box:IntervalVec[Int])=>selector.selectGRR(res, box);
+        val select1 = (res:BAPSolver.Result, box:IntervalVec[Int])=>selector.selectBoundary(select, res, box);
 
         //return new ClusterDFSSolver[Int](core, select);
         //return new ClusterDFSSolver1[Int](core, select);
@@ -95,8 +96,10 @@ public class RPX10 {
         //return new ClusterDFSSolverSplitN[Int](core, select1);
         //return new ClusterSolver[Int](core, select1);
 
-        val solver = new BAPSolver[Int](core, select);
-        return new PlaceAgent[Int](solver);
+        val solver = new BAPSolver[Int](core, select1);
+        //val solver = new BAPListSolver[Int](core, select1);
+        //return new PlaceAgent[Int](solver);
+        return new PlaceAgentDelayed1[Int](core, solver);
     }
 
 /*    private static def initSolverMap(fname:String, prec:Double, n:Int) : Solver[String] {
@@ -126,14 +129,16 @@ public class RPX10 {
 
         // create a solver at each place
         val everyone = Dist.makeUnique();
-        val sHandle = PlaceLocalHandle.make[PlaceAgent[Int]](everyone, ()=>initSolverArray(args(0), Double.parse(args(1)), Int.parse(args(2))));
+        val sHandle = PlaceLocalHandle.make[PlaceAgent[Int]](
+            everyone, 
+            ()=>initSolverArray(args(0), Double.parse(args(1)), Int.parse(args(2))) );
         //val sHandle = PlaceLocalHandle.make[Solver[String]](everyone, ()=>initSolverMap(args(0), Double.parse(args(1)), Int.parse(args(2))));
 
         val masterP = here;
 
         var time:Long = -System.nanoTime();
         //finish for (p in Place.places()) at (p) async 
-        sHandle().setup();
+        sHandle().setup(sHandle);
 
         finish for (p in Place.places()) at (p) async {
             sHandle().run(sHandle);

@@ -65,6 +65,13 @@ public class BAPSolver[K] {
 //    }
 
     //public def getSolutions() : List[Pair[Result,IntervalVec[K]]] { return solutions; }
+
+    protected def contract(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) : Result {
+        var res:Result = Result.unknown();
+        atomic { res = core.contract(box); }
+        sHandle().nContracts.getAndIncrement();
+        return res;
+    }
     
     protected val selectVariable : (res:Result, box:IntervalVec[K]) => Box[K];
 
@@ -75,9 +82,10 @@ public class BAPSolver[K] {
         if (box.size() == 0)
             return;
 
-        var res:Result = Result.unknown();
-        atomic { res = core.contract(box); }
-        sHandle().nContracts.getAndIncrement();
+//        var res:Result = Result.unknown();
+//        atomic { res = core.contract(box); }
+//        sHandle().nContracts.getAndIncrement();
+        var res:Result = contract(sHandle, box);
 
         if (!res.hasNoSolution()) {
             val v = selectVariable(res, box);
@@ -97,14 +105,16 @@ finish {
 }
             }
             else {
-                atomic sHandle().solutions.add(new Pair[Result,IntervalVec[K]](res, box));
-//                Console.OUT.println(here + ": solution:");
-//                val plot = res.entails(Solver.Result.inner()) ? 5 : 3;
-//                atomic { 
-//                    Console.OUT.println(box.toString(plot));
-//                    Console.OUT.println(); 
-//                }
+/*                atomic sHandle().solutions.add(new Pair[Result,IntervalVec[K]](res, box));
+                Console.OUT.println(here + ": solution:");
+                val plot = res.entails(BAPSolver.Result.inner()) ? 5 : 3;
+                atomic { 
+                    Console.OUT.println(box.toString(plot));
+                    Console.OUT.println(); 
+                }
                 sHandle().nSols.getAndIncrement();
+*/
+                sHandle().addSolution(res, box);
             }
         }
         //else Console.OUT.println(here + ": no solution");

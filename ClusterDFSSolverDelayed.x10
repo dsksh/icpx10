@@ -82,13 +82,13 @@ public class ClusterDFSSolverDelayed[K] extends ClusterDFSSolver[K] {
 
         while (true) 
             if (initPhase) {
-                if (reqQueue.getSize() == 0) {
+                if (reqQueue.getSize() == 0) { // no requests.
                     while (!list1.isEmpty())
                         list.add(removeLastDom().second);
                         //atomic solutions.add(removeLastDom());
                 }
                 else {
-                    while (reqQueue.getSize() > 0) {
+                    while (reqQueue.getSize() > 0) { // there are some requests...
 
                         // split boxes for # boxes times.
                         var n:Int = list1.size();
@@ -101,6 +101,7 @@ public class ClusterDFSSolverDelayed[K] extends ClusterDFSSolver[K] {
                                     e2.second.volume().compareTo(e1.second.volume()) );
                         }
 
+                        // respond to the requests.
                         val pi = reqQueue.removeFirstUnsafe();
         
                         val nB = list1.size();

@@ -16,7 +16,7 @@ public class PlaceAgent[K] {
     var terminate:Int = 0;
 //    var sentRequest:AtomicBoolean = new AtomicBoolean(false);
     var sentBw:AtomicBoolean = new AtomicBoolean(false);
-    var initPhase:Boolean;
+    var initPhase:Boolean = true;
 
     public var nSols:AtomicInteger = new AtomicInteger(0);
     public var nContracts:AtomicInteger = new AtomicInteger(0);
@@ -31,6 +31,7 @@ public class PlaceAgent[K] {
     // kludge for a success of compilation
     val dummy:Double;
     val dummyI:Interval;
+
 
     public def this(solver:BAPSolver[K]) {
         this.solver = solver;
@@ -47,7 +48,8 @@ public class PlaceAgent[K] {
         dummyI = new Interval(0.,0.);
     }
 
-    public def setup() { 
+    public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) { 
+Console.OUT.println(here + ": initD: " + solver.core.getInitialDomain());
         list.add(solver.core.getInitialDomain());
     }
 
@@ -97,6 +99,18 @@ public class PlaceAgent[K] {
             return false;
     }
 
+    public atomic def addSolution(res:BAPSolver.Result, box:IntervalVec[K]) {
+        solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
+//        Console.OUT.println(here + ": solution:");
+        val plot = res.entails(BAPSolver.Result.inner()) ? 5 : 3;
+atomic {
+        Console.OUT.println(box.toString(plot));
+        Console.OUT.println(); 
+        Console.OUT.flush();
+}
+        nSols.getAndIncrement();
+    }
+
     protected atomic def getAndResetTerminate() : Int {
         val t = terminate;
         terminate = 0;
@@ -124,7 +138,7 @@ public class PlaceAgent[K] {
                 }
 
                 val t = getAndResetTerminate();
-Console.OUT.println(here + ": t: " + t);
+//Console.OUT.println(here + ": t: " + t);
 
                 // begin termination detection
                 if (here.id() == 0 && (t == 0 || t == 2)) {
@@ -135,7 +149,7 @@ Console.OUT.println(here + ": t: " + t);
                         // put a dummy box
                         atomic sHandle().list.add(sHandle().solver.core.dummyBox());
                     }
-Console.OUT.println(here + ": sent token 1 to " + here.next());
+//Console.OUT.println(here + ": sent token 1 to " + here.next());
                 }
                 // termination token went round.
                 else if (here.id() == 0 && t == 1) {
@@ -146,7 +160,7 @@ Console.OUT.println(here + ": sent token 1 to " + here.next());
                             sHandle().terminate = 3;
                             atomic sHandle().list.add(sHandle().solver.core.dummyBox());
                         }
-Console.OUT.println(here + ": sent token 3 to " + here.next());
+//Console.OUT.println(here + ": sent token 3 to " + here.next());
                         break;
                     }
                     //else if (t == 2) continue;
@@ -159,7 +173,7 @@ Console.OUT.println(here + ": sent token 3 to " + here.next());
                         sHandle().sentBw.set(false);
                         atomic sHandle().list.add(sHandle().solver.core.dummyBox());
                     }
-Console.OUT.println(here + ": sent token " + v + " to " + here.next());
+//Console.OUT.println(here + ": sent token " + v + " to " + here.next());
                     if (t == 3) {
                         break;
                     }
@@ -180,12 +194,12 @@ Console.OUT.println(here + ": sent token " + v + " to " + here.next());
                     nReqs.getAndIncrement();
                 }
 
-Console.OUT.println(here + ": wait...");
+//Console.OUT.println(here + ": wait...");
 
                 when (!list.isEmpty()) {
 initPhase = false;
                     //sentRequest.set(false);
-Console.OUT.println(here + ": got box, terminate: " + terminate);
+//Console.OUT.println(here + ": got box, terminate: " + terminate);
                 }
             }
         }
