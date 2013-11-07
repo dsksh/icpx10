@@ -4,12 +4,12 @@ import x10.util.*;
 import x10.io.*;
 
 // kludge for "Interval is incomplete type" error
-class Dummy_RPX10 {
-    val dummy : Interval = new Interval(0.,0.);
-    val dummyRes : Solver.Result = Solver.Result.unknown();
-}
+//class Dummy_RPX10 {
+//    val dummy : Interval = new Interval(0.,0.);
+//    val dummyRes : BAPSolver.Result = BAPSolver.Result.unknown();
+//}
 
-public class RPX10 {
+public class RPX10[K] {
 
     static def format(t:Long) = (t as Double) * 1.0e-9;
 
@@ -72,6 +72,18 @@ public class RPX10 {
         public def dummyBox() : IntervalVec[String] { return new IntervalMap(); }
     }
 
+    private def setup(core:BAPSolver.Core[K], prec:Double) : PlaceAgent[K] {
+
+        val tester = new VariableSelector.Tester[K]();
+        val test = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => tester.testPrec(prec, res, box, v);
+
+        val selector = new VariableSelector[K](test);
+        val select = (res:BAPSolver.Result, box:IntervalVec[K])=>selector.selectGRR(res, box);
+        val select1 = (res:BAPSolver.Result, box:IntervalVec[K])=>selector.selectBoundary(select, res, box);
+        val solver = new BAPSolverMSplit[K](core, select1);
+
+        return new PlaceAgent[K](solver);
+    }
 
     private static def initSolverArray(fname:String, prec:Double, n:Int) : PlaceAgent[Int] {
         val core = new CoreIArray(fname, n);
@@ -121,6 +133,11 @@ public class RPX10 {
     }
 */
 
+    // kludge for a success of compilation
+    val dummy:Double = 0.;
+    val dummyI:Interval = new Interval(0.,0.);
+    val dummyR:BAPSolver.Result = BAPSolver.Result.unknown();
+
     public static def main(args:Array[String](1)) {
 
         if (args.size < 3) {
@@ -128,12 +145,17 @@ public class RPX10 {
             return;
         }
 
+
         // create a solver at each place
         val everyone = Dist.makeUnique();
         val sHandle = PlaceLocalHandle.make[PlaceAgent[Int]](
             everyone, 
-            ()=>initSolverArray(args(0), Double.parse(args(1)), Int.parse(args(2))) );
-        //val sHandle = PlaceLocalHandle.make[Solver[String]](everyone, ()=>initSolverMap(args(0), Double.parse(args(1)), Int.parse(args(2))));
+            //()=>RPX10[Int].setup(args(0), Double.parse(args(1)), Int.parse(args(2))) );
+            ()=> {
+                val main = new RPX10[Int]();
+                val core = new CoreIArray(args(0), Int.parse(args(2)));
+                return main.setup(core, Double.parse(args(1)));
+            } );
 
         val masterP = here;
 
@@ -146,20 +168,6 @@ public class RPX10 {
         }
 
         time += System.nanoTime();
-
-        // output the solutions.
-/*        Console.OUT.println();
-        for (p in Place.places()) at (p) atomic {
-            val it = sHandle().solutions.iterator();
-            for (var i:Int = 0; it.hasNext(); ++i) {
-                val pair = it.next();
-                val plot = pair.first.entails(Solver.Result.inner()) ? 5 : 3;
-                Console.OUT.println(pair.second.toString(plot));
-                Console.OUT.println(); 
-            }
-            Console.OUT.flush();
-        }
-*/
 
         // output description of the solving process.
         val sb = new StringBuilder();

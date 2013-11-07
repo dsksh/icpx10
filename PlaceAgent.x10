@@ -32,7 +32,6 @@ public class PlaceAgent[K] {
     val dummy:Double;
     val dummyI:Interval;
 
-
     public def this(solver:BAPSolver[K]) {
         this.solver = solver;
 
