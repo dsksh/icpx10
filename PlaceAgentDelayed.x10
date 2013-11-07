@@ -67,7 +67,11 @@ Console.OUT.println(here + ": linked "+dst+" -> "+pi);
                 var b:Boolean = true;
                 finish for (i in 1..nB) {
                     val box = list.removeFirst();
-                    async at (b ? here : Place(pi)) sHandle().list.add(box);
+                    val pv:Box[K] = box.prevVar();
+                    async at (b ? here : Place(pi)) {
+                        box.setPrevVar(pv);
+                        sHandle().list.add(box);
+                    }
 //Console.OUT.println(here + ": append at " + (b ? here.id : pi));
 //Console.OUT.println(here + ": " + box);
                     nSends.getAndIncrement();

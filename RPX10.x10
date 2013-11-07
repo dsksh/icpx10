@@ -97,9 +97,10 @@ public class RPX10 {
         //return new ClusterSolver[Int](core, select1);
 
         //val solver = new BAPSolver[Int](core, select1);
-        val solver = new BAPListSolver[Int](core, select1);
-        //return new PlaceAgent[Int](solver);
-        return new PlaceAgentDelayed[Int](core, solver);
+        //val solver = new BAPListSolver[Int](core, select1);
+        val solver = new BAPSolverMSplit[Int](core, select1);
+        return new PlaceAgent[Int](solver);
+        //return new PlaceAgentDelayed[Int](core, solver);
     }
 
 /*    private static def initSolverMap(fname:String, prec:Double, n:Int) : Solver[String] {

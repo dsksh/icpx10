@@ -1,4 +1,4 @@
-import x10.compiler.*;
+//import x10.compiler.*;
 import x10.util.*;
 import x10.io.Console; 
 

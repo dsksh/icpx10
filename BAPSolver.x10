@@ -105,15 +105,6 @@ finish {
 }
             }
             else {
-/*                atomic sHandle().solutions.add(new Pair[Result,IntervalVec[K]](res, box));
-                Console.OUT.println(here + ": solution:");
-                val plot = res.entails(BAPSolver.Result.inner()) ? 5 : 3;
-                atomic { 
-                    Console.OUT.println(box.toString(plot));
-                    Console.OUT.println(); 
-                }
-                sHandle().nSols.getAndIncrement();
-*/
                 sHandle().addSolution(res, box);
             }
         }

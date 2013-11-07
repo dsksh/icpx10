@@ -51,6 +51,14 @@ public class PlaceAgent[K] {
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) { 
 Console.OUT.println(here + ": initD: " + solver.core.getInitialDomain());
         list.add(solver.core.getInitialDomain());
+
+        var dst:Int = 0;
+        var pow2:Int = 1;
+        for (pi in 1..(Place.numPlaces()-1)) {
+            at (Place(dst)) sHandle().reqQueue.addLast(pi);
+//            at (Place(pi)) sHandle().sentRequest.set(true);
+            if (++dst == pow2) { dst = 0; pow2 *= 2; }
+        }
     }
 
     protected def selectPlace() : Place {
@@ -84,10 +92,11 @@ Console.OUT.println(here + ": initD: " + solver.core.getInitialDomain());
         }
 
         if (id >= 0) {
-            val p = Place(id);
+            val pv:Box[K] = box.prevVar();
 //async 
-            at (p) {
+            at (Place(id)) {
 //                sHandle().sentRequest.set(false);
+                box.setPrevVar(pv);
                 atomic sHandle().list.add(box);
             }
 //Console.OUT.println(here + ": responded to " + id);
@@ -97,6 +106,16 @@ Console.OUT.println(here + ": initD: " + solver.core.getInitialDomain());
         }
         else
             return false;
+    }
+
+    public atomic def getMultipleRequests(nMax:Int) : List[Int] {
+        val n = Math.min(nMax, reqQueue.getSize());
+        val list = new ArrayList[Int](n);
+        for (i in 1..n) {
+            val id = reqQueue.removeFirstUnsafe();
+            list.add(id);
+        }
+        return list;
     }
 
     public atomic def addSolution(res:BAPSolver.Result, box:IntervalVec[K]) {
