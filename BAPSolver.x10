@@ -35,9 +35,6 @@ public class BAPSolver[K] {
 
     val core:Core[K];
 
-//    val reqQueue:CircularQueue[Int];
-//    var terminate:Int = 0;
-//    var sentRequest:AtomicBoolean = new AtomicBoolean(false);
     var sentBw:AtomicBoolean = new AtomicBoolean(false);
     var initPhase:Boolean;
 
@@ -47,24 +44,11 @@ public class BAPSolver[K] {
 
     public def this(core:Core[K], selector:(Result, IntervalVec[K])=>Box[K]) {
         this.core = core;
-//        this.master = master;
         selectVariable = selector;
-
-//        list = new ArrayList[IntervalVec[K]]();
-//        list1 = new ArrayList[Pair[Result,IntervalVec[K]]]();
-//        solutions = new ArrayList[Pair[Result,IntervalVec[K]]]();
-
-//        reqQueue = new CircularQueue[Int](2*Place.numPlaces()+10);
 
         dummy = 0;
         dummyI = new Interval(0.,0.);
     }
-
-//    public def setup(sHandle:PlaceLocalHandle[Solver[K]]) { 
-//        list.add(core.getInitialDomain());
-//    }
-
-    //public def getSolutions() : List[Pair[Result,IntervalVec[K]]] { return solutions; }
 
     protected def contract(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) : Result {
         var res:Result = Result.unknown();
@@ -82,9 +66,6 @@ public class BAPSolver[K] {
         if (box.size() == 0)
             return;
 
-//        var res:Result = Result.unknown();
-//        atomic { res = core.contract(box); }
-//        sHandle().nContracts.getAndIncrement();
         var res:Result = contract(sHandle, box);
 
         if (!res.hasNoSolution()) {
@@ -108,7 +89,7 @@ finish {
                 sHandle().addSolution(res, box);
             }
         }
-        //else Console.OUT.println(here + ": no solution");
+        else Console.OUT.println(here + ": no solution");
 
 //} catch (exp:Exception) {
 //    Console.OUT.println(here + "," + sid + ": exception thrown:");

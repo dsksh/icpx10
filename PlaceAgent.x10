@@ -117,14 +117,16 @@ Console.OUT.println(here + ": initD: " + solver.core.getInitialDomain());
         return list;
     }
 
-    public atomic def addSolution(res:BAPSolver.Result, box:IntervalVec[K]) {
-        solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
+    public def addSolution(res:BAPSolver.Result, box:IntervalVec[K]) {
+        atomic solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
 //        Console.OUT.println(here + ": solution:");
         val plot = res.entails(BAPSolver.Result.inner()) ? 5 : 3;
-atomic {
-        Console.OUT.println(box.toString(plot));
-        Console.OUT.println(); 
-        Console.OUT.flush();
+        val stringB = box.toString(plot);
+async
+at (Place(0)) atomic {
+    Console.OUT.println(stringB);
+    Console.OUT.println(); 
+    Console.OUT.flush();
 }
         nSols.getAndIncrement();
     }
