@@ -75,32 +75,50 @@ public class RPX10[K] {
     private def setup(core:BAPSolver.Core[K], args:Array[String](1)) : PlaceAgent[K] {
 
         val tester = new VariableSelector.Tester[K]();
-        val prec = Double.parse(args(2));
+        var an:Int = 2;
+        val prec = Double.parse(args(an++));
         val test = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => 
             tester.testPrec(prec, res, box, v);
 //        val test1 = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => 
 //            tester.testRegularity(test, (v:K)=>!core.isProjected(v), res, box, v);
 
         val selector = new VariableSelector[K](test);
-        val select = (res:BAPSolver.Result, box:IntervalVec[K]) =>
-            selector.selectGRR(res, box);
-        val select1 = (res:BAPSolver.Result, box:IntervalVec[K]) =>
-            selector.selectBoundary(select, res, box);
-
-        var solver:BAPSolver[K] = null;
-        switch (Int.parse(args(3))) {
+        var select:(BAPSolver.Result,IntervalVec[K])=>Box[K];
+        val selectBnd = (select0:(BAPSolver.Result,IntervalVec[K])=>Box[K]) =>
+            ((res:BAPSolver.Result, box:IntervalVec[K]) =>
+                selector.selectBoundary(select0, res, box) );
+        switch (Int.parse(args(an++))) {
         case 0:
-            solver = new BAPSolver[K](core, select1);
+            select = selectBnd(
+                (res:BAPSolver.Result, box:IntervalVec[K]) =>
+                     selector.selectGRR(res, box) );
             break;
         case 1:
-            solver = new BAPListSolver[K](core, select1);
+            select = selectBnd(
+                (res:BAPSolver.Result, box:IntervalVec[K]) =>
+                     selector.selectLRR(res, box) );
             break;
         default:
-            solver = new BAPSolverMSplit[K](core, select1);
+            select = selectBnd(
+                (res:BAPSolver.Result, box:IntervalVec[K]) =>
+                     selector.selectLF(res, box) );
             break;
         }
 
-        switch (Int.parse(args(4))) {
+        var solver:BAPSolver[K] = null;
+        switch (Int.parse(args(an++))) {
+        case 0:
+            solver = new BAPSolver[K](core, select);
+            break;
+        case 1:
+            solver = new BAPListSolver[K](core, select);
+            break;
+        default:
+            return new PlaceAgentMSplit[K](
+                new BAPSolverMSplit[K](core, select) );
+        }
+
+        switch (Int.parse(args(an++))) {
         case 0:
             return new PlaceAgent[K](solver);
         default:
@@ -115,8 +133,8 @@ public class RPX10[K] {
 
     public static def main(args:Array[String](1)) {
 
-        if (args.size < 5) {
-            Console.OUT.println("usage: RPX10 prob.rp n prec s_id pa_id");
+        if (args.size < 6) {
+            Console.OUT.println("usage: RPX10 prob.rp n prec sel solver pagent");
             return;
         }
 

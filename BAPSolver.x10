@@ -89,7 +89,7 @@ finish {
                 sHandle().addSolution(res, box);
             }
         }
-        else Console.OUT.println(here + ": no solution");
+        //else Console.OUT.println(here + ": no solution");
 
 //} catch (exp:Exception) {
 //    Console.OUT.println(here + "," + sid + ": exception thrown:");

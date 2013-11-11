@@ -25,9 +25,6 @@ public class VariableSelector[K] {
         }
     }
 
-    //private val precision:Double;
-    private var variableIt:Iterator[K] = null;
-
     public def this(precision:Double) {
         this.test = (res:BAPSolver.Result, box:IntervalVec[K], v:K) =>
             box(v).value.width() > precision;
@@ -37,6 +34,9 @@ public class VariableSelector[K] {
     }
 
     public val test : (BAPSolver.Result,IntervalVec[K],K) => Boolean;
+
+    //private val precision:Double;
+    private var variableIt:Iterator[K] = null;
 
     public def selectGRR(res:BAPSolver.Result, box:IntervalVec[K]) : Box[K] {
 atomic {

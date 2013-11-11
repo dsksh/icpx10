@@ -9,14 +9,14 @@ all: $(TARGET)
 CC          = g++
 BUILD       = ar rs    # for static libraries
 INCLUDES	+= -I$(RP_HOME)/src
-CFLAGS      += -g $(INCLUDES)
+CFLAGS      += -O3 -g $(INCLUDES)
 #CFLAGS      += -O3 -arch i386 -arch x86_64
 #CFLAGS      += -g -O3 -Wall
 #CFLAGS      += -pg -O0
 LDFLAGS     += -L$(RP_HOME)/src -lrealpaver -lgaol -lgdtoa -lultim
 
 X10_HEADERS     = RPX10__Core.h RPX10__CoreProj.h RPX10__CoreEx.h RPX10__CoreIArray.h RPX10__CoreIMap.h
-X10_SOURCES     = RPX10.x10 Solver.x10 PipelineSolver.x10 ClusterSolver.x10 ClusterDFSSolver.x10 ClusterDFSSolverDelayed.x10 ClusterDFSSolverSwitched.x10 ClusterDFSSolverSplitN.x10 VariableSelector.x10 Interval.x10 IntervalVec.x10 IntervalArray.x10 IntervalMap.x10 CircularQueue.x10 MyHashMap.x10
+X10_SOURCES     = RPX10.x10 PlaceAgent.x10 PlaceAgentDelayed.x10 PlaceAgentMSplit.x10 BAPSolver.x10 BAPListSolver.x10 BAPListSolverBnd.x10 BAPSolverMSplit.x10 VariableSelector.x10 Interval.x10 IntervalVec.x10 IntervalArray.x10 IntervalMap.x10 CircularQueue.x10 MyHashMap.x10
 X10_CPP_SOURCES = RPX10__Core.cc RPX10__CoreProj.cc RPX10__CoreIArray.cc RPX10__CoreIMap.cc
 
 %.o:%.cc
@@ -24,7 +24,7 @@ X10_CPP_SOURCES = RPX10__Core.cc RPX10__CoreProj.cc RPX10__CoreIArray.cc RPX10__
 
 
 ## X10 STUFF ##
-X10CXX          = x10c++ -STATIC_CHECKS
+X10CXX          = x10c++ -STATIC_CHECKS -O
 #X10CXX          += -x10rt mpi
 #X10CXX          += -O -NO_CHECKS
 X10CXX         += -report postcompile=1

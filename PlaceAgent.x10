@@ -48,7 +48,7 @@ public class PlaceAgent[K] {
     }
 
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) { 
-Console.OUT.println(here + ": initD: " + solver.core.getInitialDomain());
+//Console.OUT.println(here + ": initD: " + solver.core.getInitialDomain());
         list.add(solver.core.getInitialDomain());
 
         var dst:Int = 0;
@@ -60,15 +60,18 @@ Console.OUT.println(here + ": initD: " + solver.core.getInitialDomain());
         }
     }
 
+    private var selected:Iterator[Place] = null;
+
     protected def selectPlace() : Place {
-        var id:Int;
+/*        var id:Int;
         do {
             id = random.nextInt(Place.numPlaces());
         } while (Place.numPlaces() > 1 && (id == here.id()));
 
         return Place(id);
+*/
 
-/*        if (selected == null || !selected.hasNext())
+        if (selected == null || !selected.hasNext())
             selected = Place.places().iterator();
         val p = selected.next();
         if (p != here) {
@@ -77,7 +80,6 @@ Console.OUT.println(here + ": initD: " + solver.core.getInitialDomain());
         }
         else
             return selectPlace();
-*/
     }
 
     public def getSolutions() : List[Pair[BAPSolver.Result,IntervalVec[K]]] { return solutions; }
@@ -107,7 +109,7 @@ Console.OUT.println(here + ": initD: " + solver.core.getInitialDomain());
             return false;
     }
 
-    public atomic def getMultipleRequests(nMax:Int) : List[Int] {
+/*    public atomic def getMultipleRequests(nMax:Int) : List[Int] {
         val n = Math.min(nMax, reqQueue.getSize());
         val list = new ArrayList[Int](n);
         for (i in 1..n) {
@@ -116,6 +118,7 @@ Console.OUT.println(here + ": initD: " + solver.core.getInitialDomain());
         }
         return list;
     }
+*/
 
     public def addSolution(res:BAPSolver.Result, box:IntervalVec[K]) {
         atomic solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));

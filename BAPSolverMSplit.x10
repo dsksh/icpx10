@@ -3,14 +3,14 @@ import x10.io.Console;
 
 public class BAPSolverMSplit[K] extends BAPSolver[K] {
 
-    val maxNSplits:Int = 1;
+    val maxNSplits:Int = -1;
 
     public def this(core:Core[K], selector:(Result, IntervalVec[K])=>Box[K]) {
         super(core, selector);
     }
 
     protected def search(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) {
-Console.OUT.println(here + ": search:\n" + box + '\n');
+//Console.OUT.println(here + ": search:\n" + box + '\n');
 
         // for dummy boxes
         if (box.size() == 0)
@@ -20,8 +20,10 @@ Console.OUT.println(here + ": search:\n" + box + '\n');
         
         if (!res.hasNoSolution()) {
             // prepare destination list
-            val reqList = sHandle().getMultipleRequests(maxNSplits);
-Console.OUT.println(here+": # reqs = "+reqList.size());
+            // TODO
+            val pa = sHandle() as PlaceAgentMSplit[K];
+            val reqList = pa.getMultipleRequests(maxNSplits);
+//Console.OUT.println(here+": # reqs = "+reqList.size());
 
 /*            var nS:Int = -1;
             var ids:ArrayList[Int] = null;
@@ -59,7 +61,7 @@ Console.OUT.println(here+": log2 = "+Math.log2(reqQueue.getSize()+1));
 //                    break;
                 }
             }
-Console.OUT.println(here+": # boxes = "+bList.size());
+//Console.OUT.println(here+": # boxes = "+bList.size());
 
 /*            var nB:Int = 1;
             for (i in 1..nS) {
@@ -79,7 +81,8 @@ Console.OUT.println(here+": ("+i+","+j+"), bp.second: "+bp.second);
 */
 
             val pv:Box[K] = box.prevVar();
-            finish while (!reqList.isEmpty()) {
+            finish 
+            while (!reqList.isEmpty()) {
                 val req = reqList.removeLast();
                 if (!bList.isEmpty()) {
                     val b = bList.removeLast();
@@ -93,7 +96,7 @@ Console.OUT.println(here+": ("+i+","+j+"), bp.second: "+bp.second);
                             b.setPrevVar(pv);
                             atomic sHandle().list.add(b);
                         }
-Console.OUT.println(here + ": responded to " + req);
+//Console.OUT.println(here + ": responded to " + req);
 //Console.OUT.println(box);
 
                         if (req < here.id()) sentBw.set(true);
