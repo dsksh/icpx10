@@ -154,7 +154,7 @@ public class RPX10[K] {
         //finish for (p in Place.places()) at (p) async 
         sHandle().setup(sHandle);
 
-        finish for (p in Place.places()) at (p) async {
+        finish for (p in Place.places()) async at (p) {
             sHandle().run(sHandle);
         }
 

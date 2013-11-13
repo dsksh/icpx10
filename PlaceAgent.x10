@@ -14,7 +14,7 @@ public class PlaceAgent[K] {
 
     val reqQueue:CircularQueue[Int];
     var terminate:Int = 0;
-//    var sentRequest:AtomicBoolean = new AtomicBoolean(false);
+    var sentRequest:AtomicBoolean = new AtomicBoolean(false);
     var sentBw:AtomicBoolean = new AtomicBoolean(false);
     var initPhase:Boolean = true;
 
@@ -55,7 +55,7 @@ public class PlaceAgent[K] {
         var pow2:Int = 1;
         for (pi in 1..(Place.numPlaces()-1)) {
             at (Place(dst)) sHandle().reqQueue.addLast(pi);
-//            at (Place(pi)) sHandle().sentRequest.set(true);
+            at (Place(pi)) sHandle().sentRequest.set(true);
             if (++dst == pow2) { dst = 0; pow2 *= 2; }
         }
     }
@@ -96,7 +96,7 @@ public class PlaceAgent[K] {
             val pv:Box[K] = box.prevVar();
 //async 
             at (Place(id)) {
-//                sHandle().sentRequest.set(false);
+                sHandle().sentRequest.set(false);
                 box.setPrevVar(pv);
                 atomic sHandle().list.add(box);
             }
@@ -143,91 +143,98 @@ at (Place(0)) atomic {
     public def run(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
    		Console.OUT.println(here + ": start solving... ");
 
+        var box:IntervalVec[K] = null;
+
         while (true) {
-            if (!list.isEmpty()) {
-                val box = list.removeFirst();
-                finish solver.search(sHandle, box);
+
+            when (!list.isEmpty()) {
+initPhase = false;
+                box = list.removeFirst();
+//Console.OUT.println(here + ": got box:\n" + box);
             }
-            else { //if (list.isEmpty()) {
+
+            finish solver.search(sHandle, box);
+
+            if (list.isEmpty()) {
 
                 // cancel the received requests.
                 while (!initPhase && reqQueue.getSize() > 0) {
                     val id:Int = reqQueue.removeFirstUnsafe();
 //async
                     at (Place(id)) {
-//                        sHandle().sentRequest.set(false);
+                        sHandle().sentRequest.set(false);
                         atomic sHandle().list.add(sHandle().solver.core.dummyBox());
                     }
                 }
 
-                val t = getAndResetTerminate();
-//Console.OUT.println(here + ": t: " + t);
+                val term = getAndResetTerminate();
+//Console.OUT.println(here + ": term: " + term);
+
+if (!sentRequest.get() || term == 3) {
 
                 // begin termination detection
-                if (here.id() == 0 && (t == 0 || t == 2)) {
+                if (here.id() == 0 && (term == 0 || term == 2)) {
 //async
                     at (here.next()) atomic {
                         sHandle().terminate = 1;
-                        sHandle().sentBw.set(false);
+//                        sHandle().sentBw.set(false);
                         // put a dummy box
-                        atomic sHandle().list.add(sHandle().solver.core.dummyBox());
+                        sHandle().list.add(sHandle().solver.core.dummyBox());
                     }
 //Console.OUT.println(here + ": sent token 1 to " + here.next());
                 }
                 // termination token went round.
-                else if (here.id() == 0 && t == 1) {
-                    //val t = getAndResetTerminate();
-                    if (t == 1) {
+                else if (here.id() == 0 && term == 1) {
+                    //val term = getAndResetTerminate();
+                    if (term == 1) {
 //async
                         at (here.next()) atomic {
                             sHandle().terminate = 3;
-                            atomic sHandle().list.add(sHandle().solver.core.dummyBox());
+                            sHandle().list.add(sHandle().solver.core.dummyBox());
                         }
 //Console.OUT.println(here + ": sent token 3 to " + here.next());
                         break;
                     }
-                    //else if (t == 2) continue;
+                    //else if (term == 2) continue;
                 }
-                else if (here.id() > 0 && t > 0) {
-                    val v = (t == 1 && sentBw.get()) ? 2 : t;
+                else if (here.id() > 0 && term > 0) {
+                    val v = (term == 1 && sentBw.getAndSet(false)) ? 2 : term;
 //async
                     at (here.next()) atomic {
                         sHandle().terminate = v;
-                        sHandle().sentBw.set(false);
-                        atomic sHandle().list.add(sHandle().solver.core.dummyBox());
+//                        sHandle().sentBw.set(false);
+                        sHandle().list.add(sHandle().solver.core.dummyBox());
                     }
 //Console.OUT.println(here + ": sent token " + v + " to " + here.next());
-                    if (t == 3) {
+                    if (term == 3) {
                         break;
                     }
                 }
 
                 // request for a domain
-                if (Place.numPlaces() > 1 //&& !sentRequest.getAndSet(true)
+                if (Place.numPlaces() > 1 && !sentRequest.getAndSet(true)
                     ) {
                     val id = here.id();
                     val p = selectPlace();
 //async
                     at (p) {
                         sHandle().reqQueue.addLast(id);
-                        atomic sHandle().list.add(sHandle().solver.core.dummyBox());
+                        sHandle().list.add(sHandle().solver.core.dummyBox());
 //Console.OUT.println(here + ": requested from " + id);
                     }
 //Console.OUT.println(here + ": requested to " + p);
                     nReqs.getAndIncrement();
                 }
 
-//Console.OUT.println(here + ": wait...");
+            }
 
-                when (!list.isEmpty()) {
-initPhase = false;
-                    //sentRequest.set(false);
-//Console.OUT.println(here + ": got box, terminate: " + terminate);
-                }
+//Console.OUT.println(here + ": wait...");
             }
         }
 
+//Console.OUT.println(here + ": boxAvail: " + !list.isEmpty());
    		Console.OUT.println(here + ": done");
+   		Console.OUT.flush();
     }
 }
 
