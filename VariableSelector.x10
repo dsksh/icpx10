@@ -14,14 +14,29 @@ public class VariableSelector[K] {
             else
                 return test(res, box, v);
         }
-        public var nSplits:AtomicInteger;
-        public def testNSplits(test:(BAPSolver.Result,IntervalVec[K],K)=>Boolean,
+        //public var nSplits:AtomicInteger;
+        public var nSplits:Int;
+/*        public def testNSplits(test:(BAPSolver.Result,IntervalVec[K],K)=>Boolean,
                                maxNSplits:Int, 
                                res:BAPSolver.Result, box:IntervalVec[K], v:K) : Boolean {
             if (nSplits.get() >= maxNSplits)
                 return false;
             else
                 return test(res, box, v);
+        }
+*/
+        public def testNSplits(test:(BAPSolver.Result,IntervalVec[K],K)=>Boolean,
+                               maxNSplits:Int, 
+                               res:BAPSolver.Result, box:IntervalVec[K], v:K) : Boolean {
+            if (nSplits >= maxNSplits)
+                return false;
+            else 
+                if (test(res, box, v)) {
+                    //nSplits.getAndIncrement();
+                    nSplits++;
+                    return true;
+                }
+                else return false;
         }
     }
 

@@ -125,12 +125,12 @@ public class PlaceAgent[K] {
 //        Console.OUT.println(here + ": solution:");
         val plot = res.entails(BAPSolver.Result.inner()) ? 5 : 3;
         val stringB = box.toString(plot);
-async
-at (Place(0)) atomic {
-    Console.OUT.println(stringB);
-    Console.OUT.println(); 
-    Console.OUT.flush();
-}
+//async
+//at (Place(0)) atomic {
+//    Console.OUT.println(stringB);
+//    Console.OUT.println(); 
+//    Console.OUT.flush();
+//}
         nSols.getAndIncrement();
     }
 
@@ -141,7 +141,7 @@ at (Place(0)) atomic {
     }
 
     public def run(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
-   		Console.OUT.println(here + ": start solving... ");
+//   		Console.OUT.println(here + ": start solving... ");
 
         var box:IntervalVec[K] = null;
 
@@ -233,8 +233,8 @@ if (!sentRequest.get() || term == 3) {
         }
 
 //Console.OUT.println(here + ": boxAvail: " + !list.isEmpty());
-   		Console.OUT.println(here + ": done");
-   		Console.OUT.flush();
+//   		Console.OUT.println(here + ": done");
+//   		Console.OUT.flush();
     }
 }
 

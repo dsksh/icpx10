@@ -122,7 +122,9 @@ public class RPX10[K] {
         case 0:
             return new PlaceAgent[K](solver);
         default:
-            return new PlaceAgentDelayed[K](core, solver);
+            val pa = new PlaceAgentDelayed[K](solver);
+            pa.initPP(core, prec);
+            return pa;
         }
     }
 

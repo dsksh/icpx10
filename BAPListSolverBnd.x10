@@ -9,7 +9,7 @@ public class BAPListSolverBnd[K] extends BAPListSolver[K] {
     }
 
     protected def search(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) {
-//Console.OUT.println(here + ": search:\n" + box + '\n');
+Console.OUT.println(here + ": search:\n" + box + '\n');
 
         // add to list if not a dummy box
         if (box.size() > 0)

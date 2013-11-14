@@ -9,4 +9,4 @@
 #define RPR_CYCLIC_X3 0
 #define RPR_VALIDATE_CONNECTION 0
 
-#define RPX_PROJ 0
+#define RPX_PROJ 1
