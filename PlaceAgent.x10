@@ -121,12 +121,14 @@ public class PlaceAgent[K] {
 */
 
     public def addSolution(res:BAPSolver.Result, box:IntervalVec[K]) {
+        // FIXME
         atomic solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
-//        Console.OUT.println(here + ": solution:");
-        val plot = res.entails(BAPSolver.Result.inner()) ? 5 : 3;
-        val stringB = box.toString(plot);
+//Console.OUT.println(here + ": solution:");
+//val plot = res.entails(BAPSolver.Result.inner()) ? 5 : 3;
+//val stringB = box.toString(plot);
 //async
-//at (Place(0)) atomic {
+//at (Place(0)) 
+//atomic {
 //    Console.OUT.println(stringB);
 //    Console.OUT.println(); 
 //    Console.OUT.flush();

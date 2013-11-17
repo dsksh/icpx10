@@ -4,7 +4,8 @@ import x10.util.concurrent.AtomicInteger;
 
 public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
 
-    static val maxNSplits = 4;
+    //static val maxNSplits = 3;
+    static val factor = 4;
 
     private var tester : VariableSelector.Tester[K] = null;
     private var solverPP : BAPListSolverBnd[K] = null;
@@ -22,29 +23,17 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
         tester = new VariableSelector.Tester[K]();
         val test = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => 
                         tester.testPrec(prec, res, box, v);
+        //val test1 = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => 
+        //                tester.testNSplits(test, maxNSplits, res, box, v);
         val test1 = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => 
-                        tester.testNSplits(test, maxNSplits, res, box, v);
+                        tester.testLSize(test, solverPP, res, box, v);
 
         val selector = new VariableSelector[K](test1);
-        val select = (res:BAPSolver.Result, box:IntervalVec[K])=>selector.selectGRR(res, box);
+        val select = (res:BAPSolver.Result, box:IntervalVec[K])=>selector.selectLRR(res, box);
         val select1 = (res:BAPSolver.Result, box:IntervalVec[K])=>selector.selectBoundary(select, res, box);
         
         solverPP = new BAPListSolverBnd(core, select1);
     }
-
-/*    private var nSplits:AtomicInteger;
-    private def testNSplits(test:(BAPSolver.Result,IntervalVec[K],K)=>Boolean,
-                            res:BAPSolver.Result, box:IntervalVec[K], v:K) : Boolean {
-        if (nSplits.get() >= maxNSplits)
-            return false;
-        else 
-            if (test(res, box, v)) {
-                nSplits.getAndIncrement();
-                return true;
-            }
-            else return false;
-    }
-*/
 
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         //super.setup(sHandle);
@@ -54,8 +43,11 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
         var dst:Int = 0;
         var pow2:Int = 1;
         finish for (pi in 1..(Place.numPlaces()-1)) {
-            async at (Place(dst)) sHandle().reqQueue.addLast(pi);
-//Console.OUT.println(here + ": linked "+dst+" -> "+pi);
+            at (Place(dst)) async {
+                sHandle().reqQueue.addLast(pi);
+//Console.OUT.println(here + ": reqQueue: "+sHandle().reqQueue.getSize());
+            }
+//Console.OUT.println(here + ": linked "+Place(dst)+" -> "+pi);
             if (++dst == pow2) { dst = 0; pow2 *= 2; }
         }
 
@@ -63,10 +55,11 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
     }
 
     public atomic def addSolution(res:BAPSolver.Result, box:IntervalVec[K]) {
-        if (initPhase && res == BAPSolver.Result.unknown()) {
+        if (initPhase && !res.entails(BAPSolver.Result.inner())) {
             list.add(box);
+//atomic solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
         }
-        else
+        else 
             super.addSolution(res, box);
     }
 
@@ -76,13 +69,18 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
 //Console.OUT.println(here + ": start PP");
 
             while (reqQueue.getSize() > 0) { // has some requests...
+//Console.OUT.println(here + ": handle req: " + reqQueue.getSize());
+//Console.OUT.println(here + ": lsize: " + list.size());
+
                 // move from the PlaceAgent's list to the solverPP's list.
                 while (!list.isEmpty()) {
                     solverPP.addDom(list.removeLast());
                 }
 
                 //tester.nSplits.set(0);
-                tester.nSplits = 0;
+                //tester.nSplits = 0;
+                tester.maxLSize = solverPP.domSize() * factor;
+//Console.OUT.println(here + ": nB0: " + solverPP.domSize());
                 solverPP.search(sHandle, solver.core.dummyBox());
 
                 finish list.sort(
@@ -98,7 +96,7 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
                 finish for (i in 1..nB) {
                     val box = list.removeFirst();
                     val pv:Box[K] = box.prevVar();
-                    async at (b ? here : Place(pi)) {
+                    at (b ? here : Place(pi)) async {
                         box.setPrevVar(pv);
                         sHandle().list.add(box);
                     }

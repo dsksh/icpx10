@@ -162,7 +162,23 @@ public class RPX10[K] {
 
         time += System.nanoTime();
 
-        // output description of the solving process.
+//        // print solutions
+//        Console.OUT.println(); 
+//        for (p in Place.places()) at (p) {
+//            val ss = sHandle().getSolutions();
+//            val it = ss.iterator();
+//            while (it.hasNext()) atomic {
+//                val pair = it.next();
+//                val plot = pair.first.entails(BAPSolver.Result.inner()) ? 5 : 3;
+//                val stringB = pair.second.toString(plot);
+//                Console.OUT.println(stringB);
+//                Console.OUT.println(); 
+////                Console.OUT.flush();
+//            }
+//            Console.OUT.flush();
+//        }
+
+        // print description of the solving process.
         val sb = new StringBuilder();
         val sbG = new GlobalRef[StringBuilder](sb);
         sb.add("{\"summary\" : {");

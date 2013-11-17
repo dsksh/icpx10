@@ -38,6 +38,18 @@ public class VariableSelector[K] {
                 }
                 else return false;
         }
+        public var maxLSize:Int;
+        public def testLSize(test:(BAPSolver.Result,IntervalVec[K],K)=>Boolean,
+                             listSolver:BAPListSolver[K], 
+                             res:BAPSolver.Result, box:IntervalVec[K], v:K) : Boolean {
+            if (listSolver.domSize()+1 >= maxLSize) {
+                if (!res.entails(BAPSolver.Result.inner()))
+                    maxLSize--;
+                return false;
+            } 
+            else 
+                return test(res, box, v);
+        }
     }
 
     public def this(precision:Double) {

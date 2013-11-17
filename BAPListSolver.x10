@@ -27,6 +27,14 @@ public class BAPListSolver[K] extends BAPSolver[K] {
     protected atomic def hasDom() : Boolean {
         return !list.isEmpty();
     }
+    protected atomic def domSize() : Int {
+        return list.size();
+    }
+    protected def sortDom() {
+        finish list.sort(
+            (b1:IntervalVec[K],b2:IntervalVec[K]) =>
+                b2.volume().compareTo(b1.volume()) );
+    }
 
     protected def search(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) {
 //Console.OUT.println(here + ": search:\n" + box + '\n');
