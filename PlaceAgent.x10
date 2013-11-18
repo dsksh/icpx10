@@ -17,6 +17,7 @@ public class PlaceAgent[K] {
     var sentRequest:AtomicBoolean = new AtomicBoolean(false);
     var sentBw:AtomicBoolean = new AtomicBoolean(false);
     var initPhase:Boolean = true;
+    var isActive:AtomicBoolean = new AtomicBoolean(false);
 
     public var nSols:AtomicInteger = new AtomicInteger(0);
     public var nContracts:AtomicInteger = new AtomicInteger(0);
@@ -145,11 +146,16 @@ public class PlaceAgent[K] {
     public def run(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 //   		Console.OUT.println(here + ": start solving... ");
 
-        var box:IntervalVec[K] = null;
+        if (list.isEmpty() && !sentRequest.get())
+            list.add(solver.core.dummyBox());
 
         while (true) {
 
+            var box:IntervalVec[K] = null;
+
+//Console.OUT.println(here + ": wait...");
             when (!list.isEmpty()) {
+                isActive.set(true);
 initPhase = false;
                 box = list.removeFirst();
 //Console.OUT.println(here + ": got box:\n" + box);
@@ -158,21 +164,29 @@ initPhase = false;
             finish solver.search(sHandle, box);
 
             if (list.isEmpty()) {
+                isActive.set(false);
 
                 // cancel the received requests.
                 while (!initPhase && reqQueue.getSize() > 0) {
                     val id:Int = reqQueue.removeFirstUnsafe();
 //async
-                    at (Place(id)) {
+                    at (here.next()) {
                         sHandle().sentRequest.set(false);
                         atomic sHandle().list.add(sHandle().solver.core.dummyBox());
                     }
                 }
 
-                val term = getAndResetTerminate();
+                var term:Int;
+atomic {
+                //val term = getAndResetTerminate();
+                term = terminate;
 //Console.OUT.println(here + ": term: " + term);
 
-if (!sentRequest.get() || term == 3) {
+                if (sentRequest.get() && term != 3)
+                    continue;
+                else
+                    terminate = 0;
+}
 
                 // begin termination detection
                 if (here.id() == 0 && (term == 0 || term == 2)) {
@@ -188,7 +202,7 @@ if (!sentRequest.get() || term == 3) {
                 // termination token went round.
                 else if (here.id() == 0 && term == 1) {
                     //val term = getAndResetTerminate();
-                    if (term == 1) {
+//                    if (term == 1) {
 //async
                         at (here.next()) atomic {
                             sHandle().terminate = 3;
@@ -196,11 +210,13 @@ if (!sentRequest.get() || term == 3) {
                         }
 //Console.OUT.println(here + ": sent token 3 to " + here.next());
                         break;
-                    }
+//                    }
                     //else if (term == 2) continue;
                 }
                 else if (here.id() > 0 && term > 0) {
                     val v = (term == 1 && sentBw.getAndSet(false)) ? 2 : term;
+//Console.OUT.println(here + ": sending token " + v + " to " + here.next());
+                    //atomic terminate = 0;
 //async
                     at (here.next()) atomic {
                         sHandle().terminate = v;
@@ -228,9 +244,9 @@ if (!sentRequest.get() || term == 3) {
                     nReqs.getAndIncrement();
                 }
 
-            }
+//}
+//}
 
-//Console.OUT.println(here + ": wait...");
             }
         }
 

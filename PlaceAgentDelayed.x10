@@ -43,7 +43,8 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
         var dst:Int = 0;
         var pow2:Int = 1;
         finish for (pi in 1..(Place.numPlaces()-1)) {
-            at (Place(dst)) async {
+            at (Place(dst)) //async 
+            {
                 sHandle().reqQueue.addLast(pi);
 //Console.OUT.println(here + ": reqQueue: "+sHandle().reqQueue.getSize());
             }
@@ -83,22 +84,23 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
 //Console.OUT.println(here + ": nB0: " + solverPP.domSize());
                 solverPP.search(sHandle, solver.core.dummyBox());
 
-                finish list.sort(
-                    (b1:IntervalVec[K],b2:IntervalVec[K]) =>
-                        b2.volume().compareTo(b1.volume()) );
+//                finish list.sort(
+//                    (b1:IntervalVec[K],b2:IntervalVec[K]) =>
+//                        b2.volume().compareTo(b1.volume()) );
 
                 // distribute the half of the search space.
                 val pi = reqQueue.removeFirstUnsafe();
         
                 val nB = list.size();
-//Console.OUT.println(here + ": nB: " + nB);
+//Console.OUT.println(here + ": nB: " + nB + ", dest: " + pi);
                 var b:Boolean = true;
                 finish for (i in 1..nB) {
                     val box = list.removeFirst();
                     val pv:Box[K] = box.prevVar();
-                    at (b ? here : Place(pi)) async {
+                    at (b ? here : Place(pi)) //async 
+                    {
                         box.setPrevVar(pv);
-                        sHandle().list.add(box);
+                        atomic sHandle().list.add(box);
                     }
 //Console.OUT.println(here + ": append at " + (b ? here.id : pi));
 //Console.OUT.println(here + ": " + box);
@@ -117,6 +119,11 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
 //Console.OUT.println(here + ": PP done");
 
         super.run(sHandle);
+/*while (!list.isEmpty()) {
+    val box = list.removeLast();
+    atomic solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](BAPSolver.Result.unknown(), box));
+}
+*/
     }
 }
 
