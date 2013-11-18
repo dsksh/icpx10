@@ -140,6 +140,8 @@ public class RPX10[K] {
             return;
         }
 
+        Console.OUT.println("{\"args\" : \"" + args + "\"}" + '\n');
+
         // create a solver at each place
         val everyone = Dist.makeUnique();
         val sHandle = PlaceLocalHandle.make[PlaceAgent[Int]](

@@ -4,7 +4,7 @@ import x10.util.concurrent.AtomicInteger;
 
 public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
 
-    //static val maxNSplits = 3;
+    static val nBoxes = 8;
     static val factor = 4;
 
     private var tester : VariableSelector.Tester[K] = null;
@@ -25,19 +25,19 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
                         tester.testPrec(prec, res, box, v);
         //val test1 = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => 
         //                tester.testNSplits(test, maxNSplits, res, box, v);
-        val test1 = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => 
-                        tester.testLSize(test, solverPP, res, box, v);
+        //val test1 = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => 
+        //                tester.testLSize(test, solverPP, res, box, v);
 
-        val selector = new VariableSelector[K](test1);
+        val selector = new VariableSelector[K](test);
         val select = (res:BAPSolver.Result, box:IntervalVec[K])=>selector.selectLRR(res, box);
         val select1 = (res:BAPSolver.Result, box:IntervalVec[K])=>selector.selectBoundary(select, res, box);
         
-        solverPP = new BAPListSolverBnd(core, select1);
+        solverPP = new BAPListSolverBnd(core, select1, list);
     }
 
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         //super.setup(sHandle);
-        list.add(solver.core.getInitialDomain());
+        //list.add(solver.core.getInitialDomain());
 
         // construct a btree-formed network.
         var dst:Int = 0;
@@ -53,9 +53,14 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
         }
 
         initPhase = true;
+
+        // initial splitting at Place(0).
+        //tester.maxLSize = nBoxes/2;
+        solverPP.maxDomSize = nBoxes;
+        solverPP.search(sHandle, solver.core.getInitialDomain());
     }
 
-    public atomic def addSolution(res:BAPSolver.Result, box:IntervalVec[K]) {
+/*    public atomic def addSolution(res:BAPSolver.Result, box:IntervalVec[K]) {
         if (initPhase && !res.entails(BAPSolver.Result.inner())) {
             list.add(box);
 //atomic solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
@@ -63,6 +68,7 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
         else 
             super.addSolution(res, box);
     }
+*/
 
     public def run(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 
@@ -74,14 +80,15 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
 //Console.OUT.println(here + ": lsize: " + list.size());
 
                 // move from the PlaceAgent's list to the solverPP's list.
-                while (!list.isEmpty()) {
-                    solverPP.addDom(list.removeLast());
-                }
+//                while (!list.isEmpty()) {
+//                    solverPP.addDom(list.removeLast());
+//                }
 
                 //tester.nSplits.set(0);
                 //tester.nSplits = 0;
-                tester.maxLSize = solverPP.domSize() * factor;
 //Console.OUT.println(here + ": nB0: " + solverPP.domSize());
+                //tester.maxLSize = solverPP.domSize() * 2;
+                solverPP.maxDomSize = solverPP.domSize() * 2;
                 solverPP.search(sHandle, solver.core.dummyBox());
 
 //                finish list.sort(
@@ -91,11 +98,11 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
                 // distribute the half of the search space.
                 val pi = reqQueue.removeFirstUnsafe();
         
-                val nB = list.size();
+                val nB = solverPP.domSize();
 //Console.OUT.println(here + ": nB: " + nB + ", dest: " + pi);
                 var b:Boolean = true;
                 finish for (i in 1..nB) {
-                    val box = list.removeFirst();
+                    val box = solverPP.removeDom();
                     val pv:Box[K] = box.prevVar();
                     at (b ? here : Place(pi)) //async 
                     {
@@ -119,9 +126,11 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
 //Console.OUT.println(here + ": PP done");
 
         super.run(sHandle);
+
 /*while (!list.isEmpty()) {
     val box = list.removeLast();
     atomic solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](BAPSolver.Result.unknown(), box));
+    nSols.getAndIncrement();
 }
 */
     }

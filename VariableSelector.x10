@@ -43,7 +43,7 @@ public class VariableSelector[K] {
                              listSolver:BAPListSolver[K], 
                              res:BAPSolver.Result, box:IntervalVec[K], v:K) : Boolean {
             if (listSolver.domSize()+1 >= maxLSize) {
-                if (!res.entails(BAPSolver.Result.inner()))
+//                if (!res.entails(BAPSolver.Result.inner()))
                     maxLSize--;
                 return false;
             } 

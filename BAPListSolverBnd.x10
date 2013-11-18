@@ -4,8 +4,36 @@ import x10.io.Console;
 
 public class BAPListSolverBnd[K] extends BAPListSolver[K] {
 
-    public def this(core:Core[K], selector:(Result, IntervalVec[K])=>Box[K]) {
+    public var maxDomSize : Int = 0;
+
+    private list1 : List[IntervalVec[K]];
+
+    public def this(core:Core[K], selector:(Result, IntervalVec[K])=>Box[K],
+                    list1:List[IntervalVec[K]]) {
         super(core, selector);
+        this.list1 = list1;
+    }
+
+    protected atomic def clearDom() {
+        list1.clear();
+    }
+    public def addDom(box:IntervalVec[K]) {
+        // add last.
+        list1.add(box);
+    }
+    public def removeDom() : IntervalVec[K] {
+        return list1.removeFirst();
+    }
+    public def hasDom() : Boolean {
+        return !list1.isEmpty();
+    }
+    public def domSize() : Int {
+        return list1.size();
+    }
+    protected def sortDom() {
+        finish list1.sort(
+            (b1:IntervalVec[K],b2:IntervalVec[K]) =>
+                b2.volume().compareTo(b1.volume()) );
     }
 
     protected def search(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) {
@@ -16,7 +44,7 @@ public class BAPListSolverBnd[K] extends BAPListSolver[K] {
             addDom(box);
 
         // TODO: parallelize? 
-        while (hasDom()) {
+        while (hasDom() && domSize() < maxDomSize) {
             val dom = removeDom();
             searchBody(sHandle, dom);
         }
