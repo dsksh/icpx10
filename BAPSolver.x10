@@ -60,7 +60,7 @@ public class BAPSolver[K] {
     protected val selectVariable : (res:Result, box:IntervalVec[K]) => Box[K];
 
     protected def search(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) {
-//Console.OUT.println(here + ": search:\n" + box + '\n');
+Console.OUT.println(here + ": search:\n" + box + '\n');
 //try {
         // for dummy boxes
         if (box.size() == 0)

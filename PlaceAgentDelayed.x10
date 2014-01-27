@@ -111,7 +111,7 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
                     }
 //Console.OUT.println(here + ": append at " + (b ? here.id : pi));
 //Console.OUT.println(here + ": " + box);
-                    nSends.getAndIncrement();
+                    if (!b) nSends.getAndIncrement();
                     b = !b;
                 }
 
@@ -127,12 +127,11 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
 
         super.run(sHandle);
 
-/*while (!list.isEmpty()) {
-    val box = list.removeLast();
-    atomic solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](BAPSolver.Result.unknown(), box));
-    nSols.getAndIncrement();
-}
-*/
+//while (!list.isEmpty()) {
+//    val box = list.removeLast();
+//    atomic solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](BAPSolver.Result.unknown(), box));
+//    nSols.getAndIncrement();
+//}
     }
 }
 

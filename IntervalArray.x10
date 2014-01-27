@@ -84,14 +84,14 @@ atomic {
     public def toString(plot:Int) :String {
         val sb:StringBuilder = new StringBuilder();
         sb.add('{');
-        sb.add("\"plot\" : "+plot+",\n");
         val it = theArray.values().iterator();
-        var b:Boolean = false;
         for (var i:Int = 0; it.hasNext(); i++) {
-            if (b) sb.add(",\n"); else b = true;
             sb.add('"'); sb.add(i); sb.add("\" : ");
             sb.add(it.next());
+            sb.add(",\n");
         }
+        sb.add("\"plot\" : "+plot+",\n");
+        sb.add("\"place\" : "+here.id());
         sb.add('}');
         return sb.result();
     }

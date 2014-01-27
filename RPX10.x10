@@ -120,7 +120,7 @@ public class RPX10[K] {
 
         switch (Int.parse(args(an++))) {
         case 0:
-            return new PlaceAgent[K](solver);
+            return new PlaceAgent1[K](solver);
         default:
             val pa = new PlaceAgentDelayed[K](solver);
             pa.initPP(core, prec);
@@ -140,7 +140,8 @@ public class RPX10[K] {
             return;
         }
 
-        Console.OUT.println("{\"args\" : \"" + args + "\"}" + '\n');
+        Console.OUT.print("\n{\"args\" : \"" + args + "\",");
+		Console.OUT.println("\"# places\" : " + Place.numPlaces() + "}\n");
 
         // create a solver at each place
         val everyone = Dist.makeUnique();
@@ -164,7 +165,7 @@ public class RPX10[K] {
 
         time += System.nanoTime();
 
-        // print solutions
+/*        // print solutions
         Console.OUT.println(); 
         for (p in Place.places()) at (p) {
             val ss = sHandle().getSolutions();
@@ -179,7 +180,7 @@ public class RPX10[K] {
             }
             Console.OUT.flush();
         }
-
+*/
         // print description of the solving process.
         val sb = new StringBuilder();
         val sbG = new GlobalRef[StringBuilder](sb);

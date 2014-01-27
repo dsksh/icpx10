@@ -15,9 +15,11 @@ public class PlaceAgent[K] {
     val reqQueue:CircularQueue[Int];
     var terminate:Int = 0;
     var sentRequest:AtomicBoolean = new AtomicBoolean(false);
+    var nSentRequests:AtomicInteger = new AtomicInteger(0);
     var sentBw:AtomicBoolean = new AtomicBoolean(false);
     var initPhase:Boolean = true;
     var isActive:AtomicBoolean = new AtomicBoolean(false);
+    var nSearchPs:AtomicInteger = new AtomicInteger(0);
 
     public var nSols:AtomicInteger = new AtomicInteger(0);
     public var nContracts:AtomicInteger = new AtomicInteger(0);
