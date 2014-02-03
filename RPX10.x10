@@ -124,6 +124,10 @@ public class RPX10[K] {
             return new PlaceAgent[K](solver, debug);
         case 1:
             return new PlaceAgent1[K](solver, debug);
+        case 3:
+            val pa1 = new PlaceAgentDelayed1[K](solver, debug);
+            pa1.initPP(core, prec);
+            return pa1;
         default:
             val pa = new PlaceAgentDelayed[K](solver, debug);
             pa.initPP(core, prec);
