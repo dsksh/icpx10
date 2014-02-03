@@ -9,12 +9,12 @@ public class PlaceAgent1[K] extends PlaceAgent[K] {
 
     //var nSearchPs:AtomicInteger = new AtomicInteger(0);
 
-    public def this(solver:BAPSolver[K]) {
-        super(solver);
+    public def this(solver:BAPSolver[K], debug:Boolean) {
+        super(solver, debug);
     }
 
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) { 
-//Console.OUT.println(here + ": initD: " + solver.core.getInitialDomain());
+//debugPrint(here + ": initD: " + solver.core.getInitialDomain());
         list.add(solver.core.getInitialDomain());
 
         var dst:Int = 0;
@@ -31,7 +31,7 @@ public class PlaceAgent1[K] extends PlaceAgent[K] {
         var id:Int = -1;
         atomic if (reqQueue.getSize() > 0) {
             id = reqQueue.removeFirstUnsafe();
-//Console.OUT.println(here + ": got req from: " + id);
+//sHandle().debugPrint(here + ": got req from: " + id);
         }
 
         if (id >= 0) {
@@ -42,7 +42,7 @@ public class PlaceAgent1[K] extends PlaceAgent[K] {
                 box.setPrevVar(pv);
                 atomic sHandle().list.add(box);
             }
-Console.OUT.println(here + ": responded to " + id);
+debugPrint(here + ": responded to " + id);
             if (id < here.id()) sentBw.set(true);
             nSends.getAndIncrement();
             return true;
@@ -60,8 +60,43 @@ Console.OUT.println(here + ": responded to " + id);
     val reqThres = 10;
     val maxNRequests = 5;
 
+    def search(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
+        while (true) {
+            var box:IntervalVec[K] = null;
+
+debugPrint(here + ": wait...");
+            when (!list.isEmpty()) {
+                //isActive.set(true);
+initPhase = false;
+
+                box = list.removeFirst();
+debugPrint(here + ": got box:\n" + box);
+            }
+
+            //nSearchPs.incrementAndGet();
+            finish solver.search(sHandle, box);
+            //nSearchPs.decrementAndGet();
+//debugPrint(here + ": #sp: " + nSearchPs.get() + ", #r: " + nSentRequests.get() + ", " + terminate);
+
+            if (here.id() == 0) atomic
+                if (list.size() == 0
+                    //&& nSearchPs.get() == 0
+                    //&& nSentRequests.get() == 0 
+                    //&& (terminate == 0 || terminate == 4)) {
+                    && terminate == 0) {
+debugPrint(here + ": start termination");
+                    terminate = 1;
+                }
+
+            atomic if (terminate == 3 && list.size() == 0) { 
+debugPrint(here + ": finish search");
+                break;
+            }
+        }            
+    }
+
     public def run(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
-//   		Console.OUT.println(here + ": start solving... ");
+//   		debugPrint(here + ": start solving... ");
 
         // ??
         if (list.isEmpty() && nSentRequests.get() == 0)
@@ -69,44 +104,41 @@ Console.OUT.println(here + ": responded to " + id);
 
         finish {
 
-        // search task
-        async while (true) {
-            var box:IntervalVec[K] = null;
+            // search task
+            async search(sHandle);
+    
+            // request task
+            async request(sHandle);
+    
+            // cancelling task
+            async cancel(sHandle);
+    
+            // termination
+            async terminate(sHandle);
 
-Console.OUT.println(here + ": wait...");
-            when (!list.isEmpty()) {
-                //isActive.set(true);
-initPhase = false;
+/*            if (here.id() == 0) 
+                async while (true)
+                    when (terminate != 1 && 
+                          nSentRequests.get() == 0 && nSearchPs.get() == 0) {
+    
+                        if (terminate == 3) break;
+                        else if (terminate == 0 || terminate == 4) {
+debugPrint(here + ": start termination");
+                            terminate = 1;
+                        }
+                    }
+*/
 
-                box = list.removeFirst();
-Console.OUT.println(here + ": got box:\n" + box);
-            }
+        } // finish
 
-            nSearchPs.incrementAndGet();
-            finish solver.search(sHandle, box);
-            nSearchPs.decrementAndGet();
-Console.OUT.println(here + ": #sp: " + nSearchPs.get() + ", #r: " + nSentRequests.get() + ", " + terminate);
+//debugPrint(here + ": boxAvail: " + !list.isEmpty());
+//   		debugPrint(here + ": done");
+//   		Console.ERR.flush();
+    }
 
-            if (here.id() == 0) atomic
-                if (list.size() == 0
-                    && nSearchPs.get() == 0
-                    //&& nSentRequests.get() == 0 
-                    //&& (terminate == 0 || terminate == 4)) {
-                    && terminate == 0) {
-Console.OUT.println(here + ": start termination");
-                    terminate = 1;
-                }
-
-            atomic if (terminate == 3 && list.size() == 0) { 
-Console.OUT.println(here + ": finish search");
-                break;
-            }
-        }            
-
-
-        // request task
-        async while (true) {
-Console.OUT.println(here + ": REQ wait requesting");
+    def request(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
+        while (true) {
+debugPrint(here + ": REQ wait requesting");
             when ((list.size() <= reqThres && nSentRequests.get() < maxNRequests)
                   || terminate == 3
               ) {
@@ -115,7 +147,7 @@ Console.OUT.println(here + ": REQ wait requesting");
             }
 
 /*            // cancel the received requests.
-Console.OUT.println(here + ": REQ cancel req");
+debugPrint(here + ": REQ cancel req");
             //atomic while (!initPhase && reqQueue.getSize() > 0) {
             while (true) {
                 if (initPhase) break;
@@ -133,84 +165,70 @@ Console.OUT.println(here + ": REQ cancel req");
             }
 */
 
-Console.OUT.println(here + ": REQ terminate: " + terminate);
+debugPrint(here + ": REQ terminate: " + terminate);
             if (terminate == 3) {
-Console.OUT.println(here + ": REQ finish req");
+debugPrint(here + ": REQ finish req");
                 break;
             }
 
-Console.OUT.println(here + ": REQ requesting");
+debugPrint(here + ": REQ requesting");
             // request for a domain
             if (Place.numPlaces() > 1 //&& nSentRequests.getAndIncrement() == 0
                 ) {
                 val id = here.id();
                 val p = selectPlace();
-Console.OUT.println(here + ": REQ select place: " + p);
+debugPrint(here + ": REQ select place: " + p);
                 //val gNReqs = GlobalRef[AtomicInteger](nReqs);
                 //val gNSentRequests = GlobalRef[AtomicInteger](nSentRequests);
                 at (p) //if (sHandle().terminate != 3) 
                 {
                     sHandle().reqQueue.addLast(id);
                     //atomic sHandle().list.add(sHandle().solver.core.dummyBox());
-//Console.OUT.println(here + ": REQ requested from " + id);
+//sHandle().debugPrint(here + ": REQ requested from " + id);
                     /*at (gNReqs.home) {
                         gNReqs().incrementAndGet();
                         gNSentRequests().incrementAndGet();
                     }*/
                 }
-Console.OUT.println(here + ": requested to " + p);
+debugPrint(here + ": requested to " + p);
                 nReqs.getAndIncrement();
                 nSentRequests.getAndIncrement();
-Console.OUT.println(here + ": REQ done");
+debugPrint(here + ": REQ done");
             }
         }
+    }
+    
+    def cancel(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
+        when (terminate == 3) {}
 
-/*        if (here.id() == 0) 
-            async while (true)
-                when (terminate != 1 && 
-                      nSentRequests.get() == 0 && nSearchPs.get() == 0) {
+debugPrint(here + ": cancel req");
+        // cancel the received requests.
+        while (true) {
+            if (initPhase) break;
 
-                    if (terminate == 3) break;
-                    else if (terminate == 0 || terminate == 4) {
-Console.OUT.println(here + ": start termination");
-                        terminate = 1;
-                    }
-                }
-*/
-
-        // cancelling task
-        async {
-            when (terminate == 3) {}
-
-Console.OUT.println(here + ": cancel req");
-            // cancel the received requests.
-            while (true) {
-                if (initPhase) break;
-
-                var id:Int = -1;
-                atomic { 
-                    if (reqQueue.getSize() > 0)
-                        id = reqQueue.removeFirstUnsafe();
-                }
-                if (id >= 0) at (Place(id)) {
-                    sHandle().nSentRequests.decrementAndGet();
-                    //atomic sHandle().list.add(sHandle().solver.core.dummyBox());
-Console.OUT.println(here + ": #sp: " + sHandle().nSearchPs.get() + ", #r: " + sHandle().nSentRequests.get() + ", #list: " + sHandle().list.size());
-                }
-                else break;
+            var id:Int = -1;
+            atomic { 
+                if (reqQueue.getSize() > 0)
+                    id = reqQueue.removeFirstUnsafe();
             }
-Console.OUT.println(here + ": #sp: " + nSearchPs.get() + ", #r: " + nSentRequests.get());
+            if (id >= 0) at (Place(id)) {
+                sHandle().nSentRequests.decrementAndGet();
+                //atomic sHandle().list.add(sHandle().solver.core.dummyBox());
+sHandle().debugPrint(here + ": #sp: " + sHandle().nSearchPs.get() + ", #r: " + sHandle().nSentRequests.get() + ", #list: " + sHandle().list.size());
+            }
+            else break;
         }
+debugPrint(here + ": #sp: " + nSearchPs.get() + ", #r: " + nSentRequests.get());
+    }
 
-        async {
-            // termination token
-            var term:Int = 0;
-        
-            while (true) {
+    def terminate(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
+        var term:Int = 0;
+    
+        while (true) {
 
             var termBak:Int = 0;
             when (term != terminate) {
-Console.OUT.println(here + ": terminate: " + terminate);
+debugPrint(here + ": terminate: " + terminate);
                 termBak = terminate;
                 if (here.id() == 0 && terminate == 2) 
                     terminate = 3;
@@ -218,10 +236,10 @@ Console.OUT.println(here + ": terminate: " + terminate);
                     terminate = 1;
                 else if (here.id() > 0 && terminate != 3) 
                     terminate = 1;
-
+    
                 term = terminate;
             }
-
+    
             // begin termination detection
             if (here.id() == 0 && term == 1) {
                 at (here.next()) atomic {
@@ -229,7 +247,7 @@ Console.OUT.println(here + ": terminate: " + terminate);
                     // put a dummy box
                     //sHandle().list.add(sHandle().solver.core.dummyBox());
                 }
-atomic Console.OUT.println(here + ": sent token 2 to " + here.next());
+debugPrint(here + ": sent token 2 to " + here.next());
             }
             // termination token went round.
             else if (here.id() == 0 && term == 3) {
@@ -237,7 +255,7 @@ atomic Console.OUT.println(here + ": sent token 2 to " + here.next());
                     sHandle().terminate = 3;
                     sHandle().list.add(sHandle().solver.core.dummyBox());
                 }
-atomic Console.OUT.println(here + ": sent token 3 to " + here.next());
+debugPrint(here + ": sent token 3 to " + here.next());
             }
             //else if (here.id() == 0 && term == 4) {
             //    atomic terminate = 1;
@@ -246,12 +264,12 @@ atomic Console.OUT.println(here + ": sent token 3 to " + here.next());
                 val v = (term == 2 && sentBw.getAndSet(false)) ? 4 : term;
                 //atomic terminate = 0;
                 at (here.next()) atomic {
-Console.OUT.println(here + ": token before: " + sHandle().terminate);
+sHandle().debugPrint(here + ": token before: " + sHandle().terminate);
                     sHandle().terminate = v;
                     sHandle().list.add(sHandle().solver.core.dummyBox());
                 }
-atomic Console.OUT.println(here + ": sent token " + v + " to " + here.next());
-
+debugPrint(here + ": sent token " + v + " to " + here.next());
+    
                 //if (term != 3)
                 //    atomic terminate = 1;
             }
@@ -263,25 +281,17 @@ atomic Console.OUT.println(here + ": sent token " + v + " to " + here.next());
                     sHandle().terminate = v;
                     sHandle().list.add(sHandle().solver.core.dummyBox());
                 }
-atomic Console.OUT.println(here + ": sent token " + v + " to " + here.next());
-
+debugPrint(here + ": sent token " + v + " to " + here.next());
+    
                 //if (term != 3)
                 //    atomic terminate = 1;
             }
-
+    
             if (term == 3) {
-atomic Console.OUT.println(here + ": finish termination");
+debugPrint(here + ": finish termination");
                 break;
             }
-
-            }
         }
-
-        } // finish
-
-//Console.OUT.println(here + ": boxAvail: " + !list.isEmpty());
-//   		Console.OUT.println(here + ": done");
-//   		Console.OUT.flush();
     }
 }
 

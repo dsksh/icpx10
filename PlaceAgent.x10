@@ -35,8 +35,9 @@ public class PlaceAgent[K] {
     val dummy:Double;
     val dummyI:Interval;
 
-    public def this(solver:BAPSolver[K]) {
+    public def this(solver:BAPSolver[K], doDebugPrint:Boolean) {
         this.solver = solver;
+        this.doDebugPrint = doDebugPrint;
 
         list = new ArrayList[IntervalVec[K]]();
 //        list1 = new ArrayList[Pair[Result,IntervalVec[K]]]();
@@ -48,6 +49,9 @@ public class PlaceAgent[K] {
 
         dummy = 0;
         dummyI = new Interval(0.,0.);
+    }
+    public def this(solver:BAPSolver[K]) {
+        this(solver, false);
     }
 
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) { 
@@ -61,6 +65,12 @@ public class PlaceAgent[K] {
             at (Place(pi)) sHandle().sentRequest.set(true);
             if (++dst == pow2) { dst = 0; pow2 *= 2; }
         }
+    }
+
+    public val doDebugPrint:Boolean;
+    public def debugPrint(msg:String) {
+        if (doDebugPrint)
+            atomic Console.OUT.println(msg);
     }
 
     private var selected:Iterator[Place] = null;

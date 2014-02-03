@@ -10,8 +10,8 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
     private var tester : VariableSelector.Tester[K] = null;
     private var solverPP : BAPListSolverBnd[K] = null;
 
-    public def this(solver:BAPSolver[K]) {
-        super(solver);
+    public def this(solver:BAPSolver[K], debug:Boolean) {
+        super(solver, debug);
 
         initPhase = false;
     }
