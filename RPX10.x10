@@ -121,6 +121,8 @@ public class RPX10[K] {
 
         switch (Int.parse(args(an++))) {
         case 0:
+            return new PlaceAgent[K](solver, debug);
+        case 1:
             return new PlaceAgent1[K](solver, debug);
         default:
             val pa = new PlaceAgentDelayed[K](solver, debug);

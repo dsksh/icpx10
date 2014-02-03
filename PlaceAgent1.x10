@@ -14,7 +14,6 @@ public class PlaceAgent1[K] extends PlaceAgent[K] {
     }
 
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) { 
-//debugPrint(here + ": initD: " + solver.core.getInitialDomain());
         list.add(solver.core.getInitialDomain());
 
         var dst:Int = 0;
@@ -57,6 +56,7 @@ debugPrint(here + ": responded to " + id);
         return t;
     }
 
+    // the number of boxes that should be kept in the list
     val reqThres = 10;
     val maxNRequests = 5;
 
@@ -138,7 +138,7 @@ debugPrint(here + ": start termination");
 
     def request(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         while (true) {
-debugPrint(here + ": REQ wait requesting");
+debugPrint(here + ": wait requesting");
             when ((list.size() <= reqThres && nSentRequests.get() < maxNRequests)
                   || terminate == 3
               ) {
@@ -146,54 +146,24 @@ debugPrint(here + ": REQ wait requesting");
                 //isActive.set(false);
             }
 
-/*            // cancel the received requests.
-debugPrint(here + ": REQ cancel req");
-            //atomic while (!initPhase && reqQueue.getSize() > 0) {
-            while (true) {
-                if (initPhase) break;
-
-                var id:Int = -1;
-                atomic { 
-                    if (reqQueue.getSize() > 0)
-                        id = reqQueue.removeFirstUnsafe();
-                }
-                if (id >= 0) at (Place(id)) {
-                    sHandle().nSentRequests.decrementAndGet();
-                    //atomic sHandle().list.add(sHandle().solver.core.dummyBox());
-                }
-                else break;
-            }
-*/
-
-debugPrint(here + ": REQ terminate: " + terminate);
             if (terminate == 3) {
-debugPrint(here + ": REQ finish req");
+debugPrint(here + ": finish req");
                 break;
             }
 
-debugPrint(here + ": REQ requesting");
             // request for a domain
             if (Place.numPlaces() > 1 //&& nSentRequests.getAndIncrement() == 0
                 ) {
                 val id = here.id();
                 val p = selectPlace();
-debugPrint(here + ": REQ select place: " + p);
+debugPrint(here + ": select place to request: " + p);
                 //val gNReqs = GlobalRef[AtomicInteger](nReqs);
                 //val gNSentRequests = GlobalRef[AtomicInteger](nSentRequests);
                 at (p) //if (sHandle().terminate != 3) 
-                {
                     sHandle().reqQueue.addLast(id);
-                    //atomic sHandle().list.add(sHandle().solver.core.dummyBox());
-//sHandle().debugPrint(here + ": REQ requested from " + id);
-                    /*at (gNReqs.home) {
-                        gNReqs().incrementAndGet();
-                        gNSentRequests().incrementAndGet();
-                    }*/
-                }
 debugPrint(here + ": requested to " + p);
                 nReqs.getAndIncrement();
                 nSentRequests.getAndIncrement();
-debugPrint(here + ": REQ done");
             }
         }
     }
