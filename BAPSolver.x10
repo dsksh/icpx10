@@ -66,6 +66,8 @@ public class BAPSolver[K] {
         if (box.size() == 0)
             return;
 
+sHandle().nSearchPs.incrementAndGet();
+
         var res:Result = contract(sHandle, box);
 
         if (!res.hasNoSolution()) {
@@ -95,6 +97,8 @@ finish {
 //    Console.OUT.println(here + "," + sid + ": exception thrown:");
 //    exp.printStackTrace(Console.ERR);
 //}
+
+sHandle().nSearchPs.decrementAndGet();
     }
 }
 

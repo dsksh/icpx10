@@ -71,6 +71,7 @@ debugPrint(here + ": responded to " + id);
     }
 
     def search(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
+        finish
         while (true) {
             var box:IntervalVec[K] = null;
 
@@ -84,13 +85,14 @@ debugPrint(here + ": got box:\n" + box);
             }
 
             //nSearchPs.incrementAndGet();
-            finish solver.search(sHandle, box);
+            //finish 
+            solver.search(sHandle, box);
             //nSearchPs.decrementAndGet();
 //debugPrint(here + ": #sp: " + nSearchPs.get() + ", #r: " + nSentRequests.get() + ", " + terminate);
 
             if (here.id() == 0) atomic
                 if (list.size() == 0
-                    //&& nSearchPs.get() == 0
+                    && nSearchPs.get() == 0
                     //&& nSentRequests.get() == 0 
                     //&& (terminate == 0 || terminate == 4)) {
                     && terminate == 0) {
@@ -176,7 +178,9 @@ sHandle().debugPrint(here + ": #sp: " + sHandle().nSearchPs.get() + ", #r: " + s
     def request(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         while (true) {
 debugPrint(here + ": wait requesting");
-            when ((list.size() <= requestThreshold && nSentRequests.get() < maxNRequests)
+            when ((list.size() <= requestThreshold && 
+                   nSearchPs.get() <= requestThreshold &&
+                   nSentRequests.get() < maxNRequests)
                   || terminate == 3
               ) {
                 // not used?
@@ -189,7 +193,7 @@ debugPrint(here + ": finish req");
             }
 
             // cancel the received requests.
-            if (!initPhase && list.size() == 0) while (true) {
+            if (!initPhase && list.size() == 0 && nSearchPs.get() == 0) while (true) {
                 var id:Int = -1;
                 atomic { 
                     if (reqQueue.getSize() > 0)
