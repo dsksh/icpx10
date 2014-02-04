@@ -7,10 +7,24 @@ import x10.io.Console;
 
 public class PlaceAgent1[K] extends PlaceAgent[K] {
 
+    // the number of boxes that should be kept in the list
+    val requestThreshold:Int;
+
+    // max number of requests
+    val maxNRequests:Int;
+
     //var nSearchPs:AtomicInteger = new AtomicInteger(0);
 
-    public def this(solver:BAPSolver[K], debug:Boolean) {
-        super(solver, debug);
+    public def this(solver:BAPSolver[K]) {
+        super(solver);
+
+        val reqThres = System.getenv("RPX10_REQUEST_THRESHOLD");
+        if (reqThres != null) this.requestThreshold = Int.parse(reqThres);
+        else this.requestThreshold = 5;
+
+        val maxNReqs = System.getenv("RPX10_MAX_N_REQUESTS");
+        if (maxNReqs != null) this.maxNRequests = Int.parse(maxNReqs);
+        else this.maxNRequests = 5;
     }
 
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) { 
@@ -55,10 +69,6 @@ debugPrint(here + ": responded to " + id);
         terminate = 0;
         return t;
     }
-
-    // the number of boxes that should be kept in the list
-    val reqThres = 10;
-    val maxNRequests = 5;
 
     def search(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         while (true) {
@@ -129,6 +139,33 @@ debugPrint(here + ": start termination");
                     }
 */
 
+/*        async while (true) {
+debugPrint(here + ": wait cancellig");
+            when ((list.size() == 0 && reqQueue.getSize() > 0)
+                  || terminate == 3) {
+            }
+            
+            if (terminate == 3) break;
+
+            // cancel the received requests.
+            while (true) {
+                if (initPhase) break;
+    
+                var id:Int = -1;
+                atomic { 
+                    if (reqQueue.getSize() > 0)
+                        id = reqQueue.removeFirstUnsafe();
+                }
+                if (id >= 0) at (Place(id)) {
+                    sHandle().nSentRequests.decrementAndGet();
+                    //atomic sHandle().list.add(sHandle().solver.core.dummyBox());
+sHandle().debugPrint(here + ": #sp: " + sHandle().nSearchPs.get() + ", #r: " + sHandle().nSentRequests.get() + ", #list: " + sHandle().list.size());
+                }
+                else break;
+            }
+        }
+*/
+
         } // finish
 
 //debugPrint(here + ": boxAvail: " + !list.isEmpty());
@@ -139,7 +176,7 @@ debugPrint(here + ": start termination");
     def request(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         while (true) {
 debugPrint(here + ": wait requesting");
-            when ((list.size() <= reqThres && nSentRequests.get() < maxNRequests)
+            when ((list.size() <= requestThreshold && nSentRequests.get() < maxNRequests)
                   || terminate == 3
               ) {
                 // not used?
@@ -149,6 +186,21 @@ debugPrint(here + ": wait requesting");
             if (terminate == 3) {
 debugPrint(here + ": finish req");
                 break;
+            }
+
+            // cancel the received requests.
+            if (!initPhase && list.size() == 0) while (true) {
+                var id:Int = -1;
+                atomic { 
+                    if (reqQueue.getSize() > 0)
+                        id = reqQueue.removeFirstUnsafe();
+                }
+                if (id >= 0) at (Place(id)) {
+                    sHandle().nSentRequests.decrementAndGet();
+                    //atomic sHandle().list.add(sHandle().solver.core.dummyBox());
+sHandle().debugPrint(here + ": #sp: " + sHandle().nSearchPs.get() + ", #r: " + sHandle().nSentRequests.get() + ", #list: " + sHandle().list.size());
+                }
+                else break;
             }
 
             // request for a domain

@@ -77,7 +77,7 @@ public class RPX10[K] {
         val tester = new VariableSelector.Tester[K]();
         var an:Int = 2;
         val prec = Double.parse(args(an++));
-        val debug = Boolean.parse(args(an++));
+        //val debug = Boolean.parse(args(an++));
         val test = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => 
             tester.testPrec(prec, res, box, v);
 //        val test1 = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => 
@@ -121,15 +121,15 @@ public class RPX10[K] {
 
         switch (Int.parse(args(an++))) {
         case 0:
-            return new PlaceAgent[K](solver, debug);
+            return new PlaceAgent[K](solver);
         case 1:
-            return new PlaceAgent1[K](solver, debug);
+            return new PlaceAgent1[K](solver);
         case 3:
-            val pa1 = new PlaceAgentDelayed1[K](solver, debug);
+            val pa1 = new PlaceAgentDelayed1[K](solver);
             pa1.initPP(core, prec);
             return pa1;
         default:
-            val pa = new PlaceAgentDelayed[K](solver, debug);
+            val pa = new PlaceAgentDelayed[K](solver);
             pa.initPP(core, prec);
             return pa;
         }
