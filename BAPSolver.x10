@@ -52,7 +52,11 @@ public class BAPSolver[K] {
 
     protected def contract(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) : Result {
         var res:Result = Result.unknown();
+var time:Long = -System.nanoTime();
         atomic { res = core.contract(box); }
+time += System.nanoTime();
+//Console.OUT.printf("%f\n", RPX10.format(time));
+sHandle().tContracts.getAndAdd(time);
         sHandle().nContracts.getAndIncrement();
         return res;
     }

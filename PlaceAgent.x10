@@ -2,6 +2,7 @@ import x10.compiler.*;
 import x10.util.*;
 import x10.util.concurrent.AtomicBoolean;
 import x10.util.concurrent.AtomicInteger;
+import x10.util.concurrent.AtomicLong;
 import x10.io.*;
 import x10.io.Console; 
 
@@ -21,13 +22,14 @@ public class PlaceAgent[K] {
     var isActive:AtomicBoolean = new AtomicBoolean(false);
     var nSearchPs:AtomicInteger = new AtomicInteger(0);
 
+    public var tEndPP:AtomicLong = new AtomicLong(0);
     public var nSols:AtomicInteger = new AtomicInteger(0);
     public var nContracts:AtomicInteger = new AtomicInteger(0);
+    public var tContracts:AtomicLong = new AtomicLong(0);
     public var nSplits:AtomicInteger = new AtomicInteger(0);
     public var nReqs:AtomicInteger = new AtomicInteger(0);
     public var nSends:AtomicInteger = new AtomicInteger(0);
     public var nBranches:AtomicInteger = new AtomicInteger(0);
-    public var tContract:Long = 0;
 
     private random:Random;
 

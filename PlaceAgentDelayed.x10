@@ -124,6 +124,7 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
         else when (initPhase) {}
 
 //Console.OUT.println(here + ": PP done");
+sHandle().tEndPP.set(System.nanoTime());
 
         super.run(sHandle);
 
