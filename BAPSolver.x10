@@ -64,13 +64,15 @@ sHandle().tContracts.getAndAdd(time);
     protected val selectVariable : (res:Result, box:IntervalVec[K]) => Box[K];
 
     protected def search(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) {
-//Console.OUT.println(here + ": search:\n" + box + '\n');
+//sHandle().debugPrint(here + ": search:\n" + box + '\n');
 //try {
         // for dummy boxes
         if (box.size() == 0)
             return;
 
 sHandle().nSearchPs.incrementAndGet();
+
+sHandle().debugPrint(here + ": load: " + (sHandle().list.size() + sHandle().nSearchPs.get()));
 
         var res:Result = contract(sHandle, box);
 

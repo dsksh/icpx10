@@ -169,12 +169,12 @@ public class PlaceAgent[K] {
 
             var box:IntervalVec[K] = null;
 
-//Console.OUT.println(here + ": wait...");
+debugPrint(here + ": wait...");
             when (!list.isEmpty()) {
                 isActive.set(true);
 initPhase = false;
                 box = list.removeFirst();
-//Console.OUT.println(here + ": got box:\n" + box);
+debugPrint(here + ": got box:\n" + box);
             }
 
             finish solver.search(sHandle, box);

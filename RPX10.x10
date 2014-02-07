@@ -236,24 +236,19 @@ public class RPX10[K] {
                 if (tEndPP().value < vTEndPP)
                     // TODO
                     tEndPP().value += vTEndPP - tEndPP().value;
-//            }
-//            at (gContracts.home) {
+
                 gContracts().set(gContracts()() + (p == here ? "" : ", ") + vContacts);
                 nContracts().value += vContacts;
-            }
-            at (gTContracts.home) {
+
                 gTContracts().set(gTContracts()() + (p == here ? "" : ", ") + vTContacts);
                 tContracts().value += vTContacts;
-            }
-            at (gSplits.home) {
+
                 gSplits().set(gSplits()() + (p == here ? "\n" : ",\n") + vSplits);
                 nSplits().value += vSplits;
-            }
-            at (gReqs.home) {
+
                 gReqs().set(gReqs()() + (p == here ? "" : ", ") + vReqs);
                 nReqs().value += vReqs;
-            }
-            at (gSends.home) {
+
                 gSends().set(gSends()() + (p == here ? "" : ", ") + vSends);
                 nSends().value += vSends;
             }

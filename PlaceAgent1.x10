@@ -52,15 +52,22 @@ Console.OUT.println(here + ": mnr: " + maxNRequests);
         if (id >= 0) {
             val pv:Box[K] = box.prevVar();
 //async 
+val thres = requestThreshold; // FIXME
+var res:Boolean = false;
+val gRes = new GlobalRef(new Cell(res));
             at (Place(id)) {
                 sHandle().nSentRequests.decrementAndGet();
+sHandle().debugPrint(here + ": load: " + (sHandle().list.size() + sHandle().nSearchPs.get()));
+if (sHandle().list.size() + sHandle().nSearchPs.get() <= thres) {
                 box.setPrevVar(pv);
                 atomic sHandle().list.add(box);
+                at (gRes.home) gRes().set(true);
+}
             }
 debugPrint(here + ": responded to " + id);
             if (id < here.id()) sentBw.set(true);
             nSends.getAndIncrement();
-            return true;
+            return gRes().value;
         }
         else
             return false;
@@ -134,15 +141,17 @@ debugPrint(here + ": wait...");
                 //isActive.set(true);
 initPhase = false;
 
+nSearchPs.incrementAndGet();
                 box = list.removeFirst();
 debugPrint(here + ": got box:\n" + box);
             }
 
-            if (!initPhase) 
-                cancelRequests(sHandle);
+debugPrint(here + ": load: " + (list.size() + nSearchPs.get()));
 
             //finish 
             solver.search(sHandle, box);
+nSearchPs.decrementAndGet();
+
 //debugPrint(here + ": #sp: " + nSearchPs.get() + ", #r: " + nSentRequests.get() + ", " + terminate);
 
             if (here.id() == 0) atomic
@@ -165,8 +174,7 @@ debugPrint(here + ": finish search");
     def request(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         while (true) {
 debugPrint(here + ": wait requesting");
-            when ((list.size() <= requestThreshold && 
-                   nSearchPs.get() <= requestThreshold &&
+            when ((list.size() + nSearchPs.get() <= requestThreshold && 
                    nSentRequests.get() < maxNRequests)
                   || terminate == 3
               ) {
