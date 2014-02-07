@@ -84,14 +84,15 @@ sHandle().debugPrint(here + ": load: " + (sHandle().list.size() + sHandle().nSea
                 sHandle().nSplits.getAndIncrement();
                 
 finish {
-                if (!sHandle().respondIfRequested(sHandle, bp.first)) {
-                    async 
+                async if (!sHandle().respondIfRequested(sHandle, bp.first)) {
+                    //async 
                     search(sHandle, bp.first);
                 }
 
                 async 
                 search(sHandle, bp.second);
 }
+sHandle().debugPrint(here + ": branch done");
             }
             else {
                 sHandle().addSolution(res, box);

@@ -40,11 +40,22 @@ public class PlaceAgent[K] {
     public def this(solver:BAPSolver[K]) {
         this.solver = solver;
 
-        val debug = System.getenv("RPX10_DEBUG");
+/*        val debug = System.getenv("RPX10_DEBUG");
         if (debug != null)
             this.doDebugPrint = Boolean.parse(debug);
         else
             this.doDebugPrint = false;
+*/
+		var debug:Boolean = false;
+		val gDebug= new GlobalRef(new Cell(debug));
+		at (Place(0)) {
+    		val sDebug = System.getenv("RPX10_DEBUG");
+			if (sDebug != null) {
+				val debug1 = Boolean.parse(sDebug);
+				at (gDebug.home) gDebug().set(debug1);
+			}
+		}
+    	this.doDebugPrint = gDebug().value;
 
         list = new ArrayList[IntervalVec[K]]();
 //        list1 = new ArrayList[Pair[Result,IntervalVec[K]]]();

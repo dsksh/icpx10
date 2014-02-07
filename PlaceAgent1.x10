@@ -18,18 +18,38 @@ public class PlaceAgent1[K] extends PlaceAgent[K] {
     public def this(solver:BAPSolver[K]) {
         super(solver);
 
-        val reqThres = System.getenv("RPX10_REQUEST_THRESHOLD");
-        if (reqThres != null) this.requestThreshold = Int.parse(reqThres);
-        else this.requestThreshold = 5;
-Console.OUT.println(here + ": rth: " + requestThreshold);
+/*		if (here.id() == 0) {
+        	val reqThres = System.getenv("RPX10_REQUEST_THRESHOLD");
+        	if (reqThres != null) this.requestThreshold = Int.parse(reqThres);
+	        else this.requestThreshold = 5;
+		}
 
         val maxNReqs = System.getenv("RPX10_MAX_N_REQUESTS");
         if (maxNReqs != null) this.maxNRequests = Int.parse(maxNReqs);
         else this.maxNRequests = 5;
+*/
+
+		var rth:Int = 0;
+		var mnr:Int = 0;
+		val gRth = new GlobalRef(new Cell(rth));
+		val gMnr = new GlobalRef(new Cell(mnr));
+		at (Place(0)) {
+    		val sRth = System.getenv("RPX10_REQUEST_THRESHOLD");
+   			val sMnr = System.getenv("RPX10_MAX_N_REQUESTS");
+			val rth1:Int = sRth != null ? Int.parse(sRth) : 5;
+			val mnr1:Int = sMnr != null ? Int.parse(sMnr) : 5;
+			at (gRth.home) {
+				gRth().set(rth1);
+				gMnr().set(mnr1);
+			}
+		}
+    	this.requestThreshold = gRth().value;
+    	this.maxNRequests = gMnr().value;
+Console.OUT.println(here + ": rth: " + requestThreshold);
 Console.OUT.println(here + ": mnr: " + maxNRequests);
     }
 
-    public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) { 
+    public def setup(sHandle:PlaceLocalHandle[PlaceAgent1[K]]) { 
         list.add(solver.core.getInitialDomain());
 
         var dst:Int = 0;
@@ -80,7 +100,7 @@ debugPrint(here + ": responded to " + id);
     }
 
     public def run(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
-//   		debugPrint(here + ": start solving... ");
+   		debugPrint(here + ": start solving... ");
 
         // ??
         if (list.isEmpty() && nSentRequests.get() == 0)
@@ -139,14 +159,14 @@ sHandle().debugPrint(here + ": #sp: " + sHandle().nSearchPs.get() + ", #r: " + s
 debugPrint(here + ": wait...");
             when (!list.isEmpty()) {
                 //isActive.set(true);
-initPhase = false;
-
 nSearchPs.incrementAndGet();
                 box = list.removeFirst();
 debugPrint(here + ": got box:\n" + box);
+
+initPhase = false;
             }
 
-debugPrint(here + ": load: " + (list.size() + nSearchPs.get()));
+debugPrint(here + ": load in search: " + (list.size() + nSearchPs.get()));
 
             //finish 
             solver.search(sHandle, box);
@@ -172,14 +192,18 @@ debugPrint(here + ": finish search");
     }
 
     def request(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
+		when (!initPhase) {}
+
         while (true) {
 debugPrint(here + ": wait requesting");
-            when ((list.size() + nSearchPs.get() <= requestThreshold && 
+            when (((list.size() + nSearchPs.get()) <= requestThreshold && 
                    nSentRequests.get() < maxNRequests)
                   || terminate == 3
               ) {
                 // not used?
                 //isActive.set(false);
+
+debugPrint(here + ": load when requesting: " + (list.size() + nSearchPs.get()));
             }
 
             if (terminate == 3) {
