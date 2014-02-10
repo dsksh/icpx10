@@ -185,7 +185,7 @@ debugPrint(here + ": wait...");
                 isActive.set(true);
 initPhase = false;
                 box = list.removeFirst();
-debugPrint(here + ": got box:\n" + box);
+atomic debugPrint(here + ": got box:\n" + box);
             }
 
             finish solver.search(sHandle, box);

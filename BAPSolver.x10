@@ -63,49 +63,68 @@ sHandle().tContracts.getAndAdd(time);
     
     protected val selectVariable : (res:Result, box:IntervalVec[K]) => Box[K];
 
+var sid0:Int = 0;
+
     protected def search(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) {
-//sHandle().debugPrint(here + ": search:\n" + box + '\n');
+val sid:Int = sid0++;
+sHandle().debugPrint(here + "," + sid + ": search:\n" + box + '\n');
 //try {
         // for dummy boxes
-        if (box.size() == 0)
+        if (box.size() == 0) {
+sHandle().nSearchPs.decrementAndGet();
             return;
+		}
 
-sHandle().nSearchPs.incrementAndGet();
+//sHandle().nSearchPs.incrementAndGet();
 
-sHandle().debugPrint(here + ": load: " + (sHandle().list.size() + sHandle().nSearchPs.get()));
+sHandle().debugPrint(here + ": load: " + sHandle().list.size() + " + " + sHandle().nSearchPs.get());
 
         var res:Result = contract(sHandle, box);
+
+//sHandle().nSearchPs.decrementAndGet();
 
         if (!res.hasNoSolution()) {
             val v = selectVariable(res, box);
             if (v != null) {
+//sHandle().nSearchPs.decrementAndGet();
                 val pv:Box[K] = box.prevVar();
                 val bp = box.split(v()); 
                 sHandle().nSplits.getAndIncrement();
                 
 finish {
-                async if (!sHandle().respondIfRequested(sHandle, bp.first)) {
+                async {
+sHandle().debugPrint(here + "," + sid + ": right");
+//sHandle().nSearchPs.incrementAndGet();
+                search(sHandle, bp.second);
+				}
+
+                async {
+sHandle().debugPrint(here + "," + sid + ": left");
+				if (!sHandle().respondIfRequested(sHandle, bp.first)) {
+sHandle().nSearchPs.incrementAndGet();
                     //async 
                     search(sHandle, bp.first);
                 }
-
-                async 
-                search(sHandle, bp.second);
+                }
 }
-sHandle().debugPrint(here + ": branch done");
+sHandle().debugPrint(here + "," + sid + ": branch done");
             }
             else {
+sHandle().nSearchPs.decrementAndGet();
                 sHandle().addSolution(res, box);
             }
         }
-        //else Console.OUT.println(here + ": no solution");
+        else {
+			//Console.OUT.println(here + ": no solution");
+sHandle().nSearchPs.decrementAndGet();
+		}
 
 //} catch (exp:Exception) {
 //    Console.OUT.println(here + "," + sid + ": exception thrown:");
 //    exp.printStackTrace(Console.ERR);
 //}
 
-sHandle().nSearchPs.decrementAndGet();
+//sHandle().nSearchPs.decrementAndGet();
     }
 }
 

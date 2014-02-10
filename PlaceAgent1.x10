@@ -45,8 +45,8 @@ public class PlaceAgent1[K] extends PlaceAgent[K] {
 		}
     	this.requestThreshold = gRth().value;
     	this.maxNRequests = gMnr().value;
-Console.OUT.println(here + ": rth: " + requestThreshold);
-Console.OUT.println(here + ": mnr: " + maxNRequests);
+//Console.OUT.println(here + ": rth: " + requestThreshold);
+//Console.OUT.println(here + ": mnr: " + maxNRequests);
     }
 
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent1[K]]) { 
@@ -71,22 +71,27 @@ Console.OUT.println(here + ": mnr: " + maxNRequests);
 
         if (id >= 0) {
             val pv:Box[K] = box.prevVar();
-//async 
-val thres = requestThreshold; // FIXME
-var res:Boolean = false;
-val gRes = new GlobalRef(new Cell(res));
+			//async 
+			val thres = requestThreshold; // FIXME
+			var res:Boolean = false;
+			val gRes = new GlobalRef(new Cell(res));
             at (Place(id)) {
                 sHandle().nSentRequests.decrementAndGet();
-sHandle().debugPrint(here + ": load: " + (sHandle().list.size() + sHandle().nSearchPs.get()));
-if (sHandle().list.size() + sHandle().nSearchPs.get() <= thres) {
-                box.setPrevVar(pv);
-                atomic sHandle().list.add(box);
-                at (gRes.home) gRes().set(true);
-}
+sHandle().debugPrint(here + ": RIF load: " + (sHandle().list.size() + sHandle().nSearchPs.get()));
+				if (sHandle().list.size() + sHandle().nSearchPs.get() <= thres) {
+                	box.setPrevVar(pv);
+sHandle().debugPrint(here + ": adding box");
+ 	                async atomic sHandle().list.add(box);
+
+	                at (gRes.home) gRes().set(true);
+sHandle().debugPrint(here + ": gRes set");
+				}
             }
+			if (gRes().value) {
 debugPrint(here + ": responded to " + id);
-            if (id < here.id()) sentBw.set(true);
-            nSends.getAndIncrement();
+	            if (id < here.id()) sentBw.set(true);
+	            nSends.getAndIncrement();
+			}
             return gRes().value;
         }
         else
@@ -152,25 +157,24 @@ sHandle().debugPrint(here + ": #sp: " + sHandle().nSearchPs.get() + ", #r: " + s
     }
 
     def search(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
-        finish
+        //finish
         while (true) {
             var box:IntervalVec[K] = null;
 
 debugPrint(here + ": wait...");
             when (!list.isEmpty()) {
                 //isActive.set(true);
-nSearchPs.incrementAndGet();
                 box = list.removeFirst();
 debugPrint(here + ": got box:\n" + box);
-
 initPhase = false;
             }
 
 debugPrint(here + ": load in search: " + (list.size() + nSearchPs.get()));
 
             //finish 
+nSearchPs.incrementAndGet();
             solver.search(sHandle, box);
-nSearchPs.decrementAndGet();
+//nSearchPs.decrementAndGet();
 
 //debugPrint(here + ": #sp: " + nSearchPs.get() + ", #r: " + nSentRequests.get() + ", " + terminate);
 
