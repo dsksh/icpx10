@@ -67,7 +67,7 @@ var sid0:Int = 0;
 
     protected def search(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) {
 val sid:Int = sid0++;
-sHandle().debugPrint(here + "," + sid + ": search:\n" + box + '\n');
+atomic sHandle().debugPrint(here + "," + sid + ": search:\n" + box + '\n');
 //try {
         // for dummy boxes
         if (box.size() == 0) {
@@ -81,30 +81,22 @@ sHandle().debugPrint(here + ": load: " + sHandle().list.size() + " + " + sHandle
 
         var res:Result = contract(sHandle, box);
 
-//sHandle().nSearchPs.decrementAndGet();
-
         if (!res.hasNoSolution()) {
             val v = selectVariable(res, box);
             if (v != null) {
-//sHandle().nSearchPs.decrementAndGet();
                 val pv:Box[K] = box.prevVar();
                 val bp = box.split(v()); 
                 sHandle().nSplits.getAndIncrement();
                 
 finish {
-                async {
-sHandle().debugPrint(here + "," + sid + ": right");
-//sHandle().nSearchPs.incrementAndGet();
-                search(sHandle, bp.second);
-				}
+                async 
+				search(sHandle, bp.first);
 
-                async {
-sHandle().debugPrint(here + "," + sid + ": left");
-				if (!sHandle().respondIfRequested(sHandle, bp.first)) {
+                async
+				if (!sHandle().respondIfRequested(sHandle, bp.second)) {
 sHandle().nSearchPs.incrementAndGet();
                     //async 
-                    search(sHandle, bp.first);
-                }
+                    search(sHandle, bp.second);
                 }
 }
 sHandle().debugPrint(here + "," + sid + ": branch done");
@@ -123,8 +115,6 @@ sHandle().nSearchPs.decrementAndGet();
 //    Console.OUT.println(here + "," + sid + ": exception thrown:");
 //    exp.printStackTrace(Console.ERR);
 //}
-
-//sHandle().nSearchPs.decrementAndGet();
     }
 }
 

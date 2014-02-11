@@ -77,7 +77,10 @@ public class PlaceAgent[K] {
         var pow2:Int = 1;
         for (pi in 1..(Place.numPlaces()-1)) {
             at (Place(dst)) sHandle().reqQueue.addLast(pi);
-            at (Place(pi)) sHandle().sentRequest.set(true);
+            at (Place(pi)) {
+                sHandle().sentRequest.set(true);
+                sHandle().nSentRequests.incrementAndGet();
+			}
             if (++dst == pow2) { dst = 0; pow2 *= 2; }
         }
     }
@@ -122,6 +125,7 @@ public class PlaceAgent[K] {
 
         if (id >= 0) {
             val pv:Box[K] = box.prevVar();
+atomic sHandle().debugPrint(here + ": sending box:\n" + box + '\n');
 //async 
             at (Place(id)) {
                 sHandle().sentRequest.set(false);
@@ -189,6 +193,7 @@ atomic debugPrint(here + ": got box:\n" + box);
             }
 
             finish solver.search(sHandle, box);
+atomic debugPrint(here + ": search done");
 
             if (list.isEmpty()) {
                 isActive.set(false);

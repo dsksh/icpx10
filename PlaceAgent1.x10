@@ -49,14 +49,17 @@ public class PlaceAgent1[K] extends PlaceAgent[K] {
 //Console.OUT.println(here + ": mnr: " + maxNRequests);
     }
 
-    public def setup(sHandle:PlaceLocalHandle[PlaceAgent1[K]]) { 
+    public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) { 
         list.add(solver.core.getInitialDomain());
 
         var dst:Int = 0;
         var pow2:Int = 1;
         for (pi in 1..(Place.numPlaces()-1)) {
             at (Place(dst)) sHandle().reqQueue.addLast(pi);
-            at (Place(pi)) sHandle().nSentRequests.incrementAndGet();
+            at (Place(pi)) {
+sHandle().debugPrint(here + ": inc #r");
+                sHandle().nSentRequests.incrementAndGet();
+            }
             if (++dst == pow2) { dst = 0; pow2 *= 2; }
         }
     }
@@ -73,19 +76,22 @@ public class PlaceAgent1[K] extends PlaceAgent[K] {
             val pv:Box[K] = box.prevVar();
 			//async 
 			val thres = requestThreshold; // FIXME
-			var res:Boolean = false;
+			//var res:Boolean = false;
+			var res:Boolean = true;
 			val gRes = new GlobalRef(new Cell(res));
+atomic sHandle().debugPrint(here + ": sending box:\n" + box + '\n');
             at (Place(id)) {
                 sHandle().nSentRequests.decrementAndGet();
 sHandle().debugPrint(here + ": RIF load: " + (sHandle().list.size() + sHandle().nSearchPs.get()));
-				if (sHandle().list.size() + sHandle().nSearchPs.get() <= thres) {
+				//if (sHandle().list.size() + sHandle().nSearchPs.get() <= thres) {
                 	box.setPrevVar(pv);
 sHandle().debugPrint(here + ": adding box");
- 	                async atomic sHandle().list.add(box);
+ 	                //async 
+					atomic sHandle().list.add(box);
 
-	                at (gRes.home) gRes().set(true);
+	                //at (gRes.home) gRes().set(true);
 sHandle().debugPrint(here + ": gRes set");
-				}
+				//}
             }
 			if (gRes().value) {
 debugPrint(here + ": responded to " + id);
@@ -150,7 +156,7 @@ debugPrint(here + ": start termination");
             if (id >= 0) at (Place(id)) {
                 sHandle().nSentRequests.decrementAndGet();
                 //atomic sHandle().list.add(sHandle().solver.core.dummyBox());
-sHandle().debugPrint(here + ": #sp: " + sHandle().nSearchPs.get() + ", #r: " + sHandle().nSentRequests.get() + ", #list: " + sHandle().list.size());
+atomic sHandle().debugPrint(here + ": CR #sp: " + sHandle().nSearchPs.get() + ", #r: " + sHandle().nSentRequests.get() + ", #list: " + sHandle().list.size());
             }
             else break;
         }
@@ -165,18 +171,19 @@ debugPrint(here + ": wait...");
             when (!list.isEmpty()) {
                 //isActive.set(true);
                 box = list.removeFirst();
-debugPrint(here + ": got box:\n" + box);
-initPhase = false;
+atomic debugPrint(here + ": got box:\n" + box);
+//initPhase = false;
             }
 
 debugPrint(here + ": load in search: " + (list.size() + nSearchPs.get()));
 
-            //finish 
 nSearchPs.incrementAndGet();
+            finish
             solver.search(sHandle, box);
 //nSearchPs.decrementAndGet();
+atomic debugPrint(here + ": search done");
 
-//debugPrint(here + ": #sp: " + nSearchPs.get() + ", #r: " + nSentRequests.get() + ", " + terminate);
+atomic debugPrint(here + ": #sp: " + nSearchPs.get() + ", #r: " + nSentRequests.get() + ", " + terminate);
 
             if (here.id() == 0) atomic
                 if (list.size() == 0
@@ -192,6 +199,8 @@ debugPrint(here + ": start termination");
 debugPrint(here + ": finish search");
                 break;
             }
+
+initPhase = false;
         }            
     }
 
@@ -239,6 +248,8 @@ debugPrint(here + ": requested to " + p);
     def terminate(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         var term:Int = 0;
     
+		when (!initPhase) {}
+
         while (true) {
 
             var termBak:Int = 0;
