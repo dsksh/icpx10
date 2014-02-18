@@ -123,7 +123,7 @@ public class RPX10[K] {
         case 0:
             return new PlaceAgent[K](solver);
         case 1:
-            return new PlaceAgent1[K](solver);
+            return new PlaceAgentSeparated[K](solver);
         case 3:
             val pa1 = new PlaceAgentDelayed1[K](solver);
             pa1.initPP(core, prec);

@@ -3,6 +3,7 @@ import x10.util.*;
 import x10.util.concurrent.AtomicBoolean;
 import x10.util.concurrent.AtomicInteger;
 import x10.util.concurrent.AtomicLong;
+import x10.util.concurrent.AtomicDouble;
 import x10.io.*;
 import x10.io.Console; 
 
@@ -21,6 +22,7 @@ public class PlaceAgent[K] {
     var initPhase:Boolean = true;
     var isActive:AtomicBoolean = new AtomicBoolean(false);
     var nSearchPs:AtomicInteger = new AtomicInteger(0);
+	var totalVolume:AtomicDouble = new AtomicDouble(0.);
 
     public var tEndPP:AtomicLong = new AtomicLong(0);
     public var nSols:AtomicInteger = new AtomicInteger(0);
@@ -88,7 +90,7 @@ public class PlaceAgent[K] {
     public val doDebugPrint:Boolean;
     public def debugPrint(msg:String) {
         if (doDebugPrint)
-            atomic Console.OUT.println(msg);
+            Console.OUT.println(msg);
     }
 
     private var selected:Iterator[Place] = null;

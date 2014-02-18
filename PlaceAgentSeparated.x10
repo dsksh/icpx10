@@ -2,13 +2,14 @@ import x10.compiler.*;
 import x10.util.*;
 import x10.util.concurrent.AtomicBoolean;
 import x10.util.concurrent.AtomicInteger;
+import x10.util.concurrent.AtomicDouble;
 import x10.io.*;
 import x10.io.Console; 
 
-public class PlaceAgent1[K] extends PlaceAgent[K] {
+public class PlaceAgentSeparated[K] extends PlaceAgent[K] {
 
     // the number of boxes that should be kept in the list
-    val requestThreshold:Int;
+    val requestThreshold:Double;
 
     // max number of requests
     val maxNRequests:Int;
@@ -29,14 +30,14 @@ public class PlaceAgent1[K] extends PlaceAgent[K] {
         else this.maxNRequests = 5;
 */
 
-		var rth:Int = 0;
+		var rth:Double = 0;
 		var mnr:Int = 0;
 		val gRth = new GlobalRef(new Cell(rth));
 		val gMnr = new GlobalRef(new Cell(mnr));
 		at (Place(0)) {
     		val sRth = System.getenv("RPX10_REQUEST_THRESHOLD");
    			val sMnr = System.getenv("RPX10_MAX_N_REQUESTS");
-			val rth1:Int = sRth != null ? Int.parse(sRth) : 5;
+			val rth1:Double = sRth != null ? Double.parse(sRth) : 1.;
 			val mnr1:Int = sMnr != null ? Int.parse(sMnr) : 5;
 			at (gRth.home) {
 				gRth().set(rth1);
@@ -50,7 +51,9 @@ public class PlaceAgent1[K] extends PlaceAgent[K] {
     }
 
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) { 
-        list.add(solver.core.getInitialDomain());
+		val box = solver.core.getInitialDomain();
+totalVolume.addAndGet(box.volume());
+        list.add(box);
 
         var dst:Int = 0;
         var pow2:Int = 1;
@@ -76,25 +79,26 @@ sHandle().debugPrint(here + ": inc #r");
             val pv:Box[K] = box.prevVar();
 			//async 
 			val thres = requestThreshold; // FIXME
-			//var res:Boolean = false;
-			var res:Boolean = true;
+			var res:Boolean = false;
+			//var res:Boolean = true;
 			val gRes = new GlobalRef(new Cell(res));
-atomic sHandle().debugPrint(here + ": sending box:\n" + box + '\n');
+sHandle().debugPrint(here + ": sending box:\n" + box + '\n');
             at (Place(id)) {
                 sHandle().nSentRequests.decrementAndGet();
-sHandle().debugPrint(here + ": RIF load: " + (sHandle().list.size() + sHandle().nSearchPs.get()));
+//sHandle().debugPrint(here + ": RIF load: " + (sHandle().list.size() + sHandle().nSearchPs.get()));
+sHandle().debugPrint(here + ": RIF load: " + sHandle().totalVolume.get());
 				//if (sHandle().list.size() + sHandle().nSearchPs.get() <= thres) {
+				if (sHandle().totalVolume.get() <= thres) {
                 	box.setPrevVar(pv);
-sHandle().debugPrint(here + ": adding box");
- 	                //async 
+sHandle().totalVolume.addAndGet(box.volume());
+ 	                async 
 					atomic sHandle().list.add(box);
 
-	                //at (gRes.home) gRes().set(true);
-sHandle().debugPrint(here + ": gRes set");
-				//}
+	                at (gRes.home) gRes().set(true);
+				}
             }
 			if (gRes().value) {
-debugPrint(here + ": responded to " + id);
+//debugPrint(here + ": responded to " + id);
 	            if (id < here.id()) sentBw.set(true);
 	            nSends.getAndIncrement();
 			}
@@ -109,6 +113,8 @@ debugPrint(here + ": responded to " + id);
         terminate = 0;
         return t;
     }
+
+	var prevTime:Long = System.currentTimeMillis();
 
     public def run(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
    		debugPrint(here + ": start solving... ");
@@ -143,6 +149,14 @@ debugPrint(here + ": start termination");
                         }
                     }
 */
+
+/*			async while (terminate != 3) {
+				when (System.currentTimeMillis()-prevTime > 100) {
+					prevTime = System.currentTimeMillis();
+				}
+sHandle().debugPrint(here + ": T load: " + totalVolume.get() + " at " + prevTime);
+			}
+*/
         } // finish
     }
 
@@ -170,20 +184,24 @@ atomic sHandle().debugPrint(here + ": CR #sp: " + sHandle().nSearchPs.get() + ",
 debugPrint(here + ": wait...");
             when (!list.isEmpty()) {
                 //isActive.set(true);
+nSearchPs.incrementAndGet();
                 box = list.removeFirst();
 atomic debugPrint(here + ": got box:\n" + box);
-//initPhase = false;
+initPhase = false;
             }
 
-debugPrint(here + ": load in search: " + (list.size() + nSearchPs.get()));
+//debugPrint(here + ": load in search: " + (list.size() + nSearchPs.get()));
+debugPrint(here + ": load in search: " + totalVolume.get());
 
-nSearchPs.incrementAndGet();
             finish
             solver.search(sHandle, box);
-//nSearchPs.decrementAndGet();
-atomic debugPrint(here + ": search done");
 
-atomic debugPrint(here + ": #sp: " + nSearchPs.get() + ", #r: " + nSentRequests.get() + ", " + terminate);
+//debugPrint(here + ": #sp: " + nSearchPs.get() + ", #r: " + nSentRequests.get() + ", " + terminate);
+
+            if (terminate == 3 && list.size() == 0) { 
+debugPrint(here + ": finish search");
+                break;
+            }
 
             if (here.id() == 0) atomic
                 if (list.size() == 0
@@ -195,12 +213,7 @@ debugPrint(here + ": start termination");
                     terminate = 1;
                 }
 
-            atomic if (terminate == 3 && list.size() == 0) { 
-debugPrint(here + ": finish search");
-                break;
-            }
-
-initPhase = false;
+//initPhase = false;
         }            
     }
 
@@ -209,14 +222,16 @@ initPhase = false;
 
         while (true) {
 debugPrint(here + ": wait requesting");
-            when (((list.size() + nSearchPs.get()) <= requestThreshold && 
+            when ((//(list.size() + nSearchPs.get()) <= requestThreshold && 
+				   totalVolume.get() <= requestThreshold &&
                    nSentRequests.get() < maxNRequests)
                   || terminate == 3
               ) {
                 // not used?
                 //isActive.set(false);
 
-debugPrint(here + ": load when requesting: " + (list.size() + nSearchPs.get()));
+//debugPrint(here + ": load when requesting: " + (list.size() + nSearchPs.get()));
+debugPrint(here + ": load when requesting: " + totalVolume.get());
             }
 
             if (terminate == 3) {
@@ -256,7 +271,7 @@ debugPrint(here + ": requested to " + p);
             when (term != terminate) {
 debugPrint(here + ": terminate: " + terminate);
                 termBak = terminate;
-                if (here.id() == 0 && terminate == 2) 
+                if (here.id() == 0 && terminate == 2)
                     terminate = 3;
                 else if (here.id() == 0 && terminate == 4)
                     terminate = 1;

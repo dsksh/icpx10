@@ -28,7 +28,7 @@ public class BAPSolver[K] {
         public def getInitialDomain() :IntervalVec[K];
         //public def solve() : int;
         //public def calculateNext() : int;
-        public atomic def contract(box:IntervalVec[K]) : Result;
+        public def contract(box:IntervalVec[K]) : Result;
         public def isProjected(v:K) : Boolean;
         public def dummyBox() : IntervalVec[K];
     } 
@@ -53,9 +53,11 @@ public class BAPSolver[K] {
     protected def contract(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) : Result {
         var res:Result = Result.unknown();
 var time:Long = -System.nanoTime();
-        atomic { res = core.contract(box); }
+        //atomic { 
+            res = core.contract(box); 
+        //}
 time += System.nanoTime();
-//Console.OUT.printf("%f\n", RPX10.format(time));
+//Console.OUT.printf(here + ": %f\n", RPX10.format(time));
 sHandle().tContracts.getAndAdd(time);
         sHandle().nContracts.getAndIncrement();
         return res;
@@ -67,7 +69,7 @@ var sid0:Int = 0;
 
     protected def search(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) {
 val sid:Int = sid0++;
-atomic sHandle().debugPrint(here + "," + sid + ": search:\n" + box + '\n');
+//atomic sHandle().debugPrint(here + "," + sid + ": search:\n" + box + '\n');
 //try {
         // for dummy boxes
         if (box.size() == 0) {
@@ -77,8 +79,10 @@ sHandle().nSearchPs.decrementAndGet();
 
 //sHandle().nSearchPs.incrementAndGet();
 
-sHandle().debugPrint(here + ": load: " + sHandle().list.size() + " + " + sHandle().nSearchPs.get());
+sHandle().debugPrint(here + "," + sid + ": load: " + sHandle().list.size() + " + " + sHandle().nSearchPs.get());
+sHandle().debugPrint(here + "," + sid + ": load: " + sHandle().totalVolume.get());
 
+val vol0 = box.volume();
         var res:Result = contract(sHandle, box);
 
         if (!res.hasNoSolution()) {
@@ -87,28 +91,35 @@ sHandle().debugPrint(here + ": load: " + sHandle().list.size() + " + " + sHandle
                 val pv:Box[K] = box.prevVar();
                 val bp = box.split(v()); 
                 sHandle().nSplits.getAndIncrement();
+val vol = box.volume();
+sHandle().totalVolume.addAndGet(-vol0+vol);
                 
-finish {
-                async 
+//finish {
+                async {
 				search(sHandle, bp.first);
+				}
 
-                async
+                async {
 				if (!sHandle().respondIfRequested(sHandle, bp.second)) {
-sHandle().nSearchPs.incrementAndGet();
+atomic sHandle().nSearchPs.incrementAndGet();
                     //async 
                     search(sHandle, bp.second);
                 }
-}
+else sHandle().totalVolume.addAndGet(-vol/2);
+                }
+//}
 sHandle().debugPrint(here + "," + sid + ": branch done");
             }
             else {
 sHandle().nSearchPs.decrementAndGet();
+sHandle().totalVolume.addAndGet(-vol0);
                 sHandle().addSolution(res, box);
             }
         }
         else {
 			//Console.OUT.println(here + ": no solution");
 sHandle().nSearchPs.decrementAndGet();
+sHandle().totalVolume.addAndGet(-vol0);
 		}
 
 //} catch (exp:Exception) {
