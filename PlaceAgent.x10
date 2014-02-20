@@ -204,11 +204,11 @@ time = -System.nanoTime();
                 isActive.set(true);
 initPhase = false;
                 box = list.removeFirst();
-atomic debugPrint(here + ": got box:\n" + box);
+debugPrint(here + ": got box:\n" + box);
             }
 
             finish solver.search(sHandle, box);
-atomic debugPrint(here + ": search done");
+debugPrint(here + ": search done");
 
 time += System.nanoTime();
 sHandle().tSearch += time;

@@ -48,7 +48,8 @@ public class BAPListSolver[K] extends BAPSolver[K] {
         while (hasDom())
             finish while (hasDom()) {
                 val dom = removeDom();
-                async searchBody(sHandle, dom);
+                //async 
+                searchBody(sHandle, dom);
             }
     }
 
