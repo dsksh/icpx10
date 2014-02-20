@@ -51,7 +51,8 @@ Console.OUT.println(here+": log2 = "+Math.log2(reqQueue.getSize()+1));
                 val v:Box[K] = selectVariable(res, b);
                 if (v != null) {
                     val bp = b.split(v()); 
-                    sHandle().nSplits.getAndIncrement();
+                    //sHandle().nSplits.getAndIncrement();
+                    sHandle().nSplits++;
                     bList.add(bp.first);
                     bList.add(bp.second);
 //Console.OUT.println(here+": ("+i+","+j+"), bp.second: "+bp.second);
@@ -100,7 +101,7 @@ Console.OUT.println(here+": ("+i+","+j+"), bp.second: "+bp.second);
 //Console.OUT.println(box);
 
                         if (req < here.id()) sentBw.set(true);
-                        sHandle().nSends.getAndIncrement();
+                        sHandle().nSends++;
                     }
                 }
                 else {

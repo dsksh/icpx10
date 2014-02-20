@@ -90,9 +90,11 @@ sHandle().debugPrint(here + ": RIF load: " + sHandle().totalVolume.get());
 				//if (sHandle().list.size() + sHandle().nSearchPs.get() <= thres) {
 				if (sHandle().totalVolume.get() <= thres) {
                 	box.setPrevVar(pv);
+ 	                async
+    				atomic {
+                        sHandle().list.add(box);
 sHandle().totalVolume.addAndGet(box.volume());
- 	                async 
-					atomic sHandle().list.add(box);
+                    }
 
 	                at (gRes.home) gRes().set(true);
 				}
@@ -100,7 +102,8 @@ sHandle().totalVolume.addAndGet(box.volume());
 			if (gRes().value) {
 //debugPrint(here + ": responded to " + id);
 	            if (id < here.id()) sentBw.set(true);
-	            nSends.getAndIncrement();
+	            //nSends.getAndIncrement();
+	            nSends++;
 			}
             return gRes().value;
         }
@@ -137,26 +140,6 @@ sHandle().totalVolume.addAndGet(box.volume());
             // cancelling task
             async cancelOnTermination(sHandle);
 
-/*            if (here.id() == 0) 
-                async while (true)
-                    when (terminate != 1 && 
-                          nSentRequests.get() == 0 && nSearchPs.get() == 0) {
-    
-                        if (terminate == 3) break;
-                        else if (terminate == 0 || terminate == 4) {
-debugPrint(here + ": start termination");
-                            terminate = 1;
-                        }
-                    }
-*/
-
-/*			async while (terminate != 3) {
-				when (System.currentTimeMillis()-prevTime > 100) {
-					prevTime = System.currentTimeMillis();
-				}
-sHandle().debugPrint(here + ": T load: " + totalVolume.get() + " at " + prevTime);
-			}
-*/
         } // finish
     }
 
@@ -178,15 +161,21 @@ atomic sHandle().debugPrint(here + ": CR #sp: " + sHandle().nSearchPs.get() + ",
 
     def search(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         //finish
-        while (true) {
+        while (terminate != 3 || list.size() > 0) {
+
             var box:IntervalVec[K] = null;
+
+var time:Long;
 
 debugPrint(here + ": wait...");
             when (!list.isEmpty()) {
                 //isActive.set(true);
-nSearchPs.incrementAndGet();
+//nSearchPs.incrementAndGet();
+
+time = -System.nanoTime();
+
                 box = list.removeFirst();
-atomic debugPrint(here + ": got box:\n" + box);
+debugPrint(here + ": got box:\n" + box);
 initPhase = false;
             }
 
@@ -198,14 +187,9 @@ debugPrint(here + ": load in search: " + totalVolume.get());
 
 //debugPrint(here + ": #sp: " + nSearchPs.get() + ", #r: " + nSentRequests.get() + ", " + terminate);
 
-            if (terminate == 3 && list.size() == 0) { 
-debugPrint(here + ": finish search");
-                break;
-            }
-
             if (here.id() == 0) atomic
                 if (list.size() == 0
-                    && nSearchPs.get() == 0
+                    //&& nSearchPs.get() == 0
                     //&& nSentRequests.get() == 0 
                     //&& (terminate == 0 || terminate == 4)) {
                     && terminate == 0) {
@@ -213,7 +197,8 @@ debugPrint(here + ": start termination");
                     terminate = 1;
                 }
 
-//initPhase = false;
+time += System.nanoTime();
+sHandle().tSearch += time;
         }            
     }
 
@@ -227,9 +212,6 @@ debugPrint(here + ": wait requesting");
                    nSentRequests.get() < maxNRequests)
                   || terminate == 3
               ) {
-                // not used?
-                //isActive.set(false);
-
 //debugPrint(here + ": load when requesting: " + (list.size() + nSearchPs.get()));
 debugPrint(here + ": load when requesting: " + totalVolume.get());
             }
@@ -240,7 +222,8 @@ debugPrint(here + ": finish req");
             }
 
             // cancel the received requests.
-            if (!initPhase && list.size() == 0 && nSearchPs.get() == 0) 
+            if (!initPhase && list.size() == 0 //&& nSearchPs.get() == 0
+            ) 
                 cancelRequests(sHandle);
 
             // request for a domain
@@ -249,12 +232,11 @@ debugPrint(here + ": finish req");
                 val id = here.id();
                 val p = selectPlace();
 debugPrint(here + ": select place to request: " + p);
-                //val gNReqs = GlobalRef[AtomicInteger](nReqs);
-                //val gNSentRequests = GlobalRef[AtomicInteger](nSentRequests);
                 at (p) //if (sHandle().terminate != 3) 
                     sHandle().reqQueue.addLast(id);
 debugPrint(here + ": requested to " + p);
-                nReqs.getAndIncrement();
+                //nReqs.getAndIncrement();
+                nReqs++;
                 nSentRequests.getAndIncrement();
             }
         }

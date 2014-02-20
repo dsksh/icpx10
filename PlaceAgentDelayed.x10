@@ -111,7 +111,7 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
                     }
 //Console.OUT.println(here + ": append at " + (b ? here.id : pi));
 //Console.OUT.println(here + ": " + box);
-                    if (!b) nSends.getAndIncrement();
+                    if (!b) nSends++;
                     b = !b;
                 }
 
@@ -124,7 +124,7 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
         else when (initPhase) {}
 
 //Console.OUT.println(here + ": PP done");
-sHandle().tEndPP.set(System.nanoTime());
+sHandle().tEndPP = System.nanoTime();
 
         super.run(sHandle);
 

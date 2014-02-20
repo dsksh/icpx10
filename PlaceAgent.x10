@@ -16,22 +16,30 @@ public class PlaceAgent[K] {
 
     val reqQueue:CircularQueue[Int];
     var terminate:Int = 0;
-    var sentRequest:AtomicBoolean = new AtomicBoolean(false);
     var nSentRequests:AtomicInteger = new AtomicInteger(0);
     var sentBw:AtomicBoolean = new AtomicBoolean(false);
     var initPhase:Boolean = true;
-    var isActive:AtomicBoolean = new AtomicBoolean(false);
-    var nSearchPs:AtomicInteger = new AtomicInteger(0);
 	var totalVolume:AtomicDouble = new AtomicDouble(0.);
 
-    public var tEndPP:AtomicLong = new AtomicLong(0);
-    public var nSols:AtomicInteger = new AtomicInteger(0);
-    public var nContracts:AtomicInteger = new AtomicInteger(0);
-    public var tContracts:AtomicLong = new AtomicLong(0);
-    public var nSplits:AtomicInteger = new AtomicInteger(0);
-    public var nReqs:AtomicInteger = new AtomicInteger(0);
-    public var nSends:AtomicInteger = new AtomicInteger(0);
-    public var nBranches:AtomicInteger = new AtomicInteger(0);
+    var sentRequest:AtomicBoolean = new AtomicBoolean(false);
+    var isActive:AtomicBoolean = new AtomicBoolean(false);
+    var nSearchPs:AtomicInteger = new AtomicInteger(0);
+
+    public var tEndPP:Long = 0l;
+    //public var nSols:AtomicInteger = new AtomicInteger(0);
+    public var nSols:Int = 0;
+    //public var nContracts:AtomicInteger = new AtomicInteger(0);
+    //public var tContracts:AtomicLong = new AtomicLong(0);
+    public var nContracts:Int = 0;
+    public var tContracts:Long = 0l;
+    public var tSearch:Long = 0l;
+    //public var nSplits:AtomicInteger = new AtomicInteger(0);
+    public var nSplits:Int = 0;
+    //public var nReqs:AtomicInteger = new AtomicInteger(0); // TODO
+    public var nReqs:Int = 0;
+    //public var nSends:AtomicInteger = new AtomicInteger(0);
+    public var nSends:Int = 0;
+    //public var nBranches:AtomicInteger = new AtomicInteger(0);
 
     private random:Random;
 
@@ -136,7 +144,8 @@ atomic sHandle().debugPrint(here + ": sending box:\n" + box + '\n');
             }
 //Console.OUT.println(here + ": responded to " + id);
             if (id < here.id()) sentBw.set(true);
-            nSends.getAndIncrement();
+            //nSends.getAndIncrement();
+            nSends++;
             return true;
         }
         else
@@ -167,7 +176,8 @@ atomic sHandle().debugPrint(here + ": sending box:\n" + box + '\n');
 //    Console.OUT.println(); 
 //    Console.OUT.flush();
 //}
-        nSols.getAndIncrement();
+        //nSols.getAndIncrement();
+        nSols++;
     }
 
     protected atomic def getAndResetTerminate() : Int {
@@ -186,8 +196,11 @@ atomic sHandle().debugPrint(here + ": sending box:\n" + box + '\n');
 
             var box:IntervalVec[K] = null;
 
+var time:Long;
+
 debugPrint(here + ": wait...");
             when (!list.isEmpty()) {
+time = -System.nanoTime();
                 isActive.set(true);
 initPhase = false;
                 box = list.removeFirst();
@@ -196,6 +209,9 @@ atomic debugPrint(here + ": got box:\n" + box);
 
             finish solver.search(sHandle, box);
 atomic debugPrint(here + ": search done");
+
+time += System.nanoTime();
+sHandle().tSearch += time;
 
             if (list.isEmpty()) {
                 isActive.set(false);
@@ -275,7 +291,8 @@ atomic {
 //Console.OUT.println(here + ": requested from " + id);
                     }
 //Console.OUT.println(here + ": requested to " + p);
-                    nReqs.getAndIncrement();
+                    //nReqs.getAndIncrement();
+                    nReqs++;
                 }
 
 //}

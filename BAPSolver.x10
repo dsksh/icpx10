@@ -58,8 +58,9 @@ var time:Long = -System.nanoTime();
         //}
 time += System.nanoTime();
 //Console.OUT.printf(here + ": %f\n", RPX10.format(time));
-sHandle().tContracts.getAndAdd(time);
-        sHandle().nContracts.getAndIncrement();
+//sHandle().tContracts.getAndAdd(time);
+sHandle().tContracts += time;
+        sHandle().nContracts++;
         return res;
     }
     
@@ -73,13 +74,13 @@ val sid:Int = sid0++;
 //try {
         // for dummy boxes
         if (box.size() == 0) {
-sHandle().nSearchPs.decrementAndGet();
+//sHandle().nSearchPs.decrementAndGet();
             return;
 		}
 
 //sHandle().nSearchPs.incrementAndGet();
 
-sHandle().debugPrint(here + "," + sid + ": load: " + sHandle().list.size() + " + " + sHandle().nSearchPs.get());
+//sHandle().debugPrint(here + "," + sid + ": load: " + sHandle().list.size() + " + " + sHandle().nSearchPs.get());
 sHandle().debugPrint(here + "," + sid + ": load: " + sHandle().totalVolume.get());
 
 val vol0 = box.volume();
@@ -90,35 +91,35 @@ val vol0 = box.volume();
             if (v != null) {
                 val pv:Box[K] = box.prevVar();
                 val bp = box.split(v()); 
-                sHandle().nSplits.getAndIncrement();
+                //sHandle().nSplits.getAndIncrement();
+                sHandle().nSplits++;
 val vol = box.volume();
 sHandle().totalVolume.addAndGet(-vol0+vol);
                 
 //finish {
-                async {
-				search(sHandle, bp.first);
-				}
-
-                async {
+                //async {
 				if (!sHandle().respondIfRequested(sHandle, bp.second)) {
-atomic sHandle().nSearchPs.incrementAndGet();
+//atomic sHandle().nSearchPs.incrementAndGet();
                     //async 
-                    search(sHandle, bp.second);
+                    search(sHandle, bp.first);
                 }
 else sHandle().totalVolume.addAndGet(-vol/2);
-                }
+                //}
+
+                //async
+				search(sHandle, bp.second);
 //}
 sHandle().debugPrint(here + "," + sid + ": branch done");
             }
             else {
-sHandle().nSearchPs.decrementAndGet();
+//sHandle().nSearchPs.decrementAndGet();
 sHandle().totalVolume.addAndGet(-vol0);
                 sHandle().addSolution(res, box);
             }
         }
         else {
 			//Console.OUT.println(here + ": no solution");
-sHandle().nSearchPs.decrementAndGet();
+//sHandle().nSearchPs.decrementAndGet();
 sHandle().totalVolume.addAndGet(-vol0);
 		}
 

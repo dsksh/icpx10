@@ -59,7 +59,8 @@ public class BAPListSolver[K] extends BAPSolver[K] {
             val v = selectVariable(res, box);
             if (v != null) {
                 val bp = box.split(v()); 
-                sHandle().nSplits.getAndIncrement();
+                //sHandle().nSplits.getAndIncrement();
+                sHandle().nSplits++;
                 if (!sHandle().respondIfRequested(sHandle, bp.first))
                     addDom(bp.first);
                 addDom(bp.second);

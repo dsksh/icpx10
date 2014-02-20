@@ -114,6 +114,9 @@ public class RPX10[K] {
         case 1:
             solver = new BAPListSolver[K](core, select);
             break;
+        case 2:
+            solver = new BAPListSolverSimple[K](core, select);
+            break;
         default:
             return new PlaceAgentMSplit[K](
                 new BAPSolverMSplit[K](core, select) );
@@ -124,7 +127,9 @@ public class RPX10[K] {
             return new PlaceAgent[K](solver);
         case 1:
             return new PlaceAgentSeparated[K](solver);
-        case 3:
+        case 2:
+            return new PlaceAgentClocked[K](solver);
+        case 4:
             val pa1 = new PlaceAgentDelayed1[K](solver);
             pa1.initPP(core, prec);
             return pa1;
@@ -198,7 +203,7 @@ public class RPX10[K] {
         val nSols = new GlobalRef(new Cell(0));
         sb.add("  \"# sols (sep)\" : [");
         for (p in Place.places()) at (p) {
-            val v = sHandle().nSols.get();
+            val v = sHandle().nSols;//.get();
             at (masterP) {
                 at (sbG.home)
                     sbG().add((p == here ? " " : ", ") + v);
@@ -210,38 +215,50 @@ public class RPX10[K] {
 
         // sum up the # contracts at each place
         val tEndPP     = new GlobalRef(new Cell(0l));
+        //val tSearch    = new GlobalRef(new Cell(0.));
         val nContracts = new GlobalRef(new Cell(0));
-        val tContracts = new GlobalRef(new Cell(0.));
+        //val tContracts = new GlobalRef(new Cell(0.));
         val nSplits    = new GlobalRef(new Cell(0));
         val nReqs      = new GlobalRef(new Cell(0));
         val nSends     = new GlobalRef(new Cell(0));
+        val cTSearch   = new Cell[String]("  \"time search (sep)\" : ["); 
         val cContracts = new Cell[String]("  \"# contracts (sep)\" : ["); 
         val cTContracts = new Cell[String]("  \"time contracts (sep)\" : ["); 
         val cSplits    = new Cell[String]("  \"# splits (sep)\" : ["); 
         val cReqs      = new Cell[String]("  \"# reqs (sep)\" : ["); 
         val cSends     = new Cell[String]("  \"# sends (sep)\" : ["); 
+        val gTSearch   = GlobalRef[Cell[String]](cTSearch);
         val gContracts = GlobalRef[Cell[String]](cContracts);
         val gTContracts = GlobalRef[Cell[String]](cTContracts);
         val gSplits    = GlobalRef[Cell[String]](cSplits);
         val gReqs      = GlobalRef[Cell[String]](cReqs);
         val gSends     = GlobalRef[Cell[String]](cSends);
         for (p in Place.places()) at (p) {
-            val vTEndPP = sHandle().tEndPP.get();
-            val vContacts = sHandle().nContracts.get();
-            val vSplits = sHandle().nSplits.get();
-            val vReqs = sHandle().nReqs.get();
-            val vSends = sHandle().nSends.get();
-            val vTContacts = format(sHandle().tContracts.get());
+            val vTEndPP = sHandle().tEndPP;
+            //val vContacts = sHandle().nContracts.get();
+            val vContacts = sHandle().nContracts;
+            //val vSplits = sHandle().nSplits.get();
+            val vSplits = sHandle().nSplits;
+            //val vReqs = sHandle().nReqs.get();
+            //val vSends = sHandle().nSends.get();
+            val vReqs = sHandle().nReqs;
+            val vSends = sHandle().nSends;
+            val vTSearch = format(sHandle().tSearch);
+            //val vTContacts = format(sHandle().tContracts.get());
+            val vTContacts = format(sHandle().tContracts);
             at (tEndPP.home) {
                 if (tEndPP().value < vTEndPP)
                     // TODO
                     tEndPP().value += vTEndPP - tEndPP().value;
 
+                gTSearch().set(gTSearch()() + (p == here ? "" : ", ") + vTSearch);
+                //tSearch().value += vTSearch;
+
                 gContracts().set(gContracts()() + (p == here ? "" : ", ") + vContacts);
                 nContracts().value += vContacts;
 
                 gTContracts().set(gTContracts()() + (p == here ? "" : ", ") + vTContacts);
-                tContracts().value += vTContacts;
+                //tContracts().value += vTContacts;
 
                 gSplits().set(gSplits()() + (p == here ? "\n" : ",\n") + vSplits);
                 nSplits().value += vSplits;
@@ -255,8 +272,9 @@ public class RPX10[K] {
         }
         if (tEndPP().value > time0)
             sb.add("  \"time pp (s)\" : " + format(tEndPP().value - time0) + ",\n");
+        sb.add(cTSearch() + "],\n");
         sb.add(cContracts() + "], \"# contracts\" : " + nContracts().value + ",\n");
-        sb.add(cTContracts() + "], \"time contracts (s)\" : " + tContracts().value + ",\n");
+        sb.add(cTContracts() + "],\n");
         sb.add(cContracts() + "], \"# contracts\" : " + nContracts().value + ",\n");
         sb.add(cSplits()    + "\n],    \"# splits\" : " + nSplits().value + ",\n");
         sb.add(cReqs()      + "], \"# reqs\" : " + nReqs().value + ",\n");
