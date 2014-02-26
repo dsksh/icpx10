@@ -129,10 +129,16 @@ public class RPX10[K] {
             return new PlaceAgentSeparated[K](solver);
         case 2:
             return new PlaceAgentClocked[K](solver);
-        case 4:
-            val pa1 = new PlaceAgentDelayed1[K](solver);
-            pa1.initPP(core, prec);
-            return pa1;
+        case 4: {
+            val pa = new PlaceAgentDelayed1[K](solver);
+            pa.initPP(core, prec);
+            return pa;
+        }
+        case 5: {
+            val pa = new PlaceAgentSenderInitiated[K](solver);
+            pa.initPP(core, prec);
+            return pa;
+        }
         default:
             val pa = new PlaceAgentDelayed[K](solver);
             pa.initPP(core, prec);
@@ -193,6 +199,7 @@ public class RPX10[K] {
             Console.OUT.flush();
         }
 */
+
         // print description of the solving process.
         val sb = new StringBuilder();
         val sbG = new GlobalRef[StringBuilder](sb);

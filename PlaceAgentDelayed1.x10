@@ -2,7 +2,7 @@ import x10.io.Console;
 import x10.util.*;
 import x10.util.concurrent.AtomicInteger;
 
-public class PlaceAgentDelayed1[K] extends PlaceAgentSeparated[K] {
+public class PlaceAgentDelayed1[K] extends PlaceAgentClocked[K] {
 
     static val nBoxes = 64;
     static val factor = 4;

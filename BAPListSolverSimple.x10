@@ -10,7 +10,8 @@ public class BAPListSolverSimple[K] extends BAPSolver[K] {
 
     protected def returnDom(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) {
         // add last.
-        atomic sHandle().list.add(box);
+        //atomic 
+		sHandle().list.add(box);
     }
     protected def sortDom(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         finish sHandle().list.sort(

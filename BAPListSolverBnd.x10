@@ -17,40 +17,43 @@ public class BAPListSolverBnd[K] extends BAPListSolver[K] {
     protected atomic def clearDom() {
         list1.clear();
     }
-    public def addDom(box:IntervalVec[K]) {
+    public atomic def addDom(box:IntervalVec[K]) {
         // add last.
         list1.add(box);
     }
-    public def removeDom() : IntervalVec[K] {
+    public atomic def removeDom() : IntervalVec[K] {
         return list1.removeFirst();
     }
-    public def hasDom() : Boolean {
+    public atomic def hasDom() : Boolean {
         return !list1.isEmpty();
     }
-    public def domSize() : Int {
+    public atomic def domSize() : Int {
         return list1.size();
     }
-    protected def sortDom() {
+    protected atomic def sortDom() {
         finish list1.sort(
             (b1:IntervalVec[K],b2:IntervalVec[K]) =>
                 b2.volume().compareTo(b1.volume()) );
     }
 
     protected def search(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) {
-//Console.OUT.println(here + ": search:\n" + box + '\n');
 
         // add to list if not a dummy box
         if (box.size() > 0)
             addDom(box);
 
-        // TODO: parallelize? 
+        //sortDom();
+
         while (hasDom() && domSize() < maxDomSize) {
             val dom = removeDom();
             searchBody(sHandle, dom);
         }
+
+        //sortDom();
     }
 
     protected def searchBody(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) {
+//sHandle().debugPrint(here + ": search:\n" + box + '\n');
         val res:Result = contract(sHandle, box);
 
         if (!res.hasNoSolution()) {
@@ -62,7 +65,7 @@ public class BAPListSolverBnd[K] extends BAPListSolver[K] {
                 addDom(bp.first);
                 addDom(bp.second);
 
-                sortDom();
+                //sortDom();
             }
             else {
                 sHandle().addSolution(res, box);

@@ -116,7 +116,7 @@ public class PlaceAgent[K] {
             selected = Place.places().iterator();
         val p = selected.next();
         if (p != here) {
-//Console.OUT.println(here + ": selected " + p);
+debugPrint(here + ": selected " + p);
             return p;
         }
         else
@@ -135,17 +135,18 @@ public class PlaceAgent[K] {
 
         if (id >= 0) {
             val pv:Box[K] = box.prevVar();
-atomic sHandle().debugPrint(here + ": sending box:\n" + box + '\n');
+//atomic sHandle().debugPrint(here + ": sending box:\n" + box + '\n');
 //async 
             at (Place(id)) {
                 sHandle().sentRequest.set(false);
                 box.setPrevVar(pv);
-                atomic sHandle().list.add(box);
+				atomic sHandle().list.add(box);
             }
 //Console.OUT.println(here + ": responded to " + id);
             if (id < here.id()) sentBw.set(true);
             //nSends.getAndIncrement();
             nSends++;
+
             return true;
         }
         else
@@ -165,7 +166,8 @@ atomic sHandle().debugPrint(here + ": sending box:\n" + box + '\n');
 
     public def addSolution(res:BAPSolver.Result, box:IntervalVec[K]) {
         // FIXME
-        atomic solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
+        //atomic 
+		solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
 //Console.OUT.println(here + ": solution:");
 //val plot = res.entails(BAPSolver.Result.inner()) ? 5 : 3;
 //val stringB = box.toString(plot);
@@ -204,7 +206,7 @@ time = -System.nanoTime();
                 isActive.set(true);
 initPhase = false;
                 box = list.removeFirst();
-debugPrint(here + ": got box:\n" + box);
+//debugPrint(here + ": got box:\n" + box);
             }
 
             finish solver.search(sHandle, box);

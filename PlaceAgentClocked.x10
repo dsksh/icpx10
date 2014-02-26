@@ -8,8 +8,20 @@ import x10.io.Console;
 
 public class PlaceAgentClocked[K] extends PlaceAgentSeparated[K] {
 
+	val nSearchSteps:Int;
+
     public def this(solver:BAPSolver[K]) {
         super(solver);
+
+		var nSS:Int = 0;
+		val gNSS = new GlobalRef(new Cell(nSS));
+		at (Place(0)) {
+   			val sNSS = System.getenv("RPX10_N_SEARCH_STEPS");
+			val nSS1:Int = sNSS != null ? Int.parse(sNSS) : 1;
+			at (gNSS.home) 
+				gNSS().set(nSS1);
+		}
+    	this.nSearchSteps = gNSS().value;
     }
 
     public def respondIfRequested(sHandle:PlaceLocalHandle[PlaceAgent[K]], 
@@ -27,6 +39,7 @@ public class PlaceAgentClocked[K] extends PlaceAgentSeparated[K] {
             at (Place(id)) {
                 sHandle().nSentRequests.decrementAndGet();
                 box.setPrevVar(pv);
+				//async
                 atomic {
                     sHandle().list.add(box);
 sHandle().totalVolume.addAndGet(box.volume());
@@ -36,6 +49,7 @@ sHandle().totalVolume.addAndGet(box.volume());
             if (id < here.id()) sentBw.set(true);
             //nSends.getAndIncrement();
             nSends++;
+
             return true;
         }
         else
@@ -114,34 +128,16 @@ sHandle().totalVolume.addAndGet(box.volume());
         } // finish
     }
 
-    /// cancel the received requests.
-    def cancelRequests(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
-        while (true) {
-            var id:Int = -1;
-            atomic if (reqQueue.getSize() > 0)
-                id = reqQueue.removeFirstUnsafe();
-
-            if (id >= 0) at (Place(id)) {
-                sHandle().nSentRequests.decrementAndGet();
-                //atomic sHandle().list.add(sHandle().solver.core.dummyBox());
-//sHandle().debugPrint(here + ": CR #sp: " + sHandle().nSearchPs.get() + ", #r: " + sHandle().nSentRequests.get() + ", #list: " + sHandle().list.size());
-            }
-            else break;
-        }
-    }
-
     def search(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         //finish
         //while (terminate != 3 || list.size() > 0) {
         while (terminate != 3) {
 
-            var box:IntervalVec[K] = null;
-
-debugPrint(here + ": wait...");
             if (!list.isEmpty()) {
 
-var time:Long = -System.nanoTime();
+/*var time:Long = -System.nanoTime();
 
+            	var box:IntervalVec[K] = null;
                 atomic box = list.removeFirst();
 //debugPrint(here + ": got box:\n" + box);
 initPhase = false;
@@ -166,19 +162,66 @@ debugPrint(here + ": start termination");
 
 time += System.nanoTime();
 sHandle().tSearch += time;
+*/
 
+				finish 
+				for (i in 1..nSearchSteps)
+					if (!searchBody(sHandle))
+						break;
             }
             else System.sleep(1);
 
             Clock.advanceAll();
+            Clock.advanceAll();
         }
     }
 
+	def searchBody(sHandle:PlaceLocalHandle[PlaceAgent[K]]) : Boolean {
+
+        var box:IntervalVec[K] = null;
+
+        if (!list.isEmpty()) {
+
+var time:Long = -System.nanoTime();
+
+            atomic box = list.removeFirst();
+
+//debugPrint(here + ": got box:\n" + box);
+initPhase = false;
+
+//debugPrint(here + ": load in search: " + (list.size() + nSearchPs.get()));
+//debugPrint(here + ": load in search: " + totalVolume.get());
+
+            //finish
+            solver.search(sHandle, box);
+
+//debugPrint(here + ": #sp: " + nSearchPs.get() + ", #r: " + nSentRequests.get() + ", " + terminate);
+
+time += System.nanoTime();
+sHandle().tSearch += time;
+
+            if (here.id() == 0) atomic
+                if (list.size() == 0 && terminate == 0) {
+debugPrint(here + ": start termination");
+                    terminate = 1;
+                }
+
+			return true;
+		}
+		else return false;
+	}
+
     def request(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
-		while (initPhase) Clock.advanceAll();
+		while (initPhase) {
+			Clock.advanceAll();
+			Clock.advanceAll();
+		}
 
         //while (true) {
         while (terminate != 3) {
+
+            Clock.advanceAll();
+
 debugPrint(here + ": wait requesting");
             if ((//(list.size() + nSearchPs.get()) <= requestThreshold && 
 				   totalVolume.get() <= requestThreshold &&
@@ -222,10 +265,14 @@ debugPrint(here + ": requested to " + p);
     def terminate(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         var term:Int = 0;
     
-		while (initPhase) Clock.advanceAll();
+		while (initPhase) {
+			Clock.advanceAll();
+			Clock.advanceAll();
+		}
 
         while (term != 3) {
 
+            Clock.advanceAll();
             Clock.advanceAll();
 
             var termBak:Int = 0;
@@ -281,6 +328,22 @@ debugPrint(here + ": sent token " + v + " to " + here.next());
 
 debugPrint(here + ": cancel req");
         cancelRequests(sHandle);
+    }
+
+    /// cancel the received requests.
+    def cancelRequests(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
+        while (true) {
+            var id:Int = -1;
+            atomic if (reqQueue.getSize() > 0)
+                id = reqQueue.removeFirstUnsafe();
+
+            if (id >= 0) at (Place(id)) {
+                sHandle().nSentRequests.decrementAndGet();
+                //atomic sHandle().list.add(sHandle().solver.core.dummyBox());
+//sHandle().debugPrint(here + ": CR #sp: " + sHandle().nSearchPs.get() + ", #r: " + sHandle().nSentRequests.get() + ", #list: " + sHandle().list.size());
+            }
+            else break;
+        }
     }
 }
 
