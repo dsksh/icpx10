@@ -6,14 +6,19 @@ public class PlaceAgentSenderInitiated[K] extends PlaceAgent[K] {
 
     static val nBoxes = 64;
     val minNBoxes = 32;
+    var maxDomSize:Int;
 
     val nDestinations = 2;
 
     private var tester : VariableSelector.Tester[K] = null;
-    private var solverPP : BAPListSolverBnd[K] = null;
+    private var solverPP : BAPSolverSimpleDFS[K] = null;
+    val listShared:List[IntervalVec[K]];
 
     public def this(solver:BAPSolver[K]) {
         super(solver);
+
+        listShared = new ArrayList[IntervalVec[K]]();
+        maxDomSize = nBoxes;
 
         initPhase = false;
     }
@@ -34,8 +39,9 @@ public class PlaceAgentSenderInitiated[K] extends PlaceAgent[K] {
         val select = (res:BAPSolver.Result, box:IntervalVec[K])=>selector.selectLRR(res, box);
         val select1 = (res:BAPSolver.Result, box:IntervalVec[K])=>selector.selectBoundary(select, res, box);
         
-        solverPP = new BAPListSolverBnd(core, select1, list);
-        solverPP.maxDomSize = nBoxes;
+        solverPP = new BAPSolverSimpleDFS(core, select1);
+        solverPP.setList(list);
+        //solverPP.maxDomSize = nBoxes;
     }
 
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
@@ -92,6 +98,11 @@ debugPrint(here + ": selected " + p);
         */
     }
 
+    public def respondIfRequested(sHandle:PlaceLocalHandle[PlaceAgent[K]], 
+                                  box:IntervalVec[K]) : Boolean {
+        return false;
+    }
+
 
     public def run(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
    		debugPrint(here + ": start solving... ");
@@ -116,54 +127,65 @@ debugPrint(here + ": selected " + p);
 
     var nDists:Int = here.id()+1;
 
+    def removeDom() : IntervalVec[K] {
+        return list.removeFirst();
+    }
+
     public def search(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         while (terminate != 3) {
-            //when (initPhase || list.size() >= minNBoxes) {
             var activated:Boolean = false;
-            atomic if (initPhase || list.size() >= minNBoxes) {
-debugPrint(here + ": activated: " + initPhase + ", " + list.size() + ", " + nDists);
+            atomic if (initPhase || list.size()+listShared.size() >= minNBoxes) {
+debugPrint(here + ": activated: " + initPhase + ", " + (list.size()+listShared.size()) + ", " + nDists);
                 activated = true;
 
                 initPhase = false;
 
-                /*val n = Math.min(list.size(), minNBoxes);
-                for (i in 1..n) {
-                    solverPP.addDom(list.removeFirst());
-                }*/
+                // append the two lists.
+                for (box in listShared)
+                    list.add(box);
+
+                // reset
+                listShared.clear();
             }
 
             if (activated) {
 
-            //list.sort( (b1:IntervalVec[K],b2:IntervalVec[K]) =>
-            //        b2.volume().compareTo(b1.volume()) );
+            list.sort( (b1:IntervalVec[K],b2:IntervalVec[K]) =>
+                    b2.volume().compareTo(b1.volume()) );
+debugPrint(here + ": sorted: " + list.getFirst().volume() + ", " + list.getLast().volume());
 
-            solverPP.search(sHandle, solver.core.dummyBox());
+            while (!list.isEmpty() && list.size() < maxDomSize) {
+                val box = removeDom();
+                solverPP.search(sHandle, box);
+            }
 
-debugPrint(here + ": estimate: " + Math.pow(2*distance, ((Math.log(nDists)/Math.log(2*distance)) as Int)));
-//if (Math.pow2(nDists) < Place.numPlaces()) {
-if (Math.pow(2*distance, ((Math.log(nDists)/Math.log(2*distance)) as Int)) < Place.numPlaces()) {
+            list.sort( (b1:IntervalVec[K],b2:IntervalVec[K]) =>
+                    b2.volume().compareTo(b1.volume()) );
+
+            val sizeFullTree = Math.pow(2*distance, ((Math.log(nDists)/Math.log(2*distance)) as Int));
+debugPrint(here + ": estimate: " + sizeFullTree);
+if (sizeFullTree < Place.numPlaces()) {
             nDists += Place.numPlaces();
             //finish while (solverPP.hasDom()) {
-            finish for (i in 1..solverPP.domSize()) {
-                val box = solverPP.removeDom();
+            finish for (i in 1..list.size()) {
+                val box = removeDom();
                 val pv:Box[K] = box.prevVar();
                 val p = selectPlace();
                 async at (p) {
                     box.setPrevVar(pv);
-                    atomic sHandle().list.add(box);
+                    atomic (sHandle() as PlaceAgentSenderInitiated[K]).listShared.add(box);
                 }
                 if (p.id() < here.id()) sentBw.set(true);
                 nSends++;
             }
 }
 else 
-    //solverPP.maxDomSize *= 2;
-    solverPP.maxDomSize = Math.max(minNBoxes, list.size())*2;
+    maxDomSize = Math.max(nBoxes, list.size())*2;
 
-debugPrint(here + ": search done, " + list.isEmpty());
+debugPrint(here + ": search done, " + list.size());
 
             if (here.id() == 0) atomic
-                if (list.size() == 0 && terminate == 0) {
+                if (list.isEmpty() && terminate == 0) {
 debugPrint(here + ": start termination");
                     terminate = 1;
                 }

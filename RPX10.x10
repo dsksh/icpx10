@@ -115,7 +115,7 @@ public class RPX10[K] {
             solver = new BAPListSolver[K](core, select);
             break;
         case 2:
-            solver = new BAPListSolverSimple[K](core, select);
+            solver = new BAPSolverSimpleDFS[K](core, select);
             break;
         default:
             return new PlaceAgentMSplit[K](

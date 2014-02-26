@@ -2,19 +2,24 @@
 import x10.util.*;
 import x10.io.Console; 
 
-public class BAPListSolverSimple[K] extends BAPSolver[K] {
+public class BAPSolverSimpleDFS[K] extends BAPSolver[K] {
 
     public def this(core:Core[K], selector:(Result, IntervalVec[K])=>Box[K]) {
         super(core, selector);
     }
 
-    protected def returnDom(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) {
-        // add last.
-        //atomic 
-		sHandle().list.add(box);
+    var list:List[IntervalVec[K]] = null;
+
+    public def setList(list:List[IntervalVec[K]]) {
+        this.list = list;
     }
-    protected def sortDom(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
-        finish sHandle().list.sort(
+
+    protected def returnDom(box:IntervalVec[K]) {
+        // add last.
+		atomic list.add(box);
+    }
+    protected def sortDom() {
+        finish list.sort(
             (b1:IntervalVec[K],b2:IntervalVec[K]) =>
                 b2.volume().compareTo(b1.volume()) );
     }
@@ -25,6 +30,8 @@ public class BAPListSolverSimple[K] extends BAPSolver[K] {
         // for dummy boxes
         if (box.size() == 0)
             return;
+
+        if (list == null) list = sHandle().list;
 
 val vol0 = box.volume();
         val res:Result = contract(sHandle, box);
@@ -41,9 +48,9 @@ sHandle().totalVolume.addAndGet(-vol0+vol);
                 if (sHandle().respondIfRequested(sHandle, bp.first))
                     sHandle().totalVolume.addAndGet(-vol/2);
                 else
-                    returnDom(sHandle, bp.first);
+                    returnDom(bp.first);
 
-                returnDom(sHandle, bp.second);
+                returnDom(bp.second);
             }
             else {
 sHandle().totalVolume.addAndGet(-vol0);
