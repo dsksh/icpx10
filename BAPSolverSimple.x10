@@ -2,7 +2,7 @@
 import x10.util.*;
 import x10.io.Console; 
 
-public class BAPSolverSimpleDFS[K] extends BAPSolver[K] {
+public class BAPSolverSimple[K] extends BAPSolver[K] {
 
     public def this(core:Core[K], selector:(Result, IntervalVec[K])=>Box[K]) {
         super(core, selector);
