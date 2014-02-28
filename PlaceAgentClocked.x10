@@ -13,13 +13,12 @@ public class PlaceAgentClocked[K] extends PlaceAgentSeparated[K] {
     public def this(solver:BAPSolver[K]) {
         super(solver);
 
-		var nSS:Int = 0;
-		val gNSS = new GlobalRef(new Cell(nSS));
+		val gNSS = new GlobalRef(new Cell[Int](0));
 		at (Place(0)) {
    			val sNSS = System.getenv("RPX10_N_SEARCH_STEPS");
-			val nSS1:Int = sNSS != null ? Int.parse(sNSS) : 1;
+			val nSS:Int = sNSS != null ? Int.parse(sNSS) : 1;
 			at (gNSS.home) 
-				gNSS().set(nSS1);
+				gNSS().set(nSS);
 		}
     	this.nSearchSteps = gNSS().value;
     }

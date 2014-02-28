@@ -4,11 +4,10 @@ import x10.util.concurrent.AtomicInteger;
 
 public class PlaceAgentSenderInitiated[K] extends PlaceAgent[K] {
 
-    val nBoxes = 96;
-    val minNBoxes = 32;
-    var maxDomSize:Int;
-
-    val nDestinations:Int = 3;
+    val nDestinations:Int;
+    val nBoxes:Int;
+    val nBoxesMin:Int;
+    var nBoxesMax:Int;
 
     private var tester : VariableSelector.Tester[K] = null;
     private var solverPP : BAPSolverSimple[K] = null;
@@ -17,33 +16,64 @@ public class PlaceAgentSenderInitiated[K] extends PlaceAgent[K] {
     // information of the distribution route tree.
     var idRoute:Int;
     var sizeFrontier:Int;
-    var sizeRouteTree:Int;
+    //var sizeRouteTree:Int;
+    val sizeRouteTree:List[Int];
 
     var minVolume:Double;
 
     public def this(solver:BAPSolver[K]) {
         super(solver);
 
-        listShared = new ArrayList[IntervalVec[K]]();
-        maxDomSize = nBoxes;
+		val gND = new GlobalRef(new Cell[Int](0));
+		val gNBM = new GlobalRef(new Cell[Int](0));
+		val gDD = new GlobalRef(new Cell[Int](0));
+		at (Place(0)) {
+   			val sND = System.getenv("RPX10_N_DESTINATIONS");
+   			val sNBM = System.getenv("RPX10_N_BOXES_MIN");
+   			val sDD = System.getenv("RPX10_DIST_DELAY");
+			val nD:Int = sND != null ? Int.parse(sND) : 2;
+			val nBM:Int = sNBM != null ? Int.parse(sNBM) : 32;
+			val nDD:Int = sDD != null ? Int.parse(sDD) : 0;
+			at (gND.home) {
+				gND().set(nD);
+				gNBM().set(nBM);
+				gDD().set(nDD);
+            }
+		}
+    	nDestinations = gND().value;
+    	nBoxesMin = gNBM().value;
+    	val distDelay = gDD().value;
+        nBoxes = nBoxesMin * nDestinations;
+        nBoxesMax = nBoxes;
 
-        initPhase = false;
+        listShared = new ArrayList[IntervalVec[K]]();
+
+        val sizeRTCache = new ArrayList[Int](distDelay);
+        for (0..(distDelay-1))
+            sizeRTCache.add(1);
 
         idRoute = here.id()+1;
         sizeFrontier = nDestinations;
-        sizeRouteTree = 1;
-        while (sizeRouteTree < idRoute) {
-            sizeRouteTree += sizeFrontier;
+        var sizeRT:Int = 1;
+        while (sizeRT < idRoute) {
+            sizeRT += sizeFrontier;
             sizeFrontier *= nDestinations;
         }
+        sizeRTCache.add(sizeRT);
+
+        sizeRouteTree = sizeRTCache;
+
+        initPhase = false;
     }
 
     def updateSizeRouteTree() {
         idRoute += Place.numPlaces();
-        while (sizeRouteTree < idRoute) {
-            sizeRouteTree += sizeFrontier;
+        var sizeRT:Int = sizeRouteTree.removeFirst();
+        while (sizeRT < idRoute) {
+            sizeRT += sizeFrontier;
             sizeFrontier *= nDestinations;
         }
+        sizeRouteTree.add(sizeRT);
     }
 
     public def initPP(core:BAPSolver.Core[K], prec:Double) {
@@ -53,10 +83,6 @@ public class PlaceAgentSenderInitiated[K] extends PlaceAgent[K] {
         tester = new VariableSelector.Tester[K]();
         val test = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => 
                         tester.testPrec(prec, res, box, v);
-        //val test1 = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => 
-        //                tester.testNSplits(test, maxNSplits, res, box, v);
-        //val test1 = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => 
-        //                tester.testLSize(test, solverPP, res, box, v);
 
         val selector = new VariableSelector[K](test);
         val select = (res:BAPSolver.Result, box:IntervalVec[K])=>selector.selectLRR(res, box);
@@ -64,7 +90,7 @@ public class PlaceAgentSenderInitiated[K] extends PlaceAgent[K] {
         
         solverPP = new BAPSolverSimpleUnsafe(core, select1);
         solverPP.setList(list);
-        //solverPP.maxDomSize = nBoxes;
+        //solverPP.nBoxesMax = nBoxes;
     }
 
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
@@ -79,26 +105,15 @@ public class PlaceAgentSenderInitiated[K] extends PlaceAgent[K] {
     private var selected:Iterator[Int] = null;
 
     protected def selectPlace() : Place {
-        /*var id:Int;
-        id = random.nextInt(nDestinations);
-        id = (id + (2*here.id()+1)) % Place.numPlaces();
-debugPrint(here + ": selected " + id);
-        return Place(id);
-        */
+        //var id:Int = random.nextInt(nDestinations-1);
 
         if (selected == null || !selected.hasNext()) 
             selected = (0..(nDestinations-1)).iterator();
         var id:Int = selected.next();
+
         id = (id + (nDestinations*here.id()+1)) % Place.numPlaces();
 //debugPrint(here + ": selected " + id);
         return Place(id);
-
-        /*if (selected == null || !selected.hasNext())
-            selected = Place.places().iterator();
-        val p = selected.next();
-debugPrint(here + ": selected " + p);
-        return p;
-        */
     }
 
     public def respondIfRequested(sHandle:PlaceLocalHandle[PlaceAgent[K]], 
@@ -124,20 +139,10 @@ debugPrint(here + ": selected " + p);
         } // finish
     }
 
-    def removeDom() : IntervalVec[K] {
-        return list.removeFirst();
-    }
-
-    def sortDom() {
-        list.sort(
-            (b1:IntervalVec[K],b2:IntervalVec[K]) =>
-                b2.volume().compareTo(b1.volume()) );
-    }
-
     public def search(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         while (terminate != 3) {
             var activated:Boolean = false;
-            atomic if (initPhase || list.size()+listShared.size() >= minNBoxes) {
+            atomic if (initPhase || list.size()+listShared.size() >= nBoxesMin) {
 debugPrint(here + ": activated: " + initPhase + ", " + (list.size()+listShared.size()) + ", " + idRoute);
                 activated = true;
 
@@ -155,7 +160,7 @@ debugPrint(here + ": activated: " + initPhase + ", " + (list.size()+listShared.s
 
                 sortDom();
     
-                while (!list.isEmpty() && list.size() < maxDomSize) {
+                while (!list.isEmpty() && list.size() < nBoxesMax) {
                     val box = removeDom();
                     solverPP.search(sHandle, box);
                 }
@@ -164,7 +169,7 @@ debugPrint(here + ": activated: " + initPhase + ", " + (list.size()+listShared.s
     
                 //val sizeFullTree = (idRoute >= 0) ? Math.pow(nDestinations, ((Math.log(idRoute)/Math.log(nDestinations)) as Int)+1) as Int : 1;
 //debugPrint(here + ": estimate: " + sizeRouteTree);
-                if (sizeRouteTree < Place.numPlaces()) {
+                if (sizeRouteTree.getFirst() < Place.numPlaces()) {
                     updateSizeRouteTree();
                     finish for (i in 1..list.size()) {
                         val box = removeDom();
@@ -177,9 +182,10 @@ debugPrint(here + ": activated: " + initPhase + ", " + (list.size()+listShared.s
                         if (p.id() < here.id()) sentBw.set(true);
                         nSends++;
                     }
+sHandle().tEndPP = System.nanoTime();
                 }
                 else {
-                    maxDomSize = Math.max(nBoxes, list.size())*2;
+                    nBoxesMax = Math.max(nBoxes, list.size())*2;
                 }
 
 debugPrint(here + ": search done, " + list.size());

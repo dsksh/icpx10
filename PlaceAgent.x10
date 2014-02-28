@@ -125,6 +125,16 @@ debugPrint(here + ": selected " + p);
 
     public def getSolutions() : List[Pair[BAPSolver.Result,IntervalVec[K]]] { return solutions; }
 
+    protected def removeDom() : IntervalVec[K] {
+        return list.removeFirst();
+    }
+
+    protected def sortDom() {
+        list.sort(
+            (b1:IntervalVec[K],b2:IntervalVec[K]) =>
+                b2.volume().compareTo(b1.volume()) );
+    }
+
     public def respondIfRequested(sHandle:PlaceLocalHandle[PlaceAgent[K]], 
                                   box:IntervalVec[K]) : Boolean {
         var id:Int = -1;
