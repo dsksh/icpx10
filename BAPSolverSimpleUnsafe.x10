@@ -8,6 +8,10 @@ public class BAPSolverSimpleUnsafe[K] extends BAPSolverSimple[K] {
         super(core, selector);
     }
 
+    public def this(core:Core[K], selector:(Result, IntervalVec[K])=>Box[K], list:List[IntervalVec[K]]) {
+        super(core, selector, list);
+    }
+
     protected def returnDom(box:IntervalVec[K]) {
         // add last.
 		list.add(box);

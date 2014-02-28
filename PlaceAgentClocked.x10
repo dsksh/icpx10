@@ -10,6 +10,10 @@ public class PlaceAgentClocked[K] extends PlaceAgentSeparated[K] {
 
 	val nSearchSteps:Int;
 
+    val listShared:List[IntervalVec[K]];
+
+    var preprocessor:Preprocessor[K] = null;
+
     public def this(solver:BAPSolver[K]) {
         super(solver);
 
@@ -21,6 +25,25 @@ public class PlaceAgentClocked[K] extends PlaceAgentSeparated[K] {
 				gNSS().set(nSS);
 		}
     	this.nSearchSteps = gNSS().value;
+
+        listShared = new ArrayList[IntervalVec[K]]();
+
+        initPhase = true;
+    }
+
+    public def setPreprocessor(pp:Preprocessor[K]) {
+        this.preprocessor = pp;
+    }
+
+    public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) { 
+        if (preprocessor != null) {
+		val box = solver.core.getInitialDomain();
+totalVolume.addAndGet(box.volume());
+            list.add(box);
+            preprocessor.setup(sHandle);
+        }
+        else
+            super.setup(sHandle);
     }
 
     public def respondIfRequested(sHandle:PlaceLocalHandle[PlaceAgent[K]], 
@@ -53,6 +76,10 @@ sHandle().totalVolume.addAndGet(box.volume());
         }
         else
             return false;
+    }
+
+    public atomic def addDom(box:IntervalVec[K]) {
+        return listShared.add(box);
     }
 
 /*    public def respondIfRequested(sHandle:PlaceLocalHandle[PlaceAgent[K]], 
@@ -122,9 +149,12 @@ sHandle().totalVolume.addAndGet(box.volume());
             clocked async terminate(sHandle);
     
             // cancelling task
-            async cancelOnTermination(sHandle);
+            //async cancelOnTermination(sHandle);
 
         } // finish
+
+        // cancelling task
+        cancelRequests(sHandle);
     }
 
     def search(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
@@ -132,51 +162,39 @@ sHandle().totalVolume.addAndGet(box.volume());
         //while (terminate != 3 || list.size() > 0) {
         while (terminate != 3) {
 
-            if (!list.isEmpty()) {
+            if (preprocessor == null || !preprocessor.process(sHandle)) {
 
-/*var time:Long = -System.nanoTime();
+                var activated:Boolean = false;
+                atomic if (initPhase || list.size()+listShared.size() > 0) {
+debugPrint(here + ": activated: " + initPhase + ", " + list.size()+","+listShared.size());
+                    activated = true;
+    
+                    initPhase = false;
 
-            	var box:IntervalVec[K] = null;
-                atomic box = list.removeFirst();
-//debugPrint(here + ": got box:\n" + box);
-initPhase = false;
+                    // append the two lists.
+                    for (box in listShared)
+                        list.add(box);
+    
+                    // reset
+                    listShared.clear();
+                }
 
-//debugPrint(here + ": load in search: " + (list.size() + nSearchPs.get()));
-//debugPrint(here + ": load in search: " + totalVolume.get());
-
-                finish
-                solver.search(sHandle, box);
-
-//debugPrint(here + ": #sp: " + nSearchPs.get() + ", #r: " + nSentRequests.get() + ", " + terminate);
-
-                if (here.id() == 0) atomic
-                    if (list.size() == 0
-                        //&& nSearchPs.get() == 0
-                        //&& nSentRequests.get() == 0 
-                        //&& (terminate == 0 || terminate == 4)) {
-                        && terminate == 0) {
-debugPrint(here + ": start termination");
-                        terminate = 1;
-                    }
-
-time += System.nanoTime();
-sHandle().tSearch += time;
-*/
-
-				finish 
-				for (i in 1..nSearchSteps)
-					if (!searchBody(sHandle))
-						break;
+                if (activated) {
+                	finish 
+                	for (1..nSearchSteps)
+                		if (!searchBody(sHandle))
+                			break;
+                }
+                else
+                    System.sleep(1);
             }
-            else System.sleep(1);
-
+    
             Clock.advanceAll();
             Clock.advanceAll();
         }
     }
 
 	def searchBody(sHandle:PlaceLocalHandle[PlaceAgent[K]]) : Boolean {
-
         var box:IntervalVec[K] = null;
 
         if (!list.isEmpty()) {
@@ -185,7 +203,7 @@ var time:Long = -System.nanoTime();
 
             atomic box = list.removeFirst();
 
-//debugPrint(here + ": got box:\n" + box);
+debugPrint(here + ": got box:\n" + box);
 initPhase = false;
 
 //debugPrint(here + ": load in search: " + (list.size() + nSearchPs.get()));

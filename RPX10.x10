@@ -135,8 +135,9 @@ public class RPX10[K] {
             return pa;
         }
         case 5: {
-            val pa = new PlaceAgentSenderInitiated[K](solver);
-            pa.initPP(core, prec);
+            val pa = new PlaceAgentClocked[K](solver);
+            val pp = new Preprocessor[K](core, prec, pa);
+            pa.setPreprocessor(pp);
             return pa;
         }
         default:

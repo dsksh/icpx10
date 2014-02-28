@@ -81,7 +81,9 @@ public class PlaceAgent[K] {
 
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) { 
 //Console.OUT.println(here + ": initD: " + solver.core.getInitialDomain());
-        list.add(solver.core.getInitialDomain());
+		val box = solver.core.getInitialDomain();
+totalVolume.addAndGet(box.volume());
+        list.add(box);
 
         var dst:Int = 0;
         var pow2:Int = 1;

@@ -8,6 +8,11 @@ public class BAPSolverSimple[K] extends BAPSolver[K] {
         super(core, selector);
     }
 
+    public def this(core:Core[K], selector:(Result, IntervalVec[K])=>Box[K], list:List[IntervalVec[K]]) {
+        this(core, selector);
+        this.list = list;
+    }
+
     var list:List[IntervalVec[K]] = null;
 
     public def setList(list:List[IntervalVec[K]]) {
@@ -33,7 +38,7 @@ public class BAPSolverSimple[K] extends BAPSolver[K] {
 
         if (list == null) list = sHandle().list;
 
-val vol0 = box.volume();
+sHandle().totalVolume.addAndGet(-box.volume());
         val res:Result = contract(sHandle, box);
 
         if (!res.hasNoSolution()) {
@@ -43,7 +48,7 @@ val vol0 = box.volume();
                 //sHandle().nSplits.getAndIncrement();
                 sHandle().nSplits++;
 val vol = box.volume();
-sHandle().totalVolume.addAndGet(-vol0+vol);
+sHandle().totalVolume.addAndGet(vol);
 
                 if (sHandle().respondIfRequested(sHandle, bp.first))
                     sHandle().totalVolume.addAndGet(-vol/2);
@@ -53,12 +58,9 @@ sHandle().totalVolume.addAndGet(-vol0+vol);
                 returnDom(bp.second);
             }
             else {
-sHandle().totalVolume.addAndGet(-vol0);
                 sHandle().addSolution(res, box);
             }
         }
-        else 
-sHandle().totalVolume.addAndGet(-vol0);
     }
 }
 
