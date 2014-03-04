@@ -21,10 +21,10 @@ public class BAPSolverSimple[K] extends BAPSolver[K] {
 
     protected def returnDom(box:IntervalVec[K]) {
         // add last.
-		atomic list.add(box);
+		list.add(box);
     }
     protected def sortDom() {
-        finish list.sort(
+        list.sort(
             (b1:IntervalVec[K],b2:IntervalVec[K]) =>
                 b2.volume().compareTo(b1.volume()) );
     }

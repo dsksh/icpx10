@@ -149,21 +149,22 @@ sHandle().debugPrint(here + ": activated: " + initPhase + ", " + list.size() + "
 
             sHandle().sortDom();
 
-            finish for (i in 1..list.size()) {
+            finish for (1..list.size()) {
                 val box = sHandle().removeDom();
+//sHandle().debugPrint(here + ": sending box:\n" + box);
                 val pv:Box[K] = box.prevVar();
                 val p = selectPlace();
 sHandle().debugPrint(here + ": selected: " + p);
 val b = (p != here);
-val vol = box.volume();
-if (b) sHandle().totalVolume.addAndGet(-vol);
+//val vol = box.volume();
+//if (b) sHandle().totalVolume.addAndGet(-vol);
                 async at (p) {
                     box.setPrevVar(pv);
-                    (sHandle() as PlaceAgentClocked[K]).addDom(box);
-if (b) sHandle().totalVolume.addAndGet(vol);
+                    (sHandle() as PlaceAgentClocked[K]).addDomShared(box);
+//if (b) sHandle().totalVolume.addAndGet(vol);
                 }
+                if (b) sHandle().nSends++;
                 if (p.id() < here.id()) sHandle().sentBw.set(true);
-                sHandle().nSends++;
             }
 sHandle().tEndPP = System.nanoTime();
 

@@ -129,7 +129,7 @@ public class PlaceAgentSenderInitiated[K] extends PlaceAgentClocked[K] {
 
     var phasePre:Boolean = true;
 
-    public def searchBody(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
+    public def searchBody(sHandle:PlaceLocalHandle[PlaceAgent[K]]) : Boolean {
             var activated:Boolean = false;
             atomic if (initPhase || list.size()+listShared.size() > 0) {
 debugPrint(here + ": activated: " + initPhase + ", " + list.size()+","+listShared.size());
@@ -192,7 +192,7 @@ debugPrint(here + ": start termination");
         }
         else 
             //paPost.searchBody(sHandle);
-            super.searchBody(sHandle);
+            return super.searchBody(sHandle);
     }
 
     def request(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
