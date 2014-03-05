@@ -13,23 +13,21 @@ public class PlaceAgentClockedRequest[K] extends PlaceAgentClocked[K] {
         var id:Int = -1;
         atomic if (reqQueue.getSize() > 0) {
             id = reqQueue.removeFirstUnsafe();
-//Console.OUT.println(here + ": got req from: " + id);
+//sHandle().debugPrint(here + ": got req from: " + id);
         }
 
         if (id >= 0) {
             val pv:Box[K] = box.prevVar();
 //sHandle().debugPrint(here + ": sending box:\n" + box + '\n');
-//async 
-            at (Place(id)) {
+            val p = Place(id);
+            async at (p) {
                 sHandle().nSentRequests.decrementAndGet();
                 box.setPrevVar(pv);
-				//async
-                atomic {
-                    sHandle().list.add(box);
+                //(sHandle() as PlaceAgentClocked[K]).addDomShared(box);
+                atomic (sHandle() as PlaceAgentClocked[K]).listShared.add(box);
 sHandle().totalVolume.addAndGet(box.volume());
-                }
             }
-//Console.OUT.println(here + ": responded to " + id);
+//sHandle().debugPrint(here + ": responded to " + id);
             if (id < here.id()) sentBw.set(true);
             //nSends.getAndIncrement();
             nSends++;
@@ -71,7 +69,7 @@ sHandle().totalVolume.addAndGet(box.volume());
 
             Clock.advanceAll();
 
-debugPrint(here + ": wait requesting");
+//debugPrint(here + ": wait requesting");
             if ((//(list.size() + nSearchPs.get()) <= requestThreshold && 
 				   totalVolume.get() <= requestThreshold &&
                    nSentRequests.get() < maxNRequests)
@@ -87,17 +85,16 @@ debugPrint(here + ": wait requesting");
 //            }
 
                 // cancel the received requests.
-                if (!initPhase && list.size() == 0 //&& nSearchPs.get() == 0
-                ) 
+                if (list.size() == 0) 
                     cancelRequests(sHandle);
     
                 // request for a domain
                 if (Place.numPlaces() > 1 //&& nSentRequests.getAndIncrement() == 0
                     ) {
-                    val id = here.id();
                     val p = selectPlace();
 debugPrint(here + ": select place to request: " + p);
-                    at (p) //if (sHandle().terminate != 3) 
+                    val id = here.id();
+                    async at (p) //if (sHandle().terminate != 3) 
                         sHandle().reqQueue.addLast(id);
 debugPrint(here + ": requested to " + p);
                     //nReqs.getAndIncrement();

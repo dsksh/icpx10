@@ -100,20 +100,22 @@ public class Preprocessor[K] {
     }
 
     private val random:Random = new Random(System.nanoTime());
-    private var selected:Iterator[Int] = null;
+    private var selectedPid:Int = 0;
 
     protected def selectPlace() : Place {
         // random selection.
-        //var id:Int = random.nextInt(nDestinations-1);
+        //val id = random.nextInt(nDestinations-1);
 
         // round-robin selection.
-        if (selected == null || !selected.hasNext()) 
-            selected = (0..(nDestinations-1)).iterator();
-        var id:Int = selected.next();
+        if (selectedPid == nDestinations) selectedPid = 0;
+        val id = selectedPid++ % nDestinations;
 
-        id = (id + (nDestinations*here.id()+1)) % Place.numPlaces();
-//debugPrint(here + ": selected " + id);
-        return Place(id);
+        //if (selected == null || !selected.hasNext()) 
+        //    //selected = (0..(nDestinations-1)).iterator();
+        //    selected = (0..Int.MAX_VALUE).iterator();
+        //var id:Int = selected.next() % nDestinations;
+
+        return Place( (id + (nDestinations*here.id()+1)) % Place.numPlaces() );
     }
 
     public def process(sHandle:PlaceLocalHandle[PlaceAgent[K]]) : Boolean {
@@ -139,34 +141,35 @@ sHandle().debugPrint(here + ": activated: " + initPhase + ", " + (list.size()+li
         if (activated) {
 sHandle().debugPrint(here + ": activated: " + initPhase + ", " + list.size() + ", " + idRoute);
 
-            sHandle().sortDom();
+            //sHandle().sortDom();
 
             // perform BFS.
             while (!list.isEmpty() && list.size() < nBoxesMax) {
-                val box = sHandle().removeDom();
+                //val box = sHandle().removeDom();
+                val box = list.removeFirst();
                 solver.search(sHandle, box);
             }
 
-            sHandle().sortDom();
+            //sHandle().sortDom();
 
             finish for (1..list.size()) {
-                val box = sHandle().removeDom();
+                //val box = sHandle().removeDom();
+                val box = list.removeFirst();
 //sHandle().debugPrint(here + ": sending box:\n" + box);
                 val pv:Box[K] = box.prevVar();
                 val p = selectPlace();
 sHandle().debugPrint(here + ": selected: " + p);
 val b = (p != here);
-//val vol = box.volume();
-//if (b) sHandle().totalVolume.addAndGet(-vol);
+val vol = box.volume();
+if (b) sHandle().totalVolume.addAndGet(-vol);
                 async at (p) {
                     box.setPrevVar(pv);
                     (sHandle() as PlaceAgentClocked[K]).addDomShared(box);
-//if (b) sHandle().totalVolume.addAndGet(vol);
+if (b) sHandle().totalVolume.addAndGet(vol);
                 }
                 if (b) sHandle().nSends++;
                 if (p.id() < here.id()) sHandle().sentBw.set(true);
             }
-sHandle().tEndPP = System.nanoTime();
 
             updateSizeRouteTree();
 
@@ -179,6 +182,8 @@ sHandle().debugPrint(here + ": search done, " + list.size());
 //                }
         }
         else System.sleep(1);
+
+sHandle().tEndPP = System.nanoTime();
 
         return true;
     }

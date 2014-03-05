@@ -103,7 +103,8 @@ totalVolume.addAndGet(box.volume());
             Console.OUT.println(msg);
     }
 
-    private var selected:Iterator[Place] = null;
+    //private var selected:Iterator[Place] = null;
+    private var selectedPid:Int = 0;
 
     protected def selectPlace() : Place {
 /*        var id:Int;
@@ -114,9 +115,8 @@ totalVolume.addAndGet(box.volume());
         return Place(id);
 */
 
-        if (selected == null || !selected.hasNext())
-            selected = Place.places().iterator();
-        val p = selected.next();
+        if (selectedPid == Place.numPlaces()) selectedPid = 0;
+        val p = Place( selectedPid++ % Place.numPlaces() );
         if (p != here) {
 debugPrint(here + ": selected " + p);
             return p;
@@ -147,7 +147,7 @@ debugPrint(here + ": selected " + p);
 
         if (id >= 0) {
             val pv:Box[K] = box.prevVar();
-atomic sHandle().debugPrint(here + ": sending box:\n" + box + '\n');
+sHandle().debugPrint(here + ": sending box:\n" + box + '\n');
 //async 
             at (Place(id)) {
                 sHandle().sentRequest.set(false);

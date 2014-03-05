@@ -24,17 +24,20 @@ public class PlaceAgentClocked[K] extends PlaceAgentSeparated[K] {
 
         listShared = new ArrayList[IntervalVec[K]]();
 
+        // TODO
         //initPhase = true;
         initPhase = false;
     }
 
     public def setPreprocessor(pp:Preprocessor[K]) {
         this.preprocessor = pp;
+        // TODO
+        initPhase = true;
     }
 
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) { 
         if (preprocessor != null) {
-		val box = solver.core.getInitialDomain();
+    		val box = solver.core.getInitialDomain();
 totalVolume.addAndGet(box.volume());
             list.add(box);
             preprocessor.setup(sHandle);
@@ -93,7 +96,8 @@ totalVolume.addAndGet(box.volume());
             if (preprocessor == null || !preprocessor.process(sHandle)) {
 
                 var activated:Boolean = false;
-                atomic if (initPhase || list.size()+listShared.size() > 0) {
+                atomic if 
+                (initPhase || list.size()+listShared.size() > 0) {
 debugPrint(here + ": activated: " + initPhase + ", " + list.size()+","+listShared.size());
                     activated = true;
     

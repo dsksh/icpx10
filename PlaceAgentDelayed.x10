@@ -90,6 +90,7 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
                 //tester.maxLSize = solverPP.domSize() * 2;
                 solverPP.maxDomSize = solverPP.domSize() * 2;
                 solverPP.search(sHandle, solver.core.dummyBox());
+//sHandle().tEndPP = System.nanoTime();
 
 //                finish list.sort(
 //                    (b1:IntervalVec[K],b2:IntervalVec[K]) =>

@@ -128,14 +128,15 @@ public class RPX10[K] {
         case 1:
             return new PlaceAgentSeparated[K](solver);
         case 2:
-            return new PlaceAgentClocked[K](solver);
+            return new PlaceAgentClockedRequest[K](solver);
         case 4: {
-            val pa = new PlaceAgentDelayed1[K](solver);
-            pa.initPP(core, prec);
+            val pa = new PlaceAgentClocked[K](solver);
+            val pp = new Preprocessor[K](core, prec, pa);
+            pa.setPreprocessor(pp);
             return pa;
         }
         case 5: {
-            val pa = new PlaceAgentClocked[K](solver);
+            val pa = new PlaceAgentClockedRequest[K](solver);
             val pp = new Preprocessor[K](core, prec, pa);
             pa.setPreprocessor(pp);
             return pa;
@@ -256,8 +257,9 @@ public class RPX10[K] {
             val vTContacts = format(sHandle().tContracts);
             at (tEndPP.home) {
                 if (tEndPP().value < vTEndPP)
-                    // TODO
                     tEndPP().value += vTEndPP - tEndPP().value;
+                    // TODO: this becomes a contraint error.
+                    //tEndPP().value = vTEndPP;
 
                 gTSearch().set(gTSearch()() + (p == here ? "" : ", ") + vTSearch);
                 //tSearch().value += vTSearch;
