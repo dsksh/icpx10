@@ -97,6 +97,7 @@ totalVolume.addAndGet(box.volume());
 
                 var activated:Boolean = false;
                 atomic if 
+                //when
                 (initPhase || list.size()+listShared.size() > 0) {
 debugPrint(here + ": activated: " + initPhase + ", " + list.size()+","+listShared.size());
                     activated = true;
@@ -119,7 +120,7 @@ debugPrint(here + ": activated: " + initPhase + ", " + list.size()+","+listShare
                     }
                 }
                 else
-                    System.sleep(1);
+                    System.sleep(10);
             }
     
             Clock.advanceAll();
