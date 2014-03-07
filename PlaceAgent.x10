@@ -308,7 +308,6 @@ atomic {
                     //nReqs.getAndIncrement();
                     nReqs++;
                 }
-
 //}
 //}
 

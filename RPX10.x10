@@ -131,8 +131,8 @@ public class RPX10[K] {
             //return new PlaceAgentClockedRequest[K](solver);
             return new PlaceAgentClockedSI[K](solver);
         case 4: {
-            val pa = new PlaceAgentClocked[K](solver);
-            val pp = new Preprocessor[K](core, prec, pa);
+            val pa = new PlaceAgentSeq[K](solver);
+            val pp = new PreprocessorSeq[K](core, prec, pa);
             pa.setPreprocessor(pp);
             return pa;
         }
@@ -143,8 +143,8 @@ public class RPX10[K] {
             return pa;
         }
         case 6: {
-            val pa = new PlaceAgentClockedRequest[K](solver);
-            val pp = new Preprocessor[K](core, prec, pa);
+            val pa = new PlaceAgentSeqRI[K](solver);
+            val pp = new PreprocessorSeq[K](core, prec, pa);
             pa.setPreprocessor(pp);
             return pa;
         }
@@ -192,22 +192,25 @@ public class RPX10[K] {
 
         var time:Long = System.nanoTime() - time0;
 
-/*        // print solutions
-        Console.OUT.println(); 
-        for (p in Place.places()) at (p) {
+        // print solutions
+        /*Console.OUT.println(); 
+        for (p in Place.places()) { 
+		at (p) {
             val ss = sHandle().getSolutions();
             val it = ss.iterator();
-            while (it.hasNext()) atomic {
+            while (it.hasNext()) {
                 val pair = it.next();
                 val plot = pair.first.entails(BAPSolver.Result.inner()) ? 5 : 3;
                 val stringB = pair.second.toString(plot);
+at (Place(0)) {
                 Console.OUT.println(stringB);
                 Console.OUT.println(); 
-//                Console.OUT.flush();
+                Console.OUT.flush();
+}
             }
-            Console.OUT.flush();
         }
-*/
+	        Console.OUT.flush();
+        }*/
 
         // print description of the solving process.
         val sb = new StringBuilder();
@@ -230,19 +233,21 @@ public class RPX10[K] {
         sb.add(" \"# sols\" : " + nSols().value + ",\n");
 
         // sum up the # contracts at each place
-        val tEndPP     = new GlobalRef(new Cell(0l));
+        val tEndPP     = new GlobalRef(new Cell(0.));
         //val tSearch    = new GlobalRef(new Cell(0.));
         val nContracts = new GlobalRef(new Cell(0));
         //val tContracts = new GlobalRef(new Cell(0.));
         val nSplits    = new GlobalRef(new Cell(0));
         val nReqs      = new GlobalRef(new Cell(0));
         val nSends     = new GlobalRef(new Cell(0));
+        val cTEndPP	   = new Cell[String]("  \"time pp (sep)\" : ["); 
         val cTSearch   = new Cell[String]("  \"time search (sep)\" : ["); 
         val cContracts = new Cell[String]("  \"# contracts (sep)\" : ["); 
         val cTContracts = new Cell[String]("  \"time contracts (sep)\" : ["); 
         val cSplits    = new Cell[String]("  \"# splits (sep)\" : ["); 
         val cReqs      = new Cell[String]("  \"# reqs (sep)\" : ["); 
         val cSends     = new Cell[String]("  \"# sends (sep)\" : ["); 
+        val gTEndPP    = GlobalRef[Cell[String]](cTEndPP);
         val gTSearch   = GlobalRef[Cell[String]](cTSearch);
         val gContracts = GlobalRef[Cell[String]](cContracts);
         val gTContracts = GlobalRef[Cell[String]](cTContracts);
@@ -250,7 +255,7 @@ public class RPX10[K] {
         val gReqs      = GlobalRef[Cell[String]](cReqs);
         val gSends     = GlobalRef[Cell[String]](cSends);
         for (p in Place.places()) at (p) {
-            val vTEndPP = sHandle().tEndPP;
+            val vTEndPP = format(sHandle().tEndPP);
             //val vContacts = sHandle().nContracts.get();
             val vContacts = sHandle().nContracts;
             //val vSplits = sHandle().nSplits.get();
@@ -263,6 +268,8 @@ public class RPX10[K] {
             //val vTContacts = format(sHandle().tContracts.get());
             val vTContacts = format(sHandle().tContracts);
             at (tEndPP.home) {
+                gTEndPP().set(gTEndPP()() + (p == here ? "" : ", ") + vTEndPP);
+
                 if (tEndPP().value < vTEndPP)
                     tEndPP().value += vTEndPP - tEndPP().value;
                     // TODO: this becomes a contraint error.
@@ -287,8 +294,11 @@ public class RPX10[K] {
                 nSends().value += vSends;
             }
         }
-        if (tEndPP().value > time0)
-            sb.add("  \"time pp (s)\" : " + format(tEndPP().value - time0) + ",\n");
+        sb.add(cTEndPP() + "],\n");
+        //if (tEndPP().value > time0)
+        //    sb.add("  \"time pp (s)\" : " + format(tEndPP().value - time0) + ",\n");
+        if (tEndPP().value > 0.)
+        	sb.add("  \"time pp (s)\" : " + tEndPP().value + ",\n");
         sb.add(cTSearch() + "],\n");
         sb.add(cContracts() + "], \"# contracts\" : " + nContracts().value + ",\n");
         sb.add(cTContracts() + "],\n");
