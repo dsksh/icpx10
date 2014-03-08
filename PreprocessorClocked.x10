@@ -1,6 +1,6 @@
 import x10.util.*;
 
-public class Preprocessor[K] {
+public class PreprocessorClocked[K] {
 
     static def initSolver[K](core:BAPSolver.Core[K], prec:Double) {
 

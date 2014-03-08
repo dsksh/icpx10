@@ -8,7 +8,7 @@ public class PlaceAgentClocked[K] extends PlaceAgentSeparated[K] {
 
     val listShared:List[IntervalVec[K]];
 
-    var preprocessor:Preprocessor[K] = null;
+    var preprocessor:PreprocessorClocked[K] = null;
 
     public def this(solver:BAPSolver[K]) {
         super(solver);
@@ -29,7 +29,7 @@ public class PlaceAgentClocked[K] extends PlaceAgentSeparated[K] {
         initPhase = false;
     }
 
-    public def setPreprocessor(pp:Preprocessor[K]) {
+    public def setPreprocessor(pp:PreprocessorClocked[K]) {
         this.preprocessor = pp;
         // TODO
         initPhase = true;

@@ -138,7 +138,7 @@ public class RPX10[K] {
         }
         case 5: {
             val pa = new PlaceAgentClockedSI[K](solver);
-            val pp = new Preprocessor[K](core, prec, pa);
+            val pp = new PreprocessorClocked[K](core, prec, pa);
             pa.setPreprocessor(pp);
             return pa;
         }
