@@ -148,6 +148,12 @@ public class RPX10[K] {
             pa.setPreprocessor(pp);
             return pa;
         }
+        case 7: {
+            val pa = new PlaceAgentSeqSI[K](solver);
+            val pp = new PreprocessorSeq[K](core, prec, pa);
+            pa.setPreprocessor(pp);
+            return pa;
+        }
         default:
             val pa = new PlaceAgentDelayed[K](solver);
             pa.initPP(core, prec);

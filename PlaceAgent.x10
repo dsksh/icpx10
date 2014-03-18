@@ -41,7 +41,7 @@ public class PlaceAgent[K] {
     public var nSends:Int = 0;
     //public var nBranches:AtomicInteger = new AtomicInteger(0);
 
-    private random:Random;
+    protected random:Random;
 
     // kludge for a success of compilation
     val dummy:Double;
