@@ -126,7 +126,8 @@ public class RPX10[K] {
         case 0:
             return new PlaceAgent[K](solver);
         case 1:
-            return new PlaceAgentSeparated[K](solver);
+            //return new PlaceAgentSeparated[K](solver);
+            return new PlaceAgentSeqSI[K](solver);
         case 2:
             //return new PlaceAgentClockedRequest[K](solver);
             return new PlaceAgentClockedSI[K](solver);
@@ -143,13 +144,13 @@ public class RPX10[K] {
             return pa;
         }
         case 6: {
-            val pa = new PlaceAgentSeqRI[K](solver);
+            val pa = new PlaceAgentSeqSI[K](solver);
             val pp = new PreprocessorSeq[K](core, prec, pa);
             pa.setPreprocessor(pp);
             return pa;
         }
         case 7: {
-            val pa = new PlaceAgentSeqSI[K](solver);
+            val pa = new PlaceAgentSeqRI[K](solver);
             val pp = new PreprocessorSeq[K](core, prec, pa);
             pa.setPreprocessor(pp);
             return pa;

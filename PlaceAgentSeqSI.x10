@@ -4,8 +4,27 @@ import x10.io.*;
 
 public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
 
+    val maxDelta:Int;
+    val nSendIters:Int;
+
     public def this(solver:BAPSolver[K]) {
         super(solver);
+
+        // read env variables.
+		val gMD = new GlobalRef(new Cell[Int](0));
+		val gNS = new GlobalRef(new Cell[Int](0));
+		at (Place(0)) {
+   			val sMD = System.getenv("RPX10_MAX_DELTA");
+   			val sNS = System.getenv("RPX10_N_SENDS");
+			val nMD:Int = sMD != null ? Int.parse(sMD) : 10;
+			val nNS:Int = sNS != null ? Int.parse(sNS) : 2;
+			at (gMD.home) {
+				gMD().set(nMD);
+				gNS().set(nNS);
+            }
+		}
+    	maxDelta = gMD().value;
+    	nSendIters = gNS().value;
     }
 
     public def run(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
@@ -34,11 +53,10 @@ tEndPP = -System.nanoTime();
     }
 
     val loadsNbor:List[Int] = new ArrayList[Int]();
-    val maxDelta = 10;
-    val nDist = 2;
 
     def send(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 
+        // compute the average load
         var loadAvg:Int = list.size();
         atomic {
             for (l in loadsNbor) 
@@ -50,7 +68,7 @@ tEndPP = -System.nanoTime();
 sHandle().debugPrint(here + ": delta: " + list.size() + " vs. " + loadAvg);
 
         val loadDelta = list.size() - loadAvg;
-        finish for (2..nDist) {
+        finish for (i in 2..Math.max(loadDelta, nSendIters)) {
             if (loadDelta >= maxDelta) {
                 val box = list.removeFirst();
                 val pv:Box[K] = box.prevVar();
@@ -64,7 +82,10 @@ sHandle().debugPrint(here + ": delta: " + list.size() + " vs. " + loadAvg);
                 nSends++;
             }
             else {
-                val load = list.size();
+                if (i > Place.numPlaces()) break;
+
+                //val load = list.size();
+                val load = loadAvg;
                 async at (selectPlace())
                     atomic (sHandle() as PlaceAgentSeqSI[K]).loadsNbor.add(load);
             }

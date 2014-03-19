@@ -24,14 +24,14 @@ public class PlaceAgentSeq[K] extends PlaceAgentSeparated[K] {
         listShared = new ArrayList[IntervalVec[K]]();
 
         // TODO
-        //initPhase = true;
-        initPhase = false;
+        initPhase = true;
+        //initPhase = false;
     }
 
     public def setPreprocessor(pp:PreprocessorSeq[K]) {
         this.preprocessor = pp;
         // TODO
-        //initPhase = true;
+        initPhase = false;
     }
 
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) { 
