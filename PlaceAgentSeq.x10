@@ -83,7 +83,7 @@ tEndPP = -System.nanoTime();
 if (tEndPP < 0l) tEndPP += System.nanoTime();
 
             when (initPhase || list.size()+listShared.size() > 0) {
-//debugPrint(here + ": activated: " + initPhase + ", " + list.size()+","+listShared.size());
+debugPrint(here + ": activated: " + initPhase + ", " + list.size()+","+listShared.size());
 
                 initPhase = false;
 

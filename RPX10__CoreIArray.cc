@@ -36,8 +36,8 @@ void RPX10__CoreIArray::setIVIntoBox(IntervalVec<x10_int>& iv, rp::Box& box) {
     rp::Scope::const_iterator it = box.scope()->begin();
     for (int i = 0; it != box.scope()->end(); ++i, ++it) {
         Interval si = IntervalVec<x10_int>::getOrThrow(&iv, i);
-        rp::Interval i(si.FMGL(left), si.FMGL(right));
-        box.set_interval(**it, i);
+        rp::Interval intv(si.FMGL(left), si.FMGL(right));
+        box.set_interval(**it, intv);
     }
 }
 
