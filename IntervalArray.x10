@@ -105,6 +105,12 @@ atomic {
 
         return volume;
     }
+
+    var count:Int = 0;
+
+    public def count() : Int {
+        return count++;
+    }
 }
 
 // vim: shiftwidth=4:tabstop=4:expandtab

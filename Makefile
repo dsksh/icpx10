@@ -26,7 +26,7 @@ X10_CPP_SOURCES = RPX10__Core.cc RPX10__CoreProj.cc RPX10__CoreIArray.cc RPX10__
 ## X10 STUFF ##
 X10CXX          = x10c++ -STATIC_CHECKS
 X10CXX         += -x10rt mpi
-X10CXX			+= -O
+X10CXX		   += -O
 X10CXX         += -NO_CHECKS
 X10CXX         += -report postcompile=1
 OUTDIR          = out_dir

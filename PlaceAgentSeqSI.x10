@@ -40,8 +40,10 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
         neighbors = new ArrayList[Int]();
         var pow:Int = 1;
         for (1..nSendsLoad) {
-            neighbors.add((here.id() + pow) % Place.numPlaces());
+            val pid = (here.id() + pow) % Place.numPlaces();
             pow *= 2;
+            if (pid != here.id() && !neighbors.contains(pid))
+                neighbors.add(pid);
         }
     }
 
@@ -142,7 +144,7 @@ sHandle().debugPrint(here + ": nSendsBox: " + nSendsBox);
         loadDeltaBak = loadDelta;
     }
 
-    def send(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
+    def send2(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 
 		if (Place.numPlaces() == 1) return;
 
@@ -195,6 +197,67 @@ sHandle().debugPrint(here + ": nSendsBox: " + nSendsBox);
 			nSendsBox = minNSendsBox;
 
         loadDeltaBak = loadDelta;
+    }
+
+    def send(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
+
+		if (Place.numPlaces() == 1) return;
+
+        // check the neighbors' load.
+        val loads = new ArrayList[Int](neighbors.size());
+        var loadAvg:Int = list.size();
+        finish for (i in neighbors.indices()) {
+    		val gL = new GlobalRef(new Cell[Int](0));
+    		async at (Place(neighbors(i))) {
+                val load = sHandle().list.size();
+    			at (gL.home) gL().set(load);
+    		}
+            loads(i) = gL().value;
+        	loadAvg += gL().value;
+        }        
+        loadAvg /= (neighbors.size()+1);
+
+sHandle().debugPrint(here + ": delta: " + list.size() + " vs. " + loadAvg);
+
+        val loadDelta = list.size() - loadAvg;
+
+		// send boxes.
+        if (loadDelta >= maxDelta) {
+            finish for (i in neighbors.indices()) {
+                val ld = loadAvg - loads(i);
+sHandle().debugPrint(here + ": ld: " + ld);
+                if (ld <= 0) continue;
+
+                /*finish for (1..ld) {
+                    if (list.isEmpty()) return;
+        
+                    val box = list.removeFirst();
+                    val pv:Box[K] = box.prevVar();
+                    at (Place(neighbors(i))) {
+                        box.setPrevVar(pv);
+                        (sHandle() as PlaceAgentSeq[K]).addDomShared(box);
+                    }
+                    nSends++;
+                }
+                */
+
+                val l = new ArrayList[IntervalVec[K]](ld);
+                for (1..ld) {
+                    if (list.isEmpty()) return;
+                    val box:IntervalVec[K] = list.removeFirst();
+                    box.count();
+                    l.add(box);
+                }
+
+                async at (Place(neighbors(i))) atomic {
+                    val ls = (sHandle() as PlaceAgentSeq[K]).listShared;
+                    (sHandle() as PlaceAgentSeq[K]).listShared = l;
+                    for (b in ls) l.add(b);
+                }
+
+                nSends++;
+            }
+		}
     }
 }
 

@@ -5,7 +5,7 @@ public class PlaceAgentSeq[K] extends PlaceAgentSeparated[K] {
 
 	val nSearchSteps:Int;
 
-    val listShared:List[IntervalVec[K]];
+    var listShared:List[IntervalVec[K]] = null;
 
     var preprocessor:PreprocessorSeq[K] = null;
 

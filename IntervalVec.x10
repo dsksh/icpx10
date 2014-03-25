@@ -24,6 +24,8 @@ public interface IntervalVec[K] {
     public def setPrevVar(variable:Box[K]) : void;
 
     public def volume() : Double;
+
+    public def count() : Int;
 }
 
 // vim: shiftwidth=4:tabstop=4:expandtab

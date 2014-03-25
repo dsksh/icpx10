@@ -219,6 +219,26 @@ at (Place(0)) {
 	        Console.OUT.flush();
         }*/
 
+        // print count
+        Console.OUT.println(); 
+        for (p in Place.places()) { 
+		at (p) {
+            val ss = sHandle().getSolutions();
+            var max:Int = 0;
+            var avg:Int = 0;
+            for (pair in ss) {
+                val c = pair.second.count();
+                if (c > max) max = c;
+                avg += c;
+            }
+            avg /= ss.size();
+
+            Console.OUT.println("{\"count max\" : " + max + ", \"count avg\" : " + avg + "}");
+            Console.OUT.println(); 
+        }
+	        Console.OUT.flush();
+        }
+
         // print description of the solving process.
         val sb = new StringBuilder();
         val sbG = new GlobalRef[StringBuilder](sb);
