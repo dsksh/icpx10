@@ -233,7 +233,7 @@ sHandle().debugPrint(here + ": ld: " + ld);
         
                     val box = list.removeFirst();
                     val pv:Box[K] = box.prevVar();
-                    at (Place(neighbors(i))) {
+                    async at (Place(neighbors(i))) {
                         box.setPrevVar(pv);
                         (sHandle() as PlaceAgentSeq[K]).addDomShared(box);
                     }
@@ -249,12 +249,14 @@ sHandle().debugPrint(here + ": ld: " + ld);
                     l.add(box);
                 }
 
-                async at (Place(neighbors(i))) atomic {
+                at (Place(neighbors(i))) atomic {
                     val ls = (sHandle() as PlaceAgentSeq[K]).listShared;
-                    (sHandle() as PlaceAgentSeq[K]).listShared = l;
                     for (b in ls) l.add(b);
+                    (sHandle() as PlaceAgentSeq[K]).listShared = null;
+                    (sHandle() as PlaceAgentSeq[K]).listShared = l;
                 }
 
+                if (neighbors(i) < here.id()) sentBw.set(true);
                 nSends++;
             }
 		}
