@@ -200,7 +200,7 @@ public class RPX10[K] {
         var time:Long = System.nanoTime() - time0;
 
         // print solutions
-        /*Console.OUT.println(); 
+        Console.OUT.println(); 
         for (p in Place.places()) { 
 		at (p) {
             val ss = sHandle().getSolutions();
@@ -217,10 +217,10 @@ at (Place(0)) {
             }
         }
 	        Console.OUT.flush();
-        }*/
+        }
 
         // print count
-        Console.OUT.println(); 
+        /*Console.OUT.println(); 
         for (p in Place.places()) { 
 		at (p) {
             val ss = sHandle().getSolutions();
@@ -237,7 +237,7 @@ at (Place(0)) {
             Console.OUT.println(); 
         }
 	        Console.OUT.flush();
-        }
+        }*/
 
         // print description of the solving process.
         val sb = new StringBuilder();

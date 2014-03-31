@@ -47,9 +47,8 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
             if (pid != here.id() && !neighbors.contains(pid))
                 neighbors.add(pid);
         }
-
-        loads = new ArrayList[Int](/*neighbors.size()*/);
-        for (neighbors.indices()) loads.add(Int.MAX_VALUE/nSendsLoad);
+        loads = new ArrayList[Int]();
+        for (neighbors.indices()) loads.add(Int.MAX_VALUE/(nSendsLoad+1));
 
         neighborsInv = new ArrayList[Int]();
     }
@@ -57,26 +56,29 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
     public def run(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
    		debugPrint(here + ": start solving... ");
 
-tEndPP = -System.nanoTime();
-
         prepareSend(sHandle);
+
+tEndPP = -System.nanoTime();
 
         finish
         while (terminate != 3) {
+finish {
+			send(sHandle);
 
 			search(sHandle);
 			
-			finish send(sHandle);
-
 			terminate(sHandle);
+}
         }
 	}
 
     def prepareSend(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         val id = here.id();
-        for (pid in neighbors) {
-            at (Place(pid)) atomic
+        finish for (pid in neighbors) {
+debugPrint(here + ": neighbor: " + pid);
+            async at (Place(pid)) atomic {
                 (sHandle() as PlaceAgentSeqSI[K]).neighborsInv.add(id);
+            }
         }
     }
 
@@ -289,24 +291,29 @@ sHandle().debugPrint(here + ": send");
 
 		if (Place.numPlaces() == 1) return;
 
-		if (list.size() <= maxDelta) return;
+		if (!initPhase && list.size() <= maxDelta) return;
 
         // send load to neighborsInv.
         val load = list.size();
         val hereId = here.id();
+sHandle().debugPrint(here + ": load: " + load);
         for (pid in neighborsInv) {
     		async at (Place(pid)) {
                 val id = (sHandle() as PlaceAgentSeqSI[K]).neighbors.indexOf(hereId);
                 atomic (sHandle() as PlaceAgentSeqSI[K]).loads(id) = load;
     		}
+sHandle().debugPrint(here + ": inform to: " + pid);
 
             nReqs++;
         }        
-/*
+
         // compute the average load.
         var loadAvg:Int = load;
-        {
-            for (l in loads) loadAvg += l;
+        atomic {
+            for (l in loads) {
+sHandle().debugPrint(here + ": load: " + l);
+                loadAvg += l;
+            }
             loadAvg /= (loads.size()+1);
         }
 
@@ -329,7 +336,7 @@ sHandle().debugPrint(here + ": ld: " + ld);
                     box.count();
                 }
 
-                at (Place(neighbors(i))) atomic {
+                async at (Place(neighbors(i))) atomic {
                     val ls = (sHandle() as PlaceAgentSeq[K]).listShared;
                     for (b in ls) l.add(b);
                     (sHandle() as PlaceAgentSeq[K]).listShared = null;
@@ -340,7 +347,6 @@ sHandle().debugPrint(here + ": ld: " + ld);
                 nSends++;
             }
 		}
-*/
     }
 }
 
