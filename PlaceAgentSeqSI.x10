@@ -157,6 +157,7 @@ sHandle().debugPrint(here + ": delta: " + list.size() + " vs. " + loadAvg);
 sHandle().debugPrint(here + ": ld: " + ld);
                 if (ld <= 0) continue;
 
+                // create a list of boxes.
                 val l = new ArrayList[IntervalVec[K]]();
                 for (1..ld) {
                     if (list.isEmpty()) break;
@@ -167,21 +168,32 @@ sHandle().debugPrint(here + ": ld: " + ld);
 
                 if (l.isEmpty()) return;
 
-                //val gRes = new GlobalRef(new Cell[Boolean](false));
-                async at (Place(neighbors(i))) atomic {
-if (sHandle().terminate != 3) {
-//for (j in pvl.indices()) l(j).setPrevVar(pvl(j));
-                    val ls = (sHandle() as PlaceAgentSeq[K]).listShared;
-                    for (b in ls) l.add(b);
-                    (sHandle() as PlaceAgentSeq[K]).listShared = null;
-                    (sHandle() as PlaceAgentSeq[K]).listShared = l;
-}
-else
-    Console.OUT.println(here + ": ERROR! receiver is already terminated!");
+                async {
+                    val gRes = new GlobalRef(new Cell[Boolean](false));
+                    at (Place(neighbors(i))) {
+                        var res:Boolean = false;
+                        atomic if (sHandle().terminate != 3) {
+                            val ls = (sHandle() as PlaceAgentSeq[K]).listShared;
+                            for (b in ls) l.add(b);
+                            (sHandle() as PlaceAgentSeq[K]).listShared = null;
+                            (sHandle() as PlaceAgentSeq[K]).listShared = l;
+                            res = true;
+                        }
+                        val r = res;
+                        at (gRes.home) { gRes().set(r); }
+                    }
+    
+                    if (gRes().value) { // boxes were sent.
+                        if (neighbors(i) < here.id()) sentBw.set(true);
+                        nSends++;
+                    }
+                    else {
+                        // retract the list.
+                        for (b in listShared) l.add(b);
+                        listShared = null;
+                        listShared = l;
+                    }
                 }
-
-                if (neighbors(i) < here.id()) sentBw.set(true);
-                nSends++;
             }
 		}
 
