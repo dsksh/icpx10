@@ -11,7 +11,7 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
     val minNSendsBox:Double;
 
     val neighbors:List[Int];
-    val loads:List[Int];
+    val loads:List[Box[Int]];
     val neighborsInv:List[Int];
 
     public def this(solver:BAPSolver[K]) {
@@ -47,8 +47,10 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
             if (pid != here.id() && !neighbors.contains(pid))
                 neighbors.add(pid);
         }
-        loads = new ArrayList[Int]();
-        for (neighbors.indices()) loads.add(Int.MAX_VALUE/(neighbors.size()+1));
+        loads = new ArrayList[Box[Int]]();
+        for (neighbors.indices()) 
+            //loads.add(Int.MAX_VALUE/(neighbors.size()+1));
+            loads.add(null);
 
         neighborsInv = new ArrayList[Int]();
     }
@@ -126,7 +128,7 @@ sHandle().debugPrint(here + ": load: " + load);
     		async at (Place(pid)) {
 if (sHandle().terminate != 3) {
                 val id = (sHandle() as PlaceAgentSeqSI[K]).neighbors.indexOf(hereId);
-                atomic (sHandle() as PlaceAgentSeqSI[K]).loads(id) = load;
+                atomic (sHandle() as PlaceAgentSeqSI[K]).loads(id) = new Box[Int](load);
 }
 else
     sHandle().debugPrint(here + ": cannot send load");
@@ -138,13 +140,17 @@ sHandle().debugPrint(here + ": inform to: " + pid);
 
         // compute the average load.
         var loadAvg:Int = load;
-        atomic {
+        //atomic {
+            var c:Int = 1;
             for (l in loads) {
 sHandle().debugPrint(here + ": load: " + l);
-                loadAvg += l;
+                if (l != null) {
+                    loadAvg += l();
+                    ++c;
+                }
             }
-            loadAvg /= (loads.size()+1);
-        }
+            loadAvg /= c;
+        //}
 
 sHandle().debugPrint(here + ": delta: " + list.size() + " vs. " + loadAvg);
 
@@ -153,7 +159,9 @@ sHandle().debugPrint(here + ": delta: " + list.size() + " vs. " + loadAvg);
 		// send boxes.
         if (loadDelta >= maxDelta) {
             for (i in neighbors.indices()) {
-                val ld = loadAvg - loads(i);
+                if (loads(i) == null) continue;
+
+                val ld = loadAvg - loads(i)();
 sHandle().debugPrint(here + ": ld: " + ld);
                 if (ld <= 0) continue;
 
