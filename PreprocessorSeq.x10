@@ -219,6 +219,7 @@ sHandle().debugPrint(here + ": search done, " + list.size());
             sets((i-1) % nDestinations).add(box);
         }
 
+        // TODO: finish needed?
         finish for (bs in sets) {
             val p = selectPlace();
 
