@@ -17,7 +17,7 @@ bool check_volume_16 = false;
 double max_rss = -1;
 int max_sols = -1;
 
-bool take_infl_box = false;
+bool take_infl_box = true;
 int infl_trial = -1;
 
 double prec;
@@ -491,7 +491,7 @@ void RPX10__CoreProj::initialize(x10::lang::String *filename, x10_int n) {
     FactoryMultiNewtonOperator facto_nwt(10,5);
 
     facto_hull.generate(*problem,vop);
-    facto_box.generate(*problem,vop);
+    //facto_box.generate(*problem,vop);
 
     contractor->insert(vop);
 

@@ -55,12 +55,12 @@ public class BAPSolver[K] {
 var time:Long = -System.nanoTime();
         //atomic { 
             res = core.contract(box); 
-        //}
 time += System.nanoTime();
 //Console.OUT.printf(here + ": %f\n", RPX10.format(time));
 //sHandle().tContracts.getAndAdd(time);
 sHandle().tContracts += time;
-        sHandle().nContracts++;
+sHandle().nContracts++;
+        //}
         return res;
     }
     

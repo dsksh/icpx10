@@ -147,7 +147,7 @@ debugPrint(here + ": selected " + p);
 
         if (id >= 0) {
             val pv:Box[K] = box.prevVar();
-sHandle().debugPrint(here + ": sending box:\n" + box + '\n');
+//sHandle().debugPrint(here + ": sending box:\n" + box + '\n');
 //async 
             at (Place(id)) {
                 sHandle().sentRequest.set(false);

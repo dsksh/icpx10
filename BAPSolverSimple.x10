@@ -40,10 +40,12 @@ public class BAPSolverSimple[K] extends BAPSolver[K] {
 
 sHandle().totalVolume.addAndGet(-box.volume());
         val res:Result = contract(sHandle, box);
+//Console.OUT.println(here + ": after contraction:\n" + box);
 
         if (!res.hasNoSolution()) {
             val v = selectVariable(res, box);
             if (v != null) {
+//Console.OUT.println(here + ": split: " + v);
                 val bp = box.split(v()); 
                 //sHandle().nSplits.getAndIncrement();
                 sHandle().nSplits++;
