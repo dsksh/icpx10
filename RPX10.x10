@@ -117,6 +117,9 @@ public class RPX10[K] {
         case 2:
             solver = new BAPSolverSimple[K](core, select);
             break;
+        case 3:
+            solver = new BAPSolverDumb[K](core, select);
+            break;
         default:
             return new PlaceAgentMSplit[K](
                 new BAPSolverMSplit[K](core, select) );
