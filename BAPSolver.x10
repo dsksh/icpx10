@@ -85,10 +85,13 @@ sHandle().debugPrint(here + "," + sid + ": load: " + sHandle().totalVolume.get()
 
 val vol0 = box.volume();
         var res:Result = contract(sHandle, box);
+//Console.OUT.println("after contraction:");
+Console.OUT.println(box);
 
         if (!res.hasNoSolution()) {
             val v = selectVariable(res, box);
             if (v != null) {
+//Console.OUT.println("split: " + v);
                 val pv:Box[K] = box.prevVar();
                 val bp = box.split(v()); 
                 //sHandle().nSplits.getAndIncrement();
