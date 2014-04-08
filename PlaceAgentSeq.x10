@@ -103,11 +103,10 @@ debugPrint(here + ": activated: " + initPhase + ", " + list.size()+","+listShare
             }
         }
 
-        if (here.id() == 0) {
-            atomic if ((list.size()+listShared.size()) == 0 && terminate == 0) {
+        if (here.id() == 0 &&
+            (list.size()+listShared.size()) == 0 && terminate == 0 ) {
 debugPrint(here + ": start termination");
-                terminate = 1;
-            }
+            atomic terminate = 1;
 		}
     }
 
@@ -142,16 +141,19 @@ sHandle().tSearch += time;
     def terminate(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         var termBak:Int = 0;
 
-        if (list.isEmpty() && term != terminate) {
+        if (//list.isEmpty() && 
+            term != terminate) {
             atomic {
 debugPrint(here + ": terminate: " + terminate);
                 termBak = terminate;
                 if (here.id() == 0 && terminate == 2)
                     terminate = 3;
                 else if (here.id() == 0 && terminate == 4)
-                    terminate = 1;
+                    //terminate = 1;
+                    terminate = 0;
                 else if (here.id() > 0 && terminate != 3) 
-                    terminate = 1;
+                    //terminate = 1;
+                    terminate = 0;
     
                 term = terminate;
             }
@@ -179,8 +181,8 @@ debugPrint(here + ": sent token 3 to " + here.next());
 debugPrint(here + ": sending token " +v+ " to " + here.next());
                 //atomic terminate = 0;
                 at (here.next()) atomic {
-sHandle().debugPrint(here + ": setting token " + v);
                     sHandle().terminate = v;
+sHandle().debugPrint(here + ": setting token " + sHandle().terminate);
                     (sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
 					//sHandle().initPhase = false;
                 }

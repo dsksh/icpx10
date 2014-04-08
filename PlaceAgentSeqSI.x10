@@ -90,14 +90,15 @@ tEndPP = -System.nanoTime();
 finish {
 			send(sHandle);
 
-            if (here.id() == 0) {
-                atomic if ((list.size()+listShared.size()) == 0 && terminate == 0) {
-                    // skip search and activate termination
-                    initPhase = true;
-                }
-		    }
+            if (here.id() == 0 &&
+                (list.size()+listShared.size()) == 0 && terminate == 0 ) {
 
-			search(sHandle);
+                // skip search and activate termination
+debugPrint(here + ": start termination");
+                atomic terminate = 1;
+            }
+            else
+      			search(sHandle);
 }
 			
 			terminate(sHandle);
@@ -108,7 +109,8 @@ finish {
         val id = here.id();
         finish for (pid in neighbors) {
 debugPrint(here + ": neighbor: " + pid);
-            async at (Place(pid)) atomic {
+            async 
+            at (Place(pid)) atomic {
                 (sHandle() as PlaceAgentSeqSI[K]).neighborsInv.add(id);
             }
         }
@@ -116,13 +118,13 @@ debugPrint(here + ": neighbor: " + pid);
 
     private var selectedPid:Int = 0;
 
-    protected def selectPlace() : Place {
+    /*protected def selectPlace() : Place {
         //val id:Int = random.nextInt(Place.numPlaces());
         //return Place(id);
 
         if (selectedPid == neighbors.size()) selectedPid = 0;
         return Place( neighbors(selectedPid++) );
-    }
+    }*/
 
     def send(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 sHandle().debugPrint(here + ": send");
@@ -131,7 +133,7 @@ sHandle().debugPrint(here + ": send");
 
         // not the initial path and not possessing many boxes.
 		if (!initPhase && list.size() <= maxDelta) {
-sHandle().debugPrint(here + ": quit send");
+sHandle().debugPrint(here + ": quit send: " + terminate);
             return;
         }
 
@@ -140,7 +142,8 @@ sHandle().debugPrint(here + ": quit send");
 sHandle().debugPrint(here + ": load: " + load);
         val hereId = here.id();
         for (pid in neighborsInv) {
-    		async at (Place(pid)) {
+    		async 
+            at (Place(pid)) {
 if (sHandle().terminate != 3) {
                 val id = (sHandle() as PlaceAgentSeqSI[K]).neighbors.indexOf(hereId);
                 atomic (sHandle() as PlaceAgentSeqSI[K]).loads(id) = new Box[Int](load);
@@ -157,7 +160,8 @@ sHandle().debugPrint(here + ": inform to: " + pid);
         var loadAvg:Int = load;
         //atomic {
             var c:Int = 1;
-            for (l in loads) {
+            for (i in loads.indices()) {
+                val l = loads(i);
 sHandle().debugPrint(here + ": load: " + l);
                 if (l != null) {
                     loadAvg += l();
@@ -167,29 +171,41 @@ sHandle().debugPrint(here + ": load: " + l);
             loadAvg /= c;
         //}
 
-sHandle().debugPrint(here + ": delta: " + list.size() + " vs. " + loadAvg);
+sHandle().debugPrint(here + ": delta: " + load + " vs. " + loadAvg);
 
         val loadDelta = list.size() - loadAvg;
 
 		// send boxes.
         if (loadDelta >= maxDelta) {
             for (i in neighbors.indices()) {
-                if (loads(i) == null) continue;
+                var l:Int = -1;
+                //atomic 
+                if (loads(i) != null) l = loads(i)();
+                if (l < 0) continue;
 
-                val ld = loadAvg - loads(i)();
+                val ld = loadAvg - l;
 sHandle().debugPrint(here + ": ld: " + ld);
                 if (ld <= 0) continue;
 
                 // create a list of boxes.
-                val l = new ArrayList[IntervalVec[K]]();
+                val boxes = new ArrayList[IntervalVec[K]]();
                 for (1..ld) {
-                    if (list.isEmpty()) break;
-                    val box:IntervalVec[K] = list.removeFirst();
-                    l.add(box);
-                    box.count();
+                    var box:IntervalVec[K] = null;
+                    while (true) { // skip the dummy boxes
+                        if (list.isEmpty()) break;
+                        box = list.removeFirst();
+                        if (box.size() == 0)
+                            listShared.add(box);
+                        else
+                            break;
+                    }
+                    if (box != null) {
+                        boxes.add(box);
+                        box.count();
+                    }
                 }
 
-                if (l.isEmpty()) return;
+                if (boxes.isEmpty()) break;
 
                 async {
                     val gRes = new GlobalRef(new Cell[Boolean](false));
@@ -197,9 +213,9 @@ sHandle().debugPrint(here + ": ld: " + ld);
                         var res:Boolean = false;
                         atomic if (sHandle().terminate != 3) {
                             val ls = (sHandle() as PlaceAgentSeq[K]).listShared;
-                            for (b in ls) l.add(b);
+                            for (b in ls) boxes.add(b);
                             (sHandle() as PlaceAgentSeq[K]).listShared = null;
-                            (sHandle() as PlaceAgentSeq[K]).listShared = l;
+                            (sHandle() as PlaceAgentSeq[K]).listShared = boxes;
                             res = true;
                         }
                         val r = res;
@@ -210,11 +226,11 @@ sHandle().debugPrint(here + ": ld: " + ld);
                         if (neighbors(i) < here.id()) sentBw.set(true);
                         nSends++;
                     }
-                    else {
+                    else atomic {
                         // retract the list.
-                        for (b in listShared) l.add(b);
+                        for (b in listShared) boxes.add(b);
                         listShared = null;
-                        listShared = l;
+                        listShared = boxes;
                     }
                 }
             }
