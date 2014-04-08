@@ -40,13 +40,28 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
     	val nSendsLoad = gNSL().value;
 
         neighbors = new ArrayList[Int]();
-        var pow:Int = 1;
+
+        /*var pow:Int = 1;
         for (1..nSendsLoad) {
             val pid = (here.id() + pow) % Place.numPlaces();
             pow *= 2;
             if (pid != here.id() && !neighbors.contains(pid))
                 neighbors.add(pid);
+        }*/
+
+        val num = 1./(nSendsLoad as Double);
+        var pidBak:Int = -1;
+        for (i in 0..(nSendsLoad-1)) {
+            var pid:Int = here.id() + (Math.floor(Math.pow((Place.numPlaces() as Double), i*num)) as Int);
+            if (pid <= pidBak) pid = pidBak+1;
+            pid = pid % Place.numPlaces();
+            pidBak = pid;
+Console.OUT.println(here + ": nid: " + pid);
+
+            if (pid != here.id() && !neighbors.contains(pid))
+                neighbors.add(pid);
         }
+
         loads = new ArrayList[Box[Int]]();
         for (neighbors.indices()) 
             //loads.add(Int.MAX_VALUE/(neighbors.size()+1));
