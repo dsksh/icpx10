@@ -194,7 +194,7 @@ public class RPX10[K] {
 
         var time0:Long = System.nanoTime();
         //finish for (p in Place.places()) at (p) async 
-        sHandle().setup(sHandle);
+        finish sHandle().setup(sHandle);
 
         finish for (p in Place.places()) async at (p) {
             sHandle().run(sHandle);

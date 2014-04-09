@@ -68,15 +68,13 @@ totalVolume.addAndGet(box.volume());
 tEndPP = -System.nanoTime();
 
         finish {
-		async terminate(sHandle);
+		//async terminate(sHandle);
 
-        while (terminate != 3
-            || (list.size()+listShared.size()) > 0 
-        ) {
+        while (terminate != 3) {
 
 			search(sHandle);
 
-			//terminate(sHandle);
+			terminate(sHandle);
         }
         }
 	}
@@ -108,7 +106,7 @@ debugPrint(here + ": activated: " + initPhase + ", " + list.size()+","+listShare
             }
         }
 
-        if (here.id() == 0 &&
+        if (here.id() == 0 && 
             (list.size()+listShared.size()) == 0 && terminate == 0 ) {
 debugPrint(here + ": start termination");
             atomic terminate = 1;
@@ -143,12 +141,20 @@ sHandle().tSearch += time;
 	}
 
 
-    def terminate1(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
+    def terminate(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         var termBak:Int = 0;
 
         if (//list.isEmpty() && 
             term != terminate) {
+
             atomic {
+                if (terminate == 2 &&
+                    (list.size()+listShared.size()) > 0) {
+
+                    listShared.add(sHandle().solver.core.dummyBox());
+                    return;
+                }
+
 debugPrint(here + ": terminate: " + terminate);
                 termBak = terminate;
                 if (here.id() == 0 && terminate == 2)
@@ -199,25 +205,27 @@ debugPrint(here + ": sent token " + v + " to " + here.next());
         }
     }
 
-    def terminate(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
+    def terminate2(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         var termBak:Int = 0;
 
 		when (!initPhase) {}
 
         while (term != 3) {
 
-            when (//(list.size()+listShared.size()) == 0 &&
-                  term != terminate) {
+            when ((list.size()+listShared.size()) == 0 &&
+                  term != terminate
+              ) {
 debugPrint(here + ": terminate: " + terminate);
+
                 termBak = terminate;
                 if (here.id() == 0 && terminate == 2)
                     terminate = 3;
                 else if (here.id() == 0 && terminate == 4)
-                    terminate = 1;
-                    //terminate = 0;
+                    //terminate = 1;
+                    terminate = 0;
                 else if (here.id() > 0 && terminate != 3) 
-                    terminate = 1;
-                    //terminate = 0;
+                    //terminate = 1;
+                    terminate = 0;
     
                 term = terminate;
             }
