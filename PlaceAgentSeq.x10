@@ -67,12 +67,17 @@ totalVolume.addAndGet(box.volume());
 
 tEndPP = -System.nanoTime();
 
-        finish
-        while (terminate != 3) {
+        finish {
+		async terminate(sHandle);
+
+        while (terminate != 3
+            || (list.size()+listShared.size()) > 0 
+        ) {
 
 			search(sHandle);
 
-			terminate(sHandle);
+			//terminate(sHandle);
+        }
         }
 	}
 
@@ -138,7 +143,7 @@ sHandle().tSearch += time;
 	}
 
 
-    def terminate(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
+    def terminate1(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         var termBak:Int = 0;
 
         if (//list.isEmpty() && 
@@ -183,6 +188,66 @@ debugPrint(here + ": sending token " +v+ " to " + here.next());
                 at (here.next()) atomic {
                     sHandle().terminate = v;
 sHandle().debugPrint(here + ": setting token " + sHandle().terminate);
+                    (sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
+					//sHandle().initPhase = false;
+                }
+debugPrint(here + ": sent token " + v + " to " + here.next());
+    
+                //if (term != 3)
+                //    atomic terminate = 1;
+            }
+        }
+    }
+
+    def terminate(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
+        var termBak:Int = 0;
+
+		when (!initPhase) {}
+
+        while (term != 3) {
+
+            when (//(list.size()+listShared.size()) == 0 &&
+                  term != terminate) {
+debugPrint(here + ": terminate: " + terminate);
+                termBak = terminate;
+                if (here.id() == 0 && terminate == 2)
+                    terminate = 3;
+                else if (here.id() == 0 && terminate == 4)
+                    terminate = 1;
+                    //terminate = 0;
+                else if (here.id() > 0 && terminate != 3) 
+                    terminate = 1;
+                    //terminate = 0;
+    
+                term = terminate;
+            }
+
+            // begin termination detection
+            if (here.id() == 0 && term == 1) {
+                at (here.next()) atomic {
+                    sHandle().terminate = 2;
+                    // put a dummy box
+                    //(sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
+					//sHandle().initPhase = false;
+                }
+debugPrint(here + ": sent token 2 to " + here.next());
+            }
+            // termination token went round.
+            else if (here.id() == 0 && term == 3) {
+                at (here.next()) atomic {
+                    sHandle().terminate = 3;
+                    (sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
+                }
+debugPrint(here + ": sent token 3 to " + here.next());
+            }
+            else if (here.id() > 0) {
+                val v = (termBak == 2 && sentBw.getAndSet(false)) ? 4 : termBak;
+debugPrint(here + ": sending token " +v+ " to " + here.next());
+                //atomic terminate = 0;
+                at (here.next()) atomic {
+                    sHandle().terminate = v;
+sHandle().debugPrint(here + ": setting token " + sHandle().terminate);
+if (v == 3)
                     (sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
 					//sHandle().initPhase = false;
                 }

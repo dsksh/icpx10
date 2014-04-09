@@ -120,7 +120,7 @@ public class PreprocessorSeq[K] {
         }
 
         when (sHandle().initPhase) {
-sHandle().debugPrint(here + ": activated: " + initPhase + ", " + (list.size()+listShared.size()));
+sHandle().debugPrint(here + ": pp activated: " + initPhase + ", " + (list.size()+listShared.size()));
 
             initPhase = false;
 
@@ -184,7 +184,7 @@ sHandle().debugPrint(here + ": selected: " + p);
         }
 
         when (sHandle().initPhase) {
-sHandle().debugPrint(here + ": proc activated: " + initPhase + ", " + (list.size()+(sHandle() as PlaceAgentSeq[K]).listShared.size()));
+sHandle().debugPrint(here + ": pp activated: " + initPhase + ", " + (list.size()+(sHandle() as PlaceAgentSeq[K]).listShared.size()));
 
             initPhase = false;
 

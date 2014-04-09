@@ -56,7 +56,6 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
             if (pid <= pidBak) pid = pidBak+1;
             pid = pid % Place.numPlaces();
             pidBak = pid;
-Console.OUT.println(here + ": nid: " + pid);
 
             if (pid != here.id() && !neighbors.contains(pid))
                 neighbors.add(pid);
@@ -85,7 +84,9 @@ Console.OUT.println(here + ": nid: " + pid);
 
 tEndPP = -System.nanoTime();
 
-        finish
+        finish {
+        async terminate(sHandle);
+
         while (terminate != 3 || list.size()+listShared.size() > 0) {
 finish {
 			send(sHandle);
@@ -101,7 +102,8 @@ debugPrint(here + ": start termination");
       			search(sHandle);
 }
 			
-			terminate(sHandle);
+			//terminate(sHandle);
+        }
         }
 	}
 
@@ -203,6 +205,11 @@ sHandle().debugPrint(here + ": ld: " + ld);
                         boxes.add(box);
                         box.count();
                     }
+
+                    /*if (list.isEmpty()) break;
+                    val box = list.removeFirst();
+                    boxes.add(box);
+                    box.count();*/
                 }
 
                 if (boxes.isEmpty()) break;
