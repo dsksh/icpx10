@@ -28,7 +28,7 @@ X10CXX          = x10c++
 X10CXX		   += -STATIC_CHECKS
 X10CXX         += -x10rt mpi
 #X10CXX		   += -O
-#X10CXX         += -NO_CHECKS
+X10CXX         += -NO_CHECKS
 X10CXX         += -report postcompile=1
 OUTDIR          = out_dir
 OUTDIR_REVERSE  = ..

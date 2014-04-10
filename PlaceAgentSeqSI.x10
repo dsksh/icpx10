@@ -112,18 +112,27 @@ tEndPP = -System.nanoTime();
 
         while (terminate != 3) {
 finish {
-			send(sHandle);
+            if (preprocessor == null || !preprocessor.process(sHandle)) {
+
+			    send(sHandle);
+
+                if (here.id() == 0) 
+                    atomic if ((list.size()+listShared.size()) == 0 && terminate == 0 ) {
+    
+                        // force search to activate termination
+//debugPrint(here + ": start termination");
+                        //atomic terminate = 1;
+                        listShared.add(sHandle().solver.core.dummyBox());
+                    }
+    
+   			    search(sHandle);
+            }
 
             if (here.id() == 0)
                 atomic if ((list.size()+listShared.size()) == 0 && terminate == 0 ) {
-
-                    // force search to activate termination
-//debugPrint(here + ": start termination");
-                    //atomic terminate = 1;
-                    listShared.add(sHandle().solver.core.dummyBox());
-                }
-
-   			search(sHandle);
+debugPrint(here + ": start termination");
+                    terminate = 1;
+    		    }
 }
 			
 			terminate(sHandle);
@@ -141,44 +150,52 @@ finish {
         return Place( neighbors(selectedPid++) );
     }*/
 
+    var loadBak:Int = -1;
+
     def send(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 sHandle().debugPrint(here + ": send");
 
 		if (Place.numPlaces() == 1) return;
 
-        // not the initial path and not possessing many boxes.
+        /*// not the initial path and not possessing many boxes.
 		if (!initPhase && list.size() <= maxDelta) {
 sHandle().debugPrint(here + ": quit send: " + terminate);
             return;
-        }
+        }*/
 
-        // send load to neighborsInv.
         val load = list.size();
+
+        //if (loadBak < 0 || Math.abs(load - loadBak) > maxDelta) {
+            loadBak = load;
+    
+            // send load to neighborsInv.
 sHandle().debugPrint(here + ": my load: " + load);
-        val hereId = here.id();
-        for (pid in neighborsInv) {
-    		async 
-            at (Place(pid)) atomic {
+            val hereId = here.id();
+            for (pid in neighborsInv) {
+        		async 
+                at (Place(pid)) atomic {
 if (sHandle().terminate != 3) {
-                val id = (sHandle() as PlaceAgentSeqSI[K]).neighbors.indexOf(hereId);
+                    val id = (sHandle() as PlaceAgentSeqSI[K]).neighbors.indexOf(hereId);
 sHandle().debugPrint(here + ": setting load " + load + " from " + hereId + " at " + id);
-                //atomic (sHandle() as PlaceAgentSeqSI[K]).loads(id) = new Box[Int](load);
-                atomic (sHandle() as PlaceAgentSeqSI[K]).loads(id) = load;
+                    //atomic (sHandle() as PlaceAgentSeqSI[K]).loads(id) = new Box[Int](load);
+                    atomic (sHandle() as PlaceAgentSeqSI[K]).loads(id) = load;
 }
 else
     sHandle().debugPrint(here + ": cannot send load");
-    		}
+       		}
 sHandle().debugPrint(here + ": inform to: " + pid);
-
-            nReqs++;
-        }        
+    
+                nReqs++;
+            }        
+        //}
 
         // compute the average load.
         var loadAvg:Int = load;
         //atomic {
             var c:Int = 1;
-            for (i in loads.indices()) {
-                val l = loads(i);
+            for (i in neighbors.indices()) {
+                var l:Int = -1;
+                atomic l = loads(i);
 sHandle().debugPrint(here + ": load: " + l);
                 //if (l != null) {
                 if (l >= 0) {

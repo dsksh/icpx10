@@ -72,7 +72,15 @@ tEndPP = -System.nanoTime();
 
         while (terminate != 3) {
 
-			search(sHandle);
+            if (preprocessor == null || !preprocessor.process(sHandle)) {
+			    search(sHandle);
+            }
+
+            if (here.id() == 0)
+                atomic if ((list.size()+listShared.size()) == 0 && terminate == 0 ) {
+debugPrint(here + ": start termination");
+                    terminate = 1;
+    		    }
 
 			terminate(sHandle);
         }
@@ -81,7 +89,7 @@ tEndPP = -System.nanoTime();
 
     def search(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 
-        if (preprocessor == null || !preprocessor.process(sHandle)) {
+        //if (preprocessor == null || !preprocessor.process(sHandle)) {
 
 if (tEndPP < 0l) tEndPP += System.nanoTime();
 
@@ -104,13 +112,7 @@ debugPrint(here + ": activated: " + initPhase + ", " + list.size()+","+listShare
         		if (!searchBody(sHandle))
         			break;
             }
-        }
-
-        if (here.id() == 0 && 
-            (list.size()+listShared.size()) == 0 && terminate == 0 ) {
-debugPrint(here + ": start termination");
-            atomic terminate = 1;
-		}
+        //}
     }
 
 	def searchBody(sHandle:PlaceLocalHandle[PlaceAgent[K]]) : Boolean {
@@ -148,20 +150,25 @@ sHandle().tSearch += time;
             term != terminate) {
 
             atomic {
-                if (terminate == 2 &&
-                    (list.size()+listShared.size()) > 0) {
-
-                    listShared.add(sHandle().solver.core.dummyBox());
-                    return;
-                }
-
 debugPrint(here + ": terminate: " + terminate);
                 termBak = terminate;
                 if (here.id() == 0 && terminate == 2)
                     terminate = 3;
-                else if (here.id() == 0 && terminate == 4)
-                    //terminate = 1;
-                    terminate = 0;
+                else if (here.id() == 0 && terminate == 4) {
+                    if ((list.size()+listShared.size()) == 0)
+                        terminate = 1;
+                    else {
+                        terminate = 0;
+                        listShared.add(sHandle().solver.core.dummyBox());
+                        return;
+                    }
+                }
+                else if ((terminate == 2) &&
+                         (list.size()+listShared.size()) > 0 ) {
+
+                    listShared.add(sHandle().solver.core.dummyBox());
+                    return;
+                }
                 else if (here.id() > 0 && terminate != 3) 
                     //terminate = 1;
                     terminate = 0;

@@ -29,7 +29,7 @@ echo "{\"params\" : [$RPX10_N_BOXES_MIN, $RPX10_N_SENDS_LOAD, $RPX10_MAX_DELTA, 
 
 #sync; mpirun -hostfile nodefile$nlid.txt -np 120 ./RPX10 hoge $pid $prec 1 2 3;
 
-sync; mpirun -np  1 ./RPX10 hoge $pid $prec 1 2 0;
+#sync; mpirun -np  1 ./RPX10 hoge $pid $prec 1 2 0;
 
 sync; mpirun -np 16 ./RPX10 hoge $pid $prec 1 2 1;
 sync; mpirun -np 24 ./RPX10 hoge $pid $prec 1 2 1;
