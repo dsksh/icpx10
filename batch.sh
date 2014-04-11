@@ -1,7 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
-pid=$1
-prec=$2
+set -x
+
+pa=$1
+pid=$2
+prec=$3
 #nlid=$3
 nlid=1
 
@@ -9,7 +12,7 @@ export X10_NTHREADS=6
 export GC_NPROCS=2 
 
 #export RPX10_N_SEARCH_STEPS=10
-export RPX10_N_SEARCH_STEPS=$4
+export RPX10_N_SEARCH_STEPS=$5
 
 export RPX10_N_DESTINATIONS=2
 export RPX10_N_BOXES_MIN=32
@@ -18,7 +21,7 @@ export RPX10_DIST_DELAY=0
 export RPX10_MAX_DELTA=10
 export RPX10_N_SENDS_BOX=1
 #export RPX10_N_SENDS_LOAD=2
-export RPX10_N_SENDS_LOAD=$3
+export RPX10_N_SENDS_LOAD=$4
 
 export RPX10_REQUEST_THRESHOLD=-1
 export RPX10_MAX_N_REQUESTS=1
@@ -31,22 +34,9 @@ echo "{\"params\" : [$RPX10_N_BOXES_MIN, $RPX10_N_SENDS_LOAD, $RPX10_MAX_DELTA, 
 
 #sync; mpirun -np  1 ./RPX10 hoge $pid $prec 1 2 0;
 
-sync; mpirun -np 16 ./RPX10 hoge $pid $prec 1 2 1;
-sync; mpirun -np 24 ./RPX10 hoge $pid $prec 1 2 1;
-sync; mpirun -np 32 ./RPX10 hoge $pid $prec 1 2 1;
-sync; mpirun -np 36 ./RPX10 hoge $pid $prec 1 2 1;
-sync; mpirun -np 40 ./RPX10 hoge $pid $prec 1 2 1;
-
-#sync; mpirun -np  1 ./RPX10 hoge $pid $prec 1 2 4;
-sync; mpirun -np 16 ./RPX10 hoge $pid $prec 1 2 4;
-sync; mpirun -np 24 ./RPX10 hoge $pid $prec 1 2 4;
-sync; mpirun -np 32 ./RPX10 hoge $pid $prec 1 2 4;
-sync; mpirun -np 36 ./RPX10 hoge $pid $prec 1 2 4;
-sync; mpirun -np 40 ./RPX10 hoge $pid $prec 1 2 4;
-
-#sync; mpirun -np  1 ./RPX10 hoge $pid $prec 1 2 6;
-sync; mpirun -np 16 ./RPX10 hoge $pid $prec 1 2 6;
-sync; mpirun -np 24 ./RPX10 hoge $pid $prec 1 2 6;
-sync; mpirun -np 32 ./RPX10 hoge $pid $prec 1 2 6;
-sync; mpirun -np 36 ./RPX10 hoge $pid $prec 1 2 6;
-sync; mpirun -np 40 ./RPX10 hoge $pid $prec 1 2 6;
+sync; mpirun -np 16 ./RPX10 hoge $pid $prec 1 2 $pa;
+#sync; mpirun -np 24 ./RPX10 hoge $pid $prec 1 2 $pa;
+sync; mpirun -np 32 ./RPX10 hoge $pid $prec 1 2 $pa;
+#sync; mpirun -np 36 ./RPX10 hoge $pid $prec 1 2 $pa;
+sync; mpirun -np 40 ./RPX10 hoge $pid $prec 1 2 $pa;
+echo ""

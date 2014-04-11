@@ -262,7 +262,6 @@ debugPrint(here + ": sending token " +v+ " to " + here.next());
                 at (here.next()) atomic {
                     sHandle().terminate = v;
 sHandle().debugPrint(here + ": setting token " + sHandle().terminate);
-if (v == 3)
                     (sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
 					//sHandle().initPhase = false;
                 }
