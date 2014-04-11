@@ -242,7 +242,7 @@ debugPrint(here + ": terminate: " + terminate);
                 at (here.next()) atomic {
                     sHandle().terminate = 2;
                     // put a dummy box
-                    //(sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
+                    (sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
 					//sHandle().initPhase = false;
                 }
 debugPrint(here + ": sent token 2 to " + here.next());
