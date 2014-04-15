@@ -220,7 +220,8 @@ sHandle().debugPrint(here + ": search done, " + list.size());
         }
 
         // TODO: finish needed?
-        finish for (bs in sets) {
+        //finish
+        for (bs in sets) {
             val p = selectPlace();
 
 val b = (p != here);
