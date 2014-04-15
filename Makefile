@@ -9,7 +9,7 @@ all: $(TARGET)
 CC          = g++
 BUILD       = ar rs    # for static libraries
 INCLUDES	+= -I$(RP_HOME)/src
-CFLAGS      += -O3 -g $(INCLUDES)
+CFLAGS      += -O0 -g $(INCLUDES)
 #CFLAGS      += -O3 -arch i386 -arch x86_64
 #CFLAGS      += -g -O3 -Wall
 #CFLAGS      += -pg -O0
@@ -27,7 +27,7 @@ X10_CPP_SOURCES = RPX10__Core.cc RPX10__CoreProj.cc RPX10__CoreIArray.cc RPX10__
 X10CXX          = x10c++
 X10CXX		   += -STATIC_CHECKS
 X10CXX         += -x10rt mpi
-X10CXX		   += -O
+#X10CXX		   += -O
 #X10CXX         += -NO_CHECKS
 X10CXX         += -report postcompile=1
 OUTDIR          = out_dir
