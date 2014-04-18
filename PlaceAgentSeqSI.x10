@@ -1,5 +1,6 @@
 import x10.compiler.*;
 import x10.util.*;
+import x10.util.concurrent.Lock;
 import x10.io.*;
 import x10.io.Console;
 
@@ -14,6 +15,7 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
     //val loads:List[Box[Int]];
     val loads:List[Int];
     val neighborsInv:List[Int];
+
 
     public def this(solver:BAPSolver[K]) {
         super(solver);
@@ -83,10 +85,10 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
 
             val id = here.id();
             for (pid in (sHandle() as PlaceAgentSeqSI[K]).neighbors) {
-            //for (p1 in Place.places()) {
 sHandle().debugPrint(here + ": neighbor: " + pid);
-                //async 
-                at (Place(pid)) atomic
+                val p1 = Place(pid);
+                async 
+                at (p1) atomic
                     (sHandle() as PlaceAgentSeqSI[K]).neighborsInv.add(id);
             }
         }
@@ -176,10 +178,14 @@ sHandle().debugPrint(here + ": my load: " + load);
             val hereId = here.id();
             //async
             // TODO: I don't know why but this often results in an error.
-            //for (pid in neighborsInv) {
+            for (pid in neighborsInv) {
+            //val iMax = neighborsInv.size() - 1;
+            //for (i in 0..iMax) {
             // TODO: (inefficient) workaround
-            for (p in Place.places()) {
-                if (p == here) continue;
+            //for (p in Place.places()) {
+                //if (p == here) continue;
+                val p = Place(pid);
+                //val p = Place(neighborsInv(i));
         		async 
                 //at (Place(pid)) {
                 at (p) {
@@ -195,7 +201,7 @@ else
        		    }
 //sHandle().debugPrint(here + ": inform to: " + pid);
 sHandle().debugPrint(here + ": inform to: " + p.id());
-            }        
+            }
 
             nReqs += neighborsInv.size();
         //}
@@ -332,7 +338,7 @@ sHandle().debugPrint(here + ": ld: " + ld);
 
                 if (boxes.isEmpty()) continue;
 
-                //async {
+                async {
                     val gRes = new GlobalRef(new Cell[Boolean](false));
                     val pid = pair.second.first;
 sHandle().debugPrint(here + ": sending to: " + pid);
@@ -360,7 +366,7 @@ sHandle().debugPrint(here + ": sending done: " + gRes().value);
                         listShared = null;
                         listShared = boxes;
                     }
-                //}
+                }
             }
 		}
 

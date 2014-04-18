@@ -242,7 +242,7 @@ debugPrint(here + ": terminate: " + terminate);
                 if ((list.size()+listShared.size()) == 0)
                     terminate = 1;
                 else {
-                    terminate = 0;
+                    terminate = term = 0;
                     //listShared.add(sHandle().solver.core.dummyBox());
                     unlock();
                     return;
