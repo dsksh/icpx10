@@ -79,8 +79,11 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
         //}
 
         finish for (p in Place.places()) async at (p) {
+            when ((sHandle() as PlaceAgentSeqSI[K]).neighbors != null) {}
+
             val id = here.id();
             for (pid in (sHandle() as PlaceAgentSeqSI[K]).neighbors) {
+            //for (p1 in Place.places()) {
 sHandle().debugPrint(here + ": neighbor: " + pid);
                 //async 
                 at (Place(pid)) atomic
@@ -171,22 +174,30 @@ sHandle().debugPrint(here + ": quit send: " + terminate);
             // send load to neighborsInv.
 sHandle().debugPrint(here + ": my load: " + load);
             val hereId = here.id();
-            for (pid in neighborsInv) {
+            //async
+            // TODO: I don't know why but this often results in an error.
+            //for (pid in neighborsInv) {
+            // TODO: (inefficient) workaround
+            for (p in Place.places()) {
+                if (p == here) continue;
         		async 
-                at (Place(pid)) atomic {
+                //at (Place(pid)) {
+                at (p) {
 if (sHandle().terminate != 3) {
                     val id = (sHandle() as PlaceAgentSeqSI[K]).neighbors.indexOf(hereId);
+                    if (id >= 0) {
 sHandle().debugPrint(here + ": setting load " + load + " from " + hereId + " at " + id);
-                    //atomic (sHandle() as PlaceAgentSeqSI[K]).loads(id) = new Box[Int](load);
-                    atomic (sHandle() as PlaceAgentSeqSI[K]).loads(id) = load;
+                        atomic (sHandle() as PlaceAgentSeqSI[K]).loads(id) = load;
+                    }
 }
 else
     sHandle().debugPrint(here + ": cannot send load");
-       		}
-sHandle().debugPrint(here + ": inform to: " + pid);
-    
-                nReqs++;
+       		    }
+//sHandle().debugPrint(here + ": inform to: " + pid);
+sHandle().debugPrint(here + ": inform to: " + p.id());
             }        
+
+            nReqs += neighborsInv.size();
         //}
 
         // compute the average load.
@@ -321,7 +332,7 @@ sHandle().debugPrint(here + ": ld: " + ld);
 
                 if (boxes.isEmpty()) continue;
 
-                async {
+                //async {
                     val gRes = new GlobalRef(new Cell[Boolean](false));
                     val pid = pair.second.first;
 sHandle().debugPrint(here + ": sending to: " + pid);
@@ -349,7 +360,7 @@ sHandle().debugPrint(here + ": sending done: " + gRes().value);
                         listShared = null;
                         listShared = boxes;
                     }
-                }
+                //}
             }
 		}
 
