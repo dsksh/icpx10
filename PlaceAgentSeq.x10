@@ -14,7 +14,8 @@ public class PlaceAgentSeq[K] extends PlaceAgentSeparated[K] {
         super(solver);
 
 		val gNSS = new GlobalRef(new Cell[Int](0));
-		at (Place(0)) {
+        val p0 = Place(0);
+		at (p0) {
    			val sNSS = System.getenv("RPX10_N_SEARCH_STEPS");
 			val nSS:Int = sNSS != null ? Int.parse(sNSS) : 1;
 			at (gNSS.home) 

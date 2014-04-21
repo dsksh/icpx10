@@ -24,7 +24,8 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
 		val gMD = new GlobalRef(new Cell[Int](0));
 		val gNSB = new GlobalRef(new Cell[Double](0.));
 		val gNSL = new GlobalRef(new Cell[Int](0));
-		at (Place(0)) {
+        val p0 = Place(0);
+		at (p0) {
    			val sMD = System.getenv("RPX10_MAX_DELTA");
    			val sNSB = System.getenv("RPX10_N_SENDS_BOX");
    			val sNSL = System.getenv("RPX10_N_SENDS_LOAD");
@@ -87,7 +88,7 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
             for (pid in (sHandle() as PlaceAgentSeqSI[K]).neighbors) {
 sHandle().debugPrint(here + ": neighbor: " + pid);
                 val p1 = Place(pid);
-                async 
+                //async 
                 at (p1) atomic
                     (sHandle() as PlaceAgentSeqSI[K]).neighborsInv.add(id);
             }
@@ -186,9 +187,11 @@ sHandle().debugPrint(here + ": my load: " + load);
                 //if (p == here) continue;
                 val p = Place(pid);
                 //val p = Place(neighborsInv(i));
+
         		async 
                 //at (Place(pid)) {
                 at (p) {
+(sHandle() as PlaceAgentSeq[K]).lock();
 if (sHandle().terminate != 3) {
                     val id = (sHandle() as PlaceAgentSeqSI[K]).neighbors.indexOf(hereId);
                     if (id >= 0) {
@@ -198,6 +201,7 @@ sHandle().debugPrint(here + ": setting load " + load + " from " + hereId + " at 
 }
 else
     sHandle().debugPrint(here + ": cannot send load");
+(sHandle() as PlaceAgentSeq[K]).unlock();
        		    }
 //sHandle().debugPrint(here + ": inform to: " + pid);
 sHandle().debugPrint(here + ": inform to: " + p.id());
@@ -340,24 +344,26 @@ sHandle().debugPrint(here + ": ld: " + ld);
 
                 async {
                     val gRes = new GlobalRef(new Cell[Boolean](false));
-                    val pid = pair.second.first;
-sHandle().debugPrint(here + ": sending to: " + pid);
-                    at (Place(pid)) {
+                    val p = Place(pair.second.first);
+sHandle().debugPrint(here + ": sending to: " + p.id());
+                    at (p) {
                         var res:Boolean = false;
-                        atomic if (sHandle().terminate != 3) {
+                        (sHandle() as PlaceAgentSeq[K]).lock();
+                        if (sHandle().terminate != 3) atomic {
                             val ls = (sHandle() as PlaceAgentSeq[K]).listShared;
                             for (b in ls) boxes.add(b);
                             (sHandle() as PlaceAgentSeq[K]).listShared = null;
                             (sHandle() as PlaceAgentSeq[K]).listShared = boxes;
                             res = true;
                         }
+                        (sHandle() as PlaceAgentSeq[K]).unlock();
                         val r = res;
                         at (gRes.home) { gRes().set(r); }
                     }
 sHandle().debugPrint(here + ": sending done: " + gRes().value);
     
                     if (gRes().value) { // boxes were sent.
-                        if (pid < here.id()) sentBw.set(true);
+                        if (p.id() < here.id()) sentBw.set(true);
                         atomic nSends++;
                     }
                     else atomic {
