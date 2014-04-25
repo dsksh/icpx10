@@ -111,12 +111,6 @@ sHandle().totalVolume.addAndGet(box.volume());
             return false;
     }
 
-    protected atomic def getAndResetTerminate() : Int {
-        val t = terminate;
-        terminate = 0;
-        return t;
-    }
-
 	var prevTime:Long = System.currentTimeMillis();
 
     public def run(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
@@ -161,7 +155,7 @@ atomic sHandle().debugPrint(here + ": CR #sp: " + sHandle().nSearchPs.get() + ",
 
     def search(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         //finish
-        while (terminate != 3 || list.size() > 0) {
+        while (terminate != TokDead || list.size() > 0) {
 
             var box:IntervalVec[K] = null;
 
@@ -188,13 +182,9 @@ debugPrint(here + ": load in search: " + totalVolume.get());
 //debugPrint(here + ": #sp: " + nSearchPs.get() + ", #r: " + nSentRequests.get() + ", " + terminate);
 
             if (here.id() == 0) atomic
-                if (list.size() == 0
-                    //&& nSearchPs.get() == 0
-                    //&& nSentRequests.get() == 0 
-                    //&& (terminate == 0 || terminate == 4)) {
-                    && terminate == 0) {
+                if (list.size() == 0 && terminate == TokActive) {
 debugPrint(here + ": start termination");
-                    terminate = 1;
+                    terminate = TokInvoke;
                 }
 
 time += System.nanoTime();
@@ -210,13 +200,13 @@ debugPrint(here + ": wait requesting");
             when ((//(list.size() + nSearchPs.get()) <= requestThreshold && 
 				   totalVolume.get() <= requestThreshold &&
                    nSentRequests.get() < maxNRequests)
-                  || terminate == 3
+                  || terminate == TokDead
               ) {
 //debugPrint(here + ": load when requesting: " + (list.size() + nSearchPs.get()));
 debugPrint(here + ": load when requesting: " + totalVolume.get());
             }
 
-            if (terminate == 3) {
+            if (terminate == TokDead) {
 debugPrint(here + ": finish req");
                 break;
             }
@@ -232,7 +222,7 @@ debugPrint(here + ": finish req");
                 val id = here.id();
                 val p = selectPlace();
 debugPrint(here + ": select place to request: " + p);
-                at (p) //if (sHandle().terminate != 3) 
+                at (p) //if (sHandle().terminate != TokDead) 
                     sHandle().reqQueue.addLast(id);
 debugPrint(here + ": requested to " + p);
                 //nReqs.getAndIncrement();
@@ -243,49 +233,49 @@ debugPrint(here + ": requested to " + p);
     }
 
     def terminate(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
-        var term:Int = 0;
+        var term:Int = TokActive;
     
 		when (!initPhase) {}
 
         while (true) {
 
-            var termBak:Int = 0;
+            var termBak:Int = TokActive;
             when (term != terminate) {
 debugPrint(here + ": terminate: " + terminate);
                 termBak = terminate;
-                if (here.id() == 0 && terminate == 2)
-                    terminate = 3;
-                else if (here.id() == 0 && terminate == 4)
-                    terminate = 1;
-                else if (here.id() > 0 && terminate != 3) 
-                    terminate = 1;
+                if (here.id() == 0 && terminate == TokIdle)
+                    terminate = TokDead;
+                else if (here.id() == 0 && terminate == TokCancel)
+                    terminate = TokInvoke;
+                else if (here.id() > 0 && terminate != TokDead) 
+                    terminate = TokInvoke;
     
                 term = terminate;
             }
     
             // begin termination detection
-            if (here.id() == 0 && term == 1) {
+            if (here.id() == 0 && term == TokInvoke) {
                 at (here.next()) atomic {
-                    sHandle().terminate = 2;
+                    sHandle().terminate = TokIdle;
                     // put a dummy box
                     //sHandle().list.add(sHandle().solver.core.dummyBox());
                 }
 debugPrint(here + ": sent token 2 to " + here.next());
             }
             // termination token went round.
-            else if (here.id() == 0 && term == 3) {
+            else if (here.id() == 0 && term == TokDead) {
                 at (here.next()) atomic {
-                    sHandle().terminate = 3;
+                    sHandle().terminate = TokDead;
                     sHandle().list.add(sHandle().solver.core.dummyBox());
                 }
 debugPrint(here + ": sent token 3 to " + here.next());
             }
-            //else if (here.id() == 0 && term == 4) {
-            //    atomic terminate = 1;
+            //else if (here.id() == 0 && term == TokCancel) {
+            //    atomic terminate = TokInvoke;
             //}
-/*            else if (here.id() > 0 && term > 1) {
-                val v = (term == 2 && sentBw.getAndSet(false)) ? 4 : term;
-                //atomic terminate = 0;
+/*            else if (here.id() > 0 && term > TokInvoke) {
+                val v = (term == TokIdle && sentBw.getAndSet(false)) ? TokCancel : term;
+                //atomic terminate = TokActive;
                 at (here.next()) atomic {
 sHandle().debugPrint(here + ": token before: " + sHandle().terminate);
                     sHandle().terminate = v;
@@ -293,24 +283,24 @@ sHandle().debugPrint(here + ": token before: " + sHandle().terminate);
                 }
 debugPrint(here + ": sent token " + v + " to " + here.next());
     
-                //if (term != 3)
-                //    atomic terminate = 1;
+                //if (term != TokDead)
+                //    atomic terminate = TokInvoke;
             }
 */
             else if (here.id() > 0) {
-                val v = (termBak == 2 && sentBw.getAndSet(false)) ? 4 : termBak;
-                //atomic terminate = 0;
+                val v = (termBak == TokIdle && sentBw.getAndSet(false)) ? TokCancel : termBak;
+                //atomic terminate = TokActive;
                 at (here.next()) atomic {
                     sHandle().terminate = v;
                     sHandle().list.add(sHandle().solver.core.dummyBox());
                 }
 debugPrint(here + ": sent token " + v + " to " + here.next());
     
-                //if (term != 3)
-                //    atomic terminate = 1;
+                //if (term != TokDead)
+                //    atomic terminate = TokInvoke;
             }
     
-            if (term == 3) {
+            if (term == TokDead) {
 debugPrint(here + ": finish termination");
                 break;
             }
@@ -318,7 +308,7 @@ debugPrint(here + ": finish termination");
     }
     
     def cancelOnTermination(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
-        when (terminate == 3) {}
+        when (terminate == TokDead) {}
 
 debugPrint(here + ": cancel req");
         cancelRequests(sHandle);

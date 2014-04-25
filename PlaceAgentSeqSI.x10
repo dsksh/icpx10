@@ -116,18 +116,18 @@ tEndPP = -System.nanoTime();
         finish {
         //async terminate(sHandle);
 
-        while (terminate != 3) {
+        while (terminate != TokDead) {
 finish {
             if (preprocessor == null || !preprocessor.process(sHandle)) {
 
 			    send(sHandle);
 
                 if (here.id() == 0) 
-                    atomic if ((list.size()+listShared.size()) == 0 && terminate == 0 ) {
+                    atomic if ((list.size()+listShared.size()) == 0 && terminate == TokActive ) {
     
                         // force search to activate termination
 //debugPrint(here + ": start termination");
-                        //atomic terminate = 1;
+                        //atomic terminate = TokInvoke;
                         listShared.add(sHandle().solver.core.dummyBox());
                     }
     
@@ -135,9 +135,9 @@ finish {
             }
 
             if (here.id() == 0)
-                atomic if ((list.size()+listShared.size()) == 0 && terminate == 0 ) {
+                atomic if ((list.size()+listShared.size()) == 0 && terminate == TokActive ) {
 debugPrint(here + ": start termination");
-                    terminate = 1;
+                    terminate = TokInvoke;
     		    }
 }
 			
@@ -192,7 +192,7 @@ sHandle().debugPrint(here + ": my load: " + load);
                 //at (Place(pid)) {
                 at (p) {
 (sHandle() as PlaceAgentSeq[K]).lock();
-if (sHandle().terminate != 3) {
+if (sHandle().terminate != TokDead) {
                     val id = (sHandle() as PlaceAgentSeqSI[K]).neighbors.indexOf(hereId);
                     if (id >= 0) {
 sHandle().debugPrint(here + ": setting load " + load + " from " + hereId + " at " + id);
@@ -267,7 +267,7 @@ sHandle().debugPrint(here + ": ld: " + ld);
                     val gRes = new GlobalRef(new Cell[Boolean](false));
                     at (Place(neighbors(i))) {
                         var res:Boolean = false;
-                        atomic if (sHandle().terminate != 3) {
+                        atomic if (sHandle().terminate != TokDead) {
                             val ls = (sHandle() as PlaceAgentSeq[K]).listShared;
                             for (b in ls) boxes.add(b);
                             (sHandle() as PlaceAgentSeq[K]).listShared = null;
@@ -349,7 +349,7 @@ sHandle().debugPrint(here + ": sending to: " + p.id());
                     at (p) {
                         var res:Boolean = false;
                         (sHandle() as PlaceAgentSeq[K]).lock();
-                        if (sHandle().terminate != 3) atomic {
+                        if (sHandle().terminate != TokDead) atomic {
                             val ls = (sHandle() as PlaceAgentSeq[K]).listShared;
                             for (b in ls) boxes.add(b);
                             (sHandle() as PlaceAgentSeq[K]).listShared = null;

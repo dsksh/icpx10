@@ -44,7 +44,7 @@ sHandle().totalVolume.addAndGet(box.volume());
 tEndPP = -System.nanoTime();
 
         finish
-        while (terminate != 3) {
+        while (terminate != TokDead) {
 
 			search(sHandle);
 			
@@ -60,12 +60,12 @@ tEndPP = -System.nanoTime();
             if ((//(list.size() + nSearchPs.get()) <= requestThreshold && 
 				   totalVolume.get() <= requestThreshold &&
                    nSentRequests.get() < maxNRequests)
-                  || terminate == 3
+                  || terminate == TokDead
               ) {
 //debugPrint(here + ": load when requesting: " + (list.size() + nSearchPs.get()));
 //debugPrint(here + ": load when requesting: " + totalVolume.get());
 
-//            if (terminate == 3) {
+//            if (terminate == TokDead) {
 //debugPrint(here + ": finish req");
 //                Clock.advanceAll();
 //                break;
@@ -81,7 +81,7 @@ tEndPP = -System.nanoTime();
                     val p = selectPlace();
 debugPrint(here + ": select place to request: " + p);
                     val id = here.id();
-                    async at (p) //if (sHandle().terminate != 3) 
+                    async at (p) //if (sHandle().terminate != TokDead) 
                         sHandle().reqQueue.addLast(id);
 debugPrint(here + ": requested to " + p);
                     //nReqs.getAndIncrement();

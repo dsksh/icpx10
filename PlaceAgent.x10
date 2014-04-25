@@ -9,13 +9,19 @@ import x10.io.Console;
 
 public class PlaceAgent[K] {
 
+    static val TokActive = 0;
+    static val TokInvoke = 1;
+    static val TokIdle = 2;
+    static val TokCancel = 4;
+    static val TokDead = 3;
+
     val solver:BAPSolver[K];
     val list:List[IntervalVec[K]];
     //val list:CircularQueue[IntervalVec[K]];
     val solutions:List[Pair[BAPSolver.Result,IntervalVec[K]]];
 
     val reqQueue:CircularQueue[Int];
-    var terminate:Int = 0;
+    var terminate:Int = TokActive;
     var nSentRequests:AtomicInteger = new AtomicInteger(0);
     var sentBw:AtomicBoolean = new AtomicBoolean(false);
     var initPhase:Boolean = true;
@@ -196,7 +202,7 @@ debugPrint(here + ": selected " + p);
 
     protected atomic def getAndResetTerminate() : Int {
         val t = terminate;
-        terminate = 0;
+        terminate = TokActive;
         return t;
     }
 
@@ -246,49 +252,39 @@ atomic {
                 term = terminate;
 //Console.OUT.println(here + ": term: " + term);
 
-                if (sentRequest.get() && term != 3)
+                if (sentRequest.get() && term != TokDead)
                     continue;
                 else
-                    terminate = 0;
+                    terminate = TokActive;
 }
 
                 // begin termination detection
-                if (here.id() == 0 && (term == 0 || term == 2)) {
+                if (here.id() == 0 && (term == TokActive || term == TokCancel)) {
 //async
                     at (here.next()) atomic {
-                        sHandle().terminate = 1;
-//                        sHandle().sentBw.set(false);
+                        sHandle().terminate = TokIdle;
                         // put a dummy box
                         sHandle().list.add(sHandle().solver.core.dummyBox());
                     }
-//Console.OUT.println(here + ": sent token 1 to " + here.next());
+//Console.OUT.println(here + ": sent token Idle to " + here.next());
                 }
                 // termination token went round.
-                else if (here.id() == 0 && term == 1) {
-                    //val term = getAndResetTerminate();
-//                    if (term == 1) {
-//async
-                        at (here.next()) atomic {
-                            sHandle().terminate = 3;
-                            sHandle().list.add(sHandle().solver.core.dummyBox());
-                        }
-//Console.OUT.println(here + ": sent token 3 to " + here.next());
-                        break;
-//                    }
-                    //else if (term == 2) continue;
+                else if (here.id() == 0 && term == TokIdle) {
+                    at (here.next()) atomic {
+                        sHandle().terminate = TokDead;
+                        sHandle().list.add(sHandle().solver.core.dummyBox());
+                    }
+//Console.OUT.println(here + ": sent token Dead to " + here.next());
+                    break;
                 }
-                else if (here.id() > 0 && term > 0) {
-                    val v = (term == 1 && sentBw.getAndSet(false)) ? 2 : term;
-//Console.OUT.println(here + ": sending token " + v + " to " + here.next());
-                    //atomic terminate = 0;
-//async
+                else if (here.id() > 0 && term != TokActive) {
+                    val v = (term == TokIdle && sentBw.getAndSet(false)) ? TokCancel : term;
                     at (here.next()) atomic {
                         sHandle().terminate = v;
-//                        sHandle().sentBw.set(false);
                         sHandle().list.add(sHandle().solver.core.dummyBox());
                     }
 //Console.OUT.println(here + ": sent token " + v + " to " + here.next());
-                    if (term == 3) {
+                    if (term == TokDead) {
                         break;
                     }
                 }
@@ -308,15 +304,8 @@ atomic {
                     //nReqs.getAndIncrement();
                     nReqs++;
                 }
-//}
-//}
-
             }
         }
-
-//Console.OUT.println(here + ": boxAvail: " + !list.isEmpty());
-//   		Console.OUT.println(here + ": done");
-//   		Console.OUT.flush();
     }
 }
 

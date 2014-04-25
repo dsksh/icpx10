@@ -62,7 +62,7 @@ totalVolume.addAndGet(box.volume());
         return listShared.add(box);
     }
 
-    var term:Int = 0;
+    var term:Int = TokActive;
 
     public def run(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
    		debugPrint(here + ": start solving... ");
@@ -72,16 +72,16 @@ tEndPP = -System.nanoTime();
         finish {
 		//async terminate(sHandle);
 
-        while (terminate != 3) {
+        while (terminate != TokDead) {
 
             if (preprocessor == null || !preprocessor.process(sHandle)) {
 			    search(sHandle);
             }
 
             if (here.id() == 0)
-                atomic if ((list.size()+listShared.size()) == 0 && terminate == 0 ) {
+                atomic if ((list.size()+listShared.size()) == 0 && terminate == TokActive) {
 debugPrint(here + ": start termination");
-                    terminate = 1;
+                    terminate = TokInvoke;
     		    }
 
 			terminate(sHandle);
@@ -146,76 +146,6 @@ sHandle().tSearch += time;
 	}
 
 
-    def terminate1(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
-        var termBak:Int = 0;
-
-        if (//list.isEmpty() && 
-            term != terminate) {
-
-            atomic {
-debugPrint(here + ": terminate: " + terminate);
-                termBak = terminate;
-                if (here.id() == 0 && terminate == 2)
-                    terminate = 3;
-                else if (here.id() == 0 && terminate == 4) {
-                    if ((list.size()+listShared.size()) == 0)
-                        terminate = 1;
-                    else {
-                        terminate = 0;
-                        //listShared.add(sHandle().solver.core.dummyBox());
-                        return;
-                    }
-                }
-                else if ((terminate == 2) &&
-                         (list.size()+listShared.size()) > 0 &&
-                         !sentBw.get()) {
-
-                    listShared.add(sHandle().solver.core.dummyBox());
-                    return;
-                }
-                else if (here.id() > 0 && terminate != 3) 
-                    //terminate = 1;
-                    terminate = 0;
-    
-                term = terminate;
-            }
-
-            // begin termination detection
-            if (here.id() == 0 && term == 1) {
-                at (here.next()) atomic {
-                    sHandle().terminate = 2;
-                    // put a dummy box
-                    (sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
-					//sHandle().initPhase = false;
-                }
-debugPrint(here + ": sent token 2 to " + here.next());
-            }
-            // termination token went round.
-            else if (here.id() == 0 && term == 3) {
-                at (here.next()) atomic {
-                    sHandle().terminate = 3;
-                    (sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
-                }
-debugPrint(here + ": sent token 3 to " + here.next());
-            }
-            else if (here.id() > 0) {
-                val v = (termBak == 2 && sentBw.getAndSet(false)) ? 4 : termBak;
-debugPrint(here + ": sending token " +v+ " to " + here.next());
-                //atomic terminate = 0;
-                at (here.next()) atomic {
-                    sHandle().terminate = v;
-sHandle().debugPrint(here + ": setting token " + sHandle().terminate);
-                    (sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
-					//sHandle().initPhase = false;
-                }
-debugPrint(here + ": sent token " + v + " to " + here.next());
-    
-                //if (term != 3)
-                //    atomic terminate = 1;
-            }
-        }
-    }
-
     val lock = new Lock();
 
     def lock() {
@@ -237,19 +167,19 @@ debugPrint(here + ": sent token " + v + " to " + here.next());
 
 debugPrint(here + ": terminate: " + terminate);
             val termBak = terminate;
-            if (here.id() == 0 && terminate == 2)
-                terminate = 3;
-            else if (here.id() == 0 && terminate == 4) {
+            if (here.id() == 0 && terminate == TokIdle)
+                terminate = TokDead;
+            else if (here.id() == 0 && terminate == TokCancel) {
                 if ((list.size()+listShared.size()) == 0)
-                    terminate = 1;
+                    terminate = TokInvoke;
                 else {
-                    terminate = term = 0;
+                    terminate = term = TokActive;
                     //listShared.add(sHandle().solver.core.dummyBox());
                     unlock();
                     return;
                 }
             }
-            else if ((terminate == 2) &&
+            else if ((terminate == TokIdle) &&
                      (list.size()+listShared.size()) > 0 &&
                      !sentBw.get()) {
 
@@ -257,38 +187,38 @@ debugPrint(here + ": terminate: " + terminate);
                 unlock();
                 return;
             }
-            else if (here.id() > 0 && terminate != 3) 
-                //terminate = 1;
-                terminate = 0;
+            else if (here.id() > 0 && terminate != TokDead) 
+                //terminate = TokInvoke;
+                terminate = TokActive;
 
             term = terminate;
 
 
             // begin termination detection
-            if (here.id() == 0 && term == 1) {
+            if (here.id() == 0 && term == TokInvoke) {
                 at (here.next()) {
                     (sHandle() as PlaceAgentSeq[K]).lock();
-                    sHandle().terminate = 2;
+                    sHandle().terminate = TokIdle;
                     // put a dummy box
                     (sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
                     (sHandle() as PlaceAgentSeq[K]).unlock();
                 }
-debugPrint(here + ": sent token 2 to " + here.next());
+debugPrint(here + ": sent token Idle to " + here.next());
             }
             // termination token went round.
-            else if (here.id() == 0 && term == 3) {
+            else if (here.id() == 0 && term == TokDead) {
                 at (here.next()) {
                     (sHandle() as PlaceAgentSeq[K]).lock();
-                    sHandle().terminate = 3;
+                    sHandle().terminate = TokDead;
                     (sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
                     (sHandle() as PlaceAgentSeq[K]).unlock();
                 }
 debugPrint(here + ": sent token 3 to " + here.next());
             }
             else if (here.id() > 0) {
-                val v = (termBak == 2 && sentBw.getAndSet(false)) ? 4 : termBak;
+                val v = (termBak == TokIdle && sentBw.getAndSet(false)) ? TokCancel : termBak;
 debugPrint(here + ": sending token " +v+ " to " + here.next());
-                //atomic terminate = 0;
+                //atomic terminate = TokActive;
                 at (here.next()) {
                     (sHandle() as PlaceAgentSeq[K]).lock();
                     sHandle().terminate = v;
@@ -301,67 +231,6 @@ debugPrint(here + ": sending token " +v+ " to " + here.next());
             }
 
             unlock();
-        }
-    }
-
-    def terminate3(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
-        var termBak:Int = 0;
-
-		when (!initPhase) {}
-
-        while (term != 3) {
-
-            when ((list.size()+listShared.size()) == 0 &&
-                  term != terminate
-              ) {
-debugPrint(here + ": terminate: " + terminate);
-
-                termBak = terminate;
-                if (here.id() == 0 && terminate == 2)
-                    terminate = 3;
-                else if (here.id() == 0 && terminate == 4)
-                    //terminate = 1;
-                    terminate = 0;
-                else if (here.id() > 0 && terminate != 3) 
-                    //terminate = 1;
-                    terminate = 0;
-    
-                term = terminate;
-            }
-
-            // begin termination detection
-            if (here.id() == 0 && term == 1) {
-                at (here.next()) atomic {
-                    sHandle().terminate = 2;
-                    // put a dummy box
-                    (sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
-					//sHandle().initPhase = false;
-                }
-debugPrint(here + ": sent token 2 to " + here.next());
-            }
-            // termination token went round.
-            else if (here.id() == 0 && term == 3) {
-                at (here.next()) atomic {
-                    sHandle().terminate = 3;
-                    (sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
-                }
-debugPrint(here + ": sent token 3 to " + here.next());
-            }
-            else if (here.id() > 0) {
-                val v = (termBak == 2 && sentBw.getAndSet(false)) ? 4 : termBak;
-debugPrint(here + ": sending token " +v+ " to " + here.next());
-                //atomic terminate = 0;
-                at (here.next()) atomic {
-                    sHandle().terminate = v;
-sHandle().debugPrint(here + ": setting token " + sHandle().terminate);
-                    (sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
-					//sHandle().initPhase = false;
-                }
-debugPrint(here + ": sent token " + v + " to " + here.next());
-    
-                //if (term != 3)
-                //    atomic terminate = 1;
-            }
         }
     }
 }

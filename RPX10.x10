@@ -121,8 +121,7 @@ public class RPX10[K] {
             solver = new BAPSolverDumb[K](core, select);
             break;
         default:
-            return new PlaceAgentMSplit[K](
-                new BAPSolverMSplit[K](core, select) );
+            solver = new BAPListSolver[K](core, select);
         }
 
         switch (Int.parse(args(an++))) {
@@ -131,21 +130,21 @@ public class RPX10[K] {
         case 1:
             //return new PlaceAgentSeparated[K](solver);
             return new PlaceAgentSeqSI[K](solver);
-        case 2:
+        /*case 2:
             //return new PlaceAgentClockedRequest[K](solver);
-            return new PlaceAgentClockedSI[K](solver);
+            return new PlaceAgentClockedSI[K](solver);*/
         case 4: {
             val pa = new PlaceAgentSeq[K](solver);
             val pp = new PreprocessorSeq[K](core, prec, pa);
             pa.setPreprocessor(pp);
             return pa;
         }
-        case 5: {
+        /*case 5: {
             val pa = new PlaceAgentClockedSI[K](solver);
             val pp = new PreprocessorClocked[K](core, prec, pa);
             pa.setPreprocessor(pp);
             return pa;
-        }
+        }*/
         case 6: {
             val pa = new PlaceAgentSeqSI[K](solver);
             val pp = new PreprocessorSeq[K](core, prec, pa);
