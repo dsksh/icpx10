@@ -3,7 +3,7 @@ import x10.util.*;
 import x10.io.*;
 import x10.io.Console;
 
-public class PlaceAgentSeqSI1[K] extends PlaceAgentSeq[K] {
+public class PlaceAgentSeqSIRandom[K] extends PlaceAgentSeq[K] {
 
     val sizeNbors:Int = 5; // FIXME
     val maxDelta:Int;

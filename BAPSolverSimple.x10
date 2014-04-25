@@ -23,11 +23,11 @@ public class BAPSolverSimple[K] extends BAPSolver[K] {
         // add last.
 		list.add(box);
     }
-    protected def sortDom() {
+    /*protected def sortDom() {
         list.sort(
             (b1:IntervalVec[K],b2:IntervalVec[K]) =>
                 b2.volume().compareTo(b1.volume()) );
-    }
+    }*/
 
     protected def search(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) {
 //Console.OUT.println(here + ": search:\n" + box + '\n');
@@ -38,7 +38,7 @@ public class BAPSolverSimple[K] extends BAPSolver[K] {
 
         if (list == null) list = sHandle().list;
 
-sHandle().totalVolume.addAndGet(-box.volume());
+//sHandle().totalVolume.addAndGet(-box.volume());
         val res:Result = contract(sHandle, box);
 //Console.OUT.println(here + ": after contraction:\n" + box);
 
@@ -47,13 +47,13 @@ sHandle().totalVolume.addAndGet(-box.volume());
             if (v != null) {
 //Console.OUT.println(here + ": split: " + v);
                 val bp = box.split(v()); 
-                //sHandle().nSplits.getAndIncrement();
                 sHandle().nSplits++;
-val vol = box.volume();
-sHandle().totalVolume.addAndGet(vol);
+//val vol = box.volume();
+//sHandle().totalVolume.addAndGet(vol);
 
-                if (sHandle().respondIfRequested(sHandle, bp.first))
-                    sHandle().totalVolume.addAndGet(-vol/2);
+                if (sHandle().respondIfRequested(sHandle, bp.first)) {
+//sHandle().totalVolume.addAndGet(-vol/2);
+                }
                 else
                     returnDom(bp.first);
 

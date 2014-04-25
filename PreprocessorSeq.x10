@@ -31,7 +31,7 @@ public class PreprocessorSeq[K] {
 
     var minVolume:Double;
 
-    var initPhase:Boolean;
+    var active:Boolean;
 
     public def this(core:BAPSolver.Core[K], prec:Double, pa:PlaceAgentSeq[K]) {
         this.list = pa.list;
@@ -78,8 +78,8 @@ public class PreprocessorSeq[K] {
 
         sizeRouteTree = sizeRTCache;
 
-        //initPhase = false;
-        initPhase = pa.initPhase;
+        //active = false;
+        active = pa.active;
     }
 
     def updateSizeRouteTree() {
@@ -91,7 +91,7 @@ public class PreprocessorSeq[K] {
     }
 
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
-        initPhase = true;
+        active = true;
     }
 
     private val random:Random = new Random(System.nanoTime());
@@ -112,89 +112,20 @@ public class PreprocessorSeq[K] {
 
 	var activated:Boolean = false;
 
-    public def process1(sHandle:PlaceLocalHandle[PlaceAgent[K]]) : Boolean {
-		if (!activated) when (sHandle().initPhase) activated = true;
-
-        if (sizeRouteTree.getFirst() >= Place.numPlaces()) {
-            return false;
-        }
-
-        when (sHandle().initPhase) {
-sHandle().debugPrint(here + ": pp activated: " + initPhase + ", " + (list.size()+listShared.size()));
-
-            initPhase = false;
-
-            // append the two lists.
-            for (box in listShared)
-                list.add(box);
-
-            // reset
-            listShared.clear();
-        }
-
-        //sHandle().sortDom();
-
-        // perform BFS.
-        while (!list.isEmpty() && list.size() < nBoxesMax) {
-            //val box = sHandle().removeDom();
-            val box = list.removeFirst();
-            solver.search(sHandle, box);
-        }
-
-        sHandle().sortDom();
-
-sHandle().debugPrint(here + ": search done, " + list.size());
-
-        finish for (1..list.size()) {
-            val box = sHandle().removeDom();
-            val pv:Box[K] = box.prevVar();
-            val p = selectPlace();
-//sHandle().debugPrint(here + ": selected: " + p);
-val b = (p != here);
-val vol = box.volume();
-if (b) sHandle().totalVolume.addAndGet(-vol);
-            async at (p) {
-                box.setPrevVar(pv);
-                (sHandle() as PlaceAgentSeq[K]).addDomShared(box);
-if (b) sHandle().totalVolume.addAndGet(vol);
-            }
-            if (b) sHandle().nSends++;
-            if (p.id() < here.id()) sHandle().sentBw.set(true);
-        }
-
-//finish // should not use finish here
-for (1..nDestinations) {
-    val p = selectPlace();
-sHandle().debugPrint(here + ": selected: " + p);
-	if (p != here)
-		//async
-	    at (p) atomic sHandle().initPhase = true;
-}
-
-        updateSizeRouteTree();
-
-        return true;
-    }
-
     public def process(sHandle:PlaceLocalHandle[PlaceAgent[K]]) : Boolean {
-		if (!activated) when (sHandle().initPhase) activated = true;
+		if (!activated) when (sHandle().active) activated = true;
 
         if (sizeRouteTree.getFirst() >= Place.numPlaces()) {
             return false;
         }
 
-        when (sHandle().initPhase) {
-sHandle().debugPrint(here + ": pp activated: " + initPhase + ", " + (list.size()+(sHandle() as PlaceAgentSeq[K]).listShared.size()));
+        when (sHandle().active) {
+//sHandle().debugPrint(here + ": pp activated: " + active + ", " + (list.size()+(sHandle() as PlaceAgentSeq[K]).listShared.size()));
 
-            initPhase = false;
-
-            // append the two lists.
-            for (box in (sHandle() as PlaceAgentSeq[K]).listShared)
-                list.add(box);
-
-            // reset
-            (sHandle() as PlaceAgentSeq[K]).listShared.clear();
+            active = false;
         }
+
+        (sHandle() as PlaceAgentSeq[K]).joinTwoLists();
 
         sHandle().sortDom();
 
@@ -228,12 +159,13 @@ val b = (p != here);
 //val vol = box.volume();
 //if (b) sHandle().totalVolume.addAndGet(-vol);
 
-            async at (p) atomic {
-                val ls = (sHandle() as PlaceAgentSeq[K]).listShared;
-                for (box in ls) bs.add(box);
-                (sHandle() as PlaceAgentSeq[K]).listShared = null;
-                (sHandle() as PlaceAgentSeq[K]).listShared = bs;
-	            sHandle().initPhase = true;
+            async at (p) {
+                (sHandle() as PlaceAgentSeq[K]).joinWithListShared(bs);
+                //val ls = (sHandle() as PlaceAgentSeq[K]).listShared;
+                //for (box in ls) bs.add(box);
+                //(sHandle() as PlaceAgentSeq[K]).listShared = null;
+                //(sHandle() as PlaceAgentSeq[K]).listShared = bs;
+	            atomic sHandle().active = true;
             }
 
             if (b) sHandle().nSends++;

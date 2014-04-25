@@ -4,6 +4,7 @@ import x10.util.concurrent.AtomicBoolean;
 import x10.util.concurrent.AtomicInteger;
 import x10.util.concurrent.AtomicLong;
 import x10.util.concurrent.AtomicDouble;
+import x10.util.concurrent.Lock;
 import x10.io.*;
 import x10.io.Console; 
 
@@ -11,9 +12,9 @@ public class PlaceAgent[K] {
 
     static val TokActive = 0;
     static val TokInvoke = 1;
-    static val TokIdle = 2;
+    static val TokIdle   = 2;
     static val TokCancel = 4;
-    static val TokDead = 3;
+    static val TokDead   = 8;
 
     val solver:BAPSolver[K];
     val list:List[IntervalVec[K]];
@@ -24,7 +25,7 @@ public class PlaceAgent[K] {
     var terminate:Int = TokActive;
     var nSentRequests:AtomicInteger = new AtomicInteger(0);
     var sentBw:AtomicBoolean = new AtomicBoolean(false);
-    var initPhase:Boolean = true;
+    var active:Boolean = true;
 	var totalVolume:AtomicDouble = new AtomicDouble(0.);
 
     var sentRequest:AtomicBoolean = new AtomicBoolean(false);
@@ -32,20 +33,13 @@ public class PlaceAgent[K] {
     var nSearchPs:AtomicInteger = new AtomicInteger(0);
 
     public var tEndPP:Long = 0l;
-    //public var nSols:AtomicInteger = new AtomicInteger(0);
     public var nSols:Int = 0;
-    //public var nContracts:AtomicInteger = new AtomicInteger(0);
-    //public var tContracts:AtomicLong = new AtomicLong(0);
     public var nContracts:Int = 0;
     public var tContracts:Long = 0l;
     public var tSearch:Long = 0l;
-    //public var nSplits:AtomicInteger = new AtomicInteger(0);
     public var nSplits:Int = 0;
-    //public var nReqs:AtomicInteger = new AtomicInteger(0); // TODO
     public var nReqs:Int = 0;
-    //public var nSends:AtomicInteger = new AtomicInteger(0);
     public var nSends:Int = 0;
-    //public var nBranches:AtomicInteger = new AtomicInteger(0);
 
     protected random:Random;
 
@@ -186,24 +180,34 @@ debugPrint(here + ": selected " + p);
         // FIXME
         //atomic 
 		solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
-//Console.OUT.println(here + ": solution:");
-//val plot = res.entails(BAPSolver.Result.inner()) ? 5 : 3;
-//val stringB = box.toString(plot);
-//async
-//at (Place(0)) 
-//atomic {
-//    Console.OUT.println(stringB);
-//    Console.OUT.println(); 
-//    Console.OUT.flush();
-//}
-        //nSols.getAndIncrement();
         nSols++;
     }
 
-    protected atomic def getAndResetTerminate() : Int {
+    private val terminateLock = new Lock();
+
+    protected def lockTerminate() {
+        if (!terminateLock.tryLock()) {
+            Runtime.increaseParallelism();
+            terminateLock.lock();
+            Runtime.decreaseParallelism(1);
+        }
+    }
+    protected def unlockTerminate() {
+        terminateLock.unlock();
+    }
+
+    protected def getAndResetTerminate() : Int {
+        lockTerminate();
         val t = terminate;
         terminate = TokActive;
+        unlockTerminate();
         return t;
+    }
+
+    protected def setTerminate(tok:Int) {
+        lockTerminate();
+        terminate = tok;
+        unlockTerminate();
     }
 
     public def run(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
@@ -222,7 +226,7 @@ debugPrint(here + ": wait...");
             when (!list.isEmpty()) {
 time = -System.nanoTime();
                 isActive.set(true);
-initPhase = false;
+active = false;
                 box = list.removeFirst();
 //debugPrint(here + ": got box:\n" + box);
             }
@@ -237,7 +241,7 @@ sHandle().tSearch += time;
                 isActive.set(false);
 
                 // cancel the received requests.
-                while (!initPhase && reqQueue.getSize() > 0) {
+                while (!active && reqQueue.getSize() > 0) {
                     val id:Int = reqQueue.removeFirstUnsafe();
 //async
                     at (here.next()) {
@@ -247,7 +251,8 @@ sHandle().tSearch += time;
                 }
 
                 var term:Int;
-atomic {
+try {
+lockTerminate();
                 //val term = getAndResetTerminate();
                 term = terminate;
 //Console.OUT.println(here + ": term: " + term);
@@ -257,31 +262,34 @@ atomic {
                 else
                     terminate = TokActive;
 }
+finally {
+    unlockTerminate();
+}
 
                 // begin termination detection
                 if (here.id() == 0 && (term == TokActive || term == TokCancel)) {
 //async
-                    at (here.next()) atomic {
-                        sHandle().terminate = TokIdle;
+                    at (here.next()) {
+                        sHandle().setTerminate(TokIdle);
                         // put a dummy box
-                        sHandle().list.add(sHandle().solver.core.dummyBox());
+                        atomic sHandle().list.add(sHandle().solver.core.dummyBox());
                     }
 //Console.OUT.println(here + ": sent token Idle to " + here.next());
                 }
                 // termination token went round.
                 else if (here.id() == 0 && term == TokIdle) {
-                    at (here.next()) atomic {
-                        sHandle().terminate = TokDead;
-                        sHandle().list.add(sHandle().solver.core.dummyBox());
+                    at (here.next()) {
+                        sHandle().setTerminate(TokDead);
+                        atomic sHandle().list.add(sHandle().solver.core.dummyBox());
                     }
 //Console.OUT.println(here + ": sent token Dead to " + here.next());
                     break;
                 }
                 else if (here.id() > 0 && term != TokActive) {
                     val v = (term == TokIdle && sentBw.getAndSet(false)) ? TokCancel : term;
-                    at (here.next()) atomic {
-                        sHandle().terminate = v;
-                        sHandle().list.add(sHandle().solver.core.dummyBox());
+                    at (here.next()) {
+                        sHandle().setTerminate(v);
+                        atomic sHandle().list.add(sHandle().solver.core.dummyBox());
                     }
 //Console.OUT.println(here + ": sent token " + v + " to " + here.next());
                     if (term == TokDead) {
@@ -290,14 +298,13 @@ atomic {
                 }
 
                 // request for a domain
-                if (Place.numPlaces() > 1 && !sentRequest.getAndSet(true)
-                    ) {
+                if (Place.numPlaces() > 1 && !sentRequest.getAndSet(true)) {
                     val id = here.id();
                     val p = selectPlace();
 //async
                     at (p) {
                         sHandle().reqQueue.addLast(id);
-                        sHandle().list.add(sHandle().solver.core.dummyBox());
+                        atomic sHandle().list.add(sHandle().solver.core.dummyBox());
 //Console.OUT.println(here + ": requested from " + id);
                     }
 //Console.OUT.println(here + ": requested to " + p);

@@ -13,7 +13,7 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
     public def this(solver:BAPSolver[K]) {
         super(solver);
 
-        initPhase = false;
+        active = false;
     }
 
     public def initPP(core:BAPSolver.Core[K], prec:Double) {
@@ -52,7 +52,7 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
             if (++dst == pow2) { dst = 0; pow2 *= 2; }
         }
 
-        initPhase = true;
+        active = true;
 
         // initial splitting at Place(0).
         //tester.maxLSize = nBoxes/2;
@@ -61,7 +61,7 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
     }
 
 /*    public atomic def addSolution(res:BAPSolver.Result, box:IntervalVec[K]) {
-        if (initPhase && !res.entails(BAPSolver.Result.inner())) {
+        if (active && !res.entails(BAPSolver.Result.inner())) {
             list.add(box);
 //atomic solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
         }
@@ -72,7 +72,7 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
 
     public def run(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 
-        while (true) if (initPhase) {
+        while (true) if (active) {
 //Console.OUT.println(here + ": start PP");
 
             while (reqQueue.getSize() > 0) { // has some requests...
@@ -116,13 +116,13 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
                     b = !b;
                 }
 
-                at (Place(pi)) atomic sHandle().initPhase = true;
+                at (Place(pi)) atomic sHandle().active = true;
             }
 
-            initPhase = false;
+            active = false;
             break;
         }
-        else when (initPhase) {}
+        else when (active) {}
 
 //Console.OUT.println(here + ": PP done");
 sHandle().tEndPP = System.nanoTime();
