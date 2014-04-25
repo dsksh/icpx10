@@ -131,6 +131,16 @@ debugPrint(here + ": start termination");
         }
 	}
 
+    /*def waitActivation() {
+        while (true)
+            if (active || list.size()+listShared.size() > 0) {
+debugPrint(here + ": activated: " + active + ", " + list.size()+","+listShared.size());
+                active = false;
+                return;
+            }
+            else System.sleep(10);
+    }*/
+
     def search(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 
 if (tEndPP < 0l) tEndPP += System.nanoTime();
@@ -140,6 +150,8 @@ debugPrint(here + ": wait");
 debugPrint(here + ": activated: " + active + ", " + list.size()+","+listShared.size());
             active = false;
         }
+
+        //waitActivation();
 
         joinTwoLists();
 
