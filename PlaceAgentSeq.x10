@@ -61,48 +61,63 @@ public class PlaceAgentSeq[K] extends PlaceAgent[K] {
     private val lockSList = new Lock();
 
     protected def lockSList() {
-        if (!lockSList.tryLock()) {
+/*        if (!lockSList.tryLock()) {
             Runtime.increaseParallelism();
             lockSList.lock();
             Runtime.decreaseParallelism(1);
         }
+*/
     }
     protected def unlockSList() {
-        lockSList.unlock();
+//        lockSList.unlock();
     }
 
     public def addDomShared(box:IntervalVec[K]) : Boolean {
+atomic {
         try {
             lockSList();
-            return listShared.add(box);
+			return listShared.add(box);
         }
         finally {
             unlockSList();
         }
+}
     }
 
     public def joinTwoLists() {
         lockSList();
-
+atomic {
         // append the two lists.
         for (box in listShared)
             list.add(box);
 
         // reset
         listShared.clear();
-
+}
         unlockSList();
     }
 
     public def joinWithListShared(boxList:List[IntervalVec[K]]) {
         lockSList();
 
+atomic {
         for (box in listShared) boxList.add(box);
         listShared = null;
         listShared = boxList;
+}
 
         unlockSList();
     }
+
+	public def getLoad() {
+        try {
+            lockSList();
+            return list.size()+listShared.size();
+        }
+        finally {
+            unlockSList();
+        }
+	}
 
     var term:Int = TokActive;
 
@@ -112,7 +127,7 @@ public class PlaceAgentSeq[K] extends PlaceAgent[K] {
 tEndPP = -System.nanoTime();
 
         finish
-        while (terminate != TokDead || (list.size()+listShared.size()) > 0) {
+        while (getTerminate() != TokDead || (list.size()+listShared.size()) > 0) {
 
             if (preprocessor == null || !preprocessor.process(sHandle)) {
 			    search(sHandle);
@@ -131,15 +146,18 @@ debugPrint(here + ": start termination");
         }
 	}
 
-    /*def waitActivation() {
-        while (true)
-            if (active || list.size()+listShared.size() > 0) {
+    def waitActivation() {
+        while (true) {
+            atomic 
+			if (active || list.size()+listShared.size() > 0) {
 debugPrint(here + ": activated: " + active + ", " + list.size()+","+listShared.size());
                 active = false;
                 return;
             }
-            else System.sleep(10);
-    }*/
+
+            System.sleep(100);
+        }
+    }
 
     def search(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 
@@ -193,7 +211,7 @@ sHandle().tSearch += time;
 
     def terminate(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 
-        if (term != terminate) {
+        if (term != getTerminate()) {
 
             lockTerminate();
 
@@ -216,9 +234,9 @@ debugPrint(here + ": terminate: " + terminate);
                 if ((list.size()+listShared.size()) == 0)
                     terminate = TokActive;
                 else {
+                    unlockTerminate();
                     //addDomShared(sHandle().solver.core.dummyBox());
                     atomic sHandle().active = true;
-                    unlockTerminate();
                     return;
                 }
             }
@@ -250,7 +268,8 @@ debugPrint(here + ": sent token Idle to " + here.next());
 debugPrint(here + ": sent token Dead to " + here.next());
             }
             else if (here.id() > 0) {
-                val t = (termBak == TokIdle && sentBw.getAndSet(false)) ? TokCancel : termBak;
+				val sb = sentBw.getAndSet(false);
+                val t = (termBak == TokIdle && sb) ? TokCancel : termBak;
 debugPrint(here + ": sending token " + t + " to " + here.next());
                 at (here.next()) {
                     sHandle().setTerminate(t);

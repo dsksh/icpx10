@@ -16,6 +16,8 @@ public class PlaceAgent[K] {
     static val TokCancel = 4;
     static val TokDead   = 8;
 
+    //var loc:AtomicInteger = new AtomicInteger(0);
+
     val solver:BAPSolver[K];
     val list:List[IntervalVec[K]];
     //val list:CircularQueue[IntervalVec[K]];
@@ -40,6 +42,7 @@ public class PlaceAgent[K] {
     public var nSplits:Int = 0;
     public var nReqs:Int = 0;
     public var nSends:Int = 0;
+    public var tWaitComm:Long = 0l;
 
     protected random:Random;
 
@@ -99,8 +102,10 @@ totalVolume.addAndGet(box.volume());
 
     public val doDebugPrint:Boolean;
     public def debugPrint(msg:String) {
-        if (doDebugPrint)
+        if (doDebugPrint) {
             Console.OUT.println(msg);
+			Console.OUT.flush();
+		}
     }
 
     //private var selected:Iterator[Place] = null;
@@ -185,6 +190,9 @@ debugPrint(here + ": selected " + p);
 
     private val terminateLock = new Lock();
 
+    protected def tryLockTerminate() : Boolean {
+        return terminateLock.tryLock();
+    }
     protected def lockTerminate() {
         if (!terminateLock.tryLock()) {
             Runtime.increaseParallelism();
@@ -199,9 +207,20 @@ debugPrint(here + ": selected " + p);
     protected def getAndResetTerminate() : Int {
         lockTerminate();
         val t = terminate;
-        terminate = TokActive;
+		terminate = TokActive;
         unlockTerminate();
         return t;
+    }
+
+    protected def getTerminate() {
+        try {
+			lockTerminate();
+			return terminate;
+		}
+		finally {
+	        unlockTerminate();
+		}
+		//return terminate;
     }
 
     protected def setTerminate(tok:Int) {
