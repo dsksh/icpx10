@@ -4,18 +4,16 @@ import x10.util.concurrent.Lock;
 import x10.io.*;
 import x10.io.Console;
 
-public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
+public class PlaceAgentSeqSIW[K] extends PlaceAgentSeq[K] {
 
-    //val sizeNbors:Int = 5; // FIXME
     val maxDelta:Int;
-    //var nSendsBox:Double;
-    //val minNSendsBox:Double;
 
     val neighbors:List[Int];
 
 	// list of the neighbors' loads.
-    val loads:List[Int];
-    var weight:Double;
+    val loads:List[Double];
+    var loadWeight:Double = 1.0;
+    val loadCoeff:Double = 0.9;
 
 	private val lockLoads:Lock = new Lock();
     protected def lockLoads() {
@@ -30,7 +28,7 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
         lockLoads.unlock();
     }
 
-	def getLoad(i:Int) {
+	def getLoad(i:Int) : Double {
 		try {
 			lockLoads();
 			return loads(i);
@@ -39,7 +37,7 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
 			unlockLoads();
 		}
 	}
-	def setLoad(i:Int, l:Int) {
+	def setLoad(i:Int, l:Double) {
 		lockLoads();
 		loads(i) = l;
 		unlockLoads();
@@ -90,14 +88,6 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
 
         neighbors = new ArrayList[Int](nSendsLoad);
 
-        /*var pow:Int = 1;
-        for (1..nSendsLoad) {
-            val pid = (here.id() + pow) % Place.numPlaces();
-            pow *= 2;
-            if (pid != here.id() && !neighbors.contains(pid))
-                neighbors.add(pid);
-        }*/
-
         val num = 1./(nSendsLoad as Double);
         var pidBak:Int = -1;
         for (i in 0..(nSendsLoad-1)) {
@@ -110,10 +100,10 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
                 neighbors.add(pid);
         }
 
-        loads = new ArrayList[Int](nSendsLoad);
+        loads = new ArrayList[Double](nSendsLoad);
         for (neighbors.indices()) 
             //loads.add(Int.MAX_VALUE/(neighbors.size()+1));
-            loads.add(-1);
+            loads.add(-1.);
 
         neighborsInv = new ArrayList[Int](nSendsLoad);
     }
@@ -122,16 +112,16 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
         super.setup(sHandle);
 
         finish for (p in Place.places()) async at (p) {
-            when ((sHandle() as PlaceAgentSeqSI[K]).neighbors != null) {}
+            when ((sHandle() as PlaceAgentSeqSIW[K]).neighbors != null) {}
 
             val id = here.id();
-            for (pid in (sHandle() as PlaceAgentSeqSI[K]).neighbors) {
+            for (pid in (sHandle() as PlaceAgentSeqSIW[K]).neighbors) {
 sHandle().debugPrint(here + ": neighbor: " + pid);
                 val p1 = Place(pid);
                 //async 
                 at (p1) atomic {
 					//lockNborsInv();
-                    (sHandle() as PlaceAgentSeqSI[K]).neighborsInv.add(id);
+                    (sHandle() as PlaceAgentSeqSIW[K]).neighborsInv.add(id);
 					//unlockNborsInv();
 				}
             }
@@ -176,8 +166,6 @@ tWaitComm += System.nanoTime();
         }
 	}
 
-    var loadBak:Int = -1;
-
     def balance(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 sHandle().debugPrint(here + ": balance");
 
@@ -189,81 +177,76 @@ sHandle().debugPrint(here + ": balance");
             return;
         }*/
 
-        val load = list.size();
+        val load = list.size() + 1;
+        val loadWeighted = (load as Double) * loadWeight;
 
-        //if (loadBak < 0 || Math.abs(load - loadBak) > maxDelta) {
-            loadBak = load;
-    
-            // send load to neighborsInv.
-sHandle().debugPrint(here + ": my load: " + load);
-            val hereId = here.id();
-            //async {
-			//lockNborsInv();
+        // send load to neighborsInv.
+sHandle().debugPrint(here + ": my load: " + loadWeighted);
+        val hereId = here.id();
+        //async {
+		//lockNborsInv();
 
-            // TODO: For some reason this often results in an error.
-            //for (pid in neighborsInv.get()) {
-            //for (pid in neighborsInv) {
-            var iMax:Int = -1;
-			iMax = neighborsInv.size() - 1;
-            for (i in 0..iMax) {
-            // TODO: (inefficient) workaround
-            //for (p in Place.places()) {
-                //if (p == here) continue;
-                //val p = Place(pid);
-				var pid:Int = -1;
-				pid = neighborsInv(i);
-				if (pid < 0) continue;
-                val p = Place(pid);
+        // TODO: For some reason this often results in an error.
+        //for (pid in neighborsInv.get()) {
+        //for (pid in neighborsInv) {
+        var iMax:Int = -1;
+		iMax = neighborsInv.size() - 1;
+        for (i in 0..iMax) {
+        // TODO: (inefficient) workaround
+        //for (p in Place.places()) {
+            //if (p == here) continue;
+            //val p = Place(pid);
+			var pid:Int = -1;
+			pid = neighborsInv(i);
+			if (pid < 0) continue;
+            val p = Place(pid);
 
-        		async 
-                at (p) {
+    		async 
+            at (p) {
 sHandle().lockTerminate();
 if (sHandle().getTerminate() != TokDead) {
-                    val id = (sHandle() as PlaceAgentSeqSI[K]).neighbors.indexOf(hereId);
-                    if (id >= 0) {
-sHandle().debugPrint(here + ": setting load " + load + " from " + hereId + " at " + id);
-                        (sHandle() as PlaceAgentSeqSI[K]).setLoad(id, load);
-                    }
+                val id = (sHandle() as PlaceAgentSeqSIW[K]).neighbors.indexOf(hereId);
+                if (id >= 0) {
+sHandle().debugPrint(here + ": setting load " + loadWeighted + " from " + hereId + " at " + id);
+                    (sHandle() as PlaceAgentSeqSIW[K]).setLoad(id, loadWeighted);
+                }
 }
 else
     sHandle().debugPrint(here + ": cannot send load");
 sHandle().unlockTerminate();
-       		    }
+   		    }
 sHandle().debugPrint(here + ": inform to: " + p.id());
-            }
-
-            //}
-
-            nReqs += neighborsInv.size();
-
-			//unlockNborsInv();
-        //}
+        }
 
         // compute the average load.
-        var loadAvg:Int = load;
+        var loadAvg:Double = load;
         var c:Int = 1;
         for (i in neighbors.indices()) {
-            val l:Int = getLoad(i);
+            val l:Double = getLoad(i);
 sHandle().debugPrint(here + ": load: " + l);
-            if (l >= 0) {
+            if (l > 0) {
                 loadAvg += l;
                 ++c;
             }
         }
-        loadAvg /= c;
+        if (c > 0) loadAvg /= c;
+        else loadAvg = 1.;
+
+        loadWeight = (1. + (load/loadAvg - 1.)*loadCoeff) *c;
+sHandle().debugPrint(here + ": loadWeight: " + loadWeight);
 
 sHandle().debugPrint(here + ": delta: " + load + " vs. " + loadAvg);
 
-        val loadDelta = list.size() - loadAvg;
+        val loadDelta = load - (loadAvg as Int);
 
 		// send boxes.
         if (loadDelta >= maxDelta)
-            distributeSearchSpace(sHandle, loadAvg);
+            distributeSearchSpace(sHandle, loadAvg as Int);
 
 sHandle().debugPrint(here + ": balance done");
     }
 
-    def distributeSearchSpace(sHandle:PlaceLocalHandle[PlaceAgent[K]], loadAvg:Int) {
+    def distributeSearchSpace(sHandle:PlaceLocalHandle[PlaceAgent[K]], loadAvg:Double) {
         // list of lists of boxes
         val boxesList = new ArrayList[Pair[List[IntervalVec[K]],Pair[Int,Cell[Int]]]]();
 
@@ -274,10 +257,10 @@ sHandle().debugPrint(here + ": balance done");
         boxesList.add(pp0);
 
         for (i in neighbors.indices()) {
-            val l:Int = getLoad(i);
-            if (l < 0) continue;
+            val l = getLoad(i);
+            if (l < 0.) continue;
 
-            val ld = loadAvg - l;
+            val ld = (loadAvg - l) as Int;
 sHandle().debugPrint(here + ": ld: " + ld);
             if (ld <= 0) continue;
 
