@@ -121,15 +121,19 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) { 
         super.setup(sHandle);
 
-        finish for (p in Place.places()) async at (p) {
+        @Pragma(Pragma.FINISH_SPMD) 
+        finish for (p in Place.places())
+        // at (p) async { <-- this results in an error
+        async at (p) {
             when ((sHandle() as PlaceAgentSeqSI[K]).neighbors != null) {}
 
             val id = here.id();
+            @Pragma(Pragma.FINISH_SPMD) finish
             for (pid in (sHandle() as PlaceAgentSeqSI[K]).neighbors) {
 sHandle().debugPrint(here + ": neighbor: " + pid);
                 val p1 = Place(pid);
-                //async 
-                at (p1) atomic {
+                at (p1) async
+                atomic {
 					//lockNborsInv();
                     (sHandle() as PlaceAgentSeqSI[K]).neighborsInv.add(id);
 					//unlockNborsInv();
@@ -143,7 +147,7 @@ sHandle().debugPrint(here + ": neighbor: " + pid);
 
 tEndPP = -System.nanoTime();
 
-        finish
+        //finish
         while (getTerminate() != TokDead || (list.size()+listShared.size()) > 0) {
 finish {
             if (preprocessor == null || !preprocessor.process(sHandle)) {
@@ -173,6 +177,8 @@ tWaitComm -= System.nanoTime();
 tWaitComm += System.nanoTime();
 			
 			terminate(sHandle);
+
+            ++nIters;
         }
 	}
 
@@ -215,8 +221,8 @@ sHandle().debugPrint(here + ": my load: " + load);
 				if (pid < 0) continue;
                 val p = Place(pid);
 
-        		async 
-                at (p) {
+                at (p) async 
+                {
 sHandle().lockTerminate();
 if (sHandle().getTerminate() != TokDead) {
                     val id = (sHandle() as PlaceAgentSeqSI[K]).neighbors.indexOf(hereId);
@@ -265,10 +271,10 @@ sHandle().debugPrint(here + ": balance done");
 
     def distributeSearchSpace(sHandle:PlaceLocalHandle[PlaceAgent[K]], loadAvg:Int) {
         // list of lists of boxes
-        val boxesList = new ArrayList[Pair[List[IntervalVec[K]],Pair[Int,Cell[Int]]]]();
+        val boxesList = new ArrayList[Pair[List[IntervalVec[K]],Pair[Int,Cell[Int]]]](neighbors.size()+1);
 
         // list of boxes to be kept local.
-        val bs0 = new ArrayList[IntervalVec[K]]();
+        val bs0 = new LinkedList[IntervalVec[K]]();
         val p0 = new Pair[Int,Cell[Int]](here.id(),new Cell[Int](-1));
         val pp0 = new Pair[List[IntervalVec[K]],Pair[Int,Cell[Int]]](bs0, p0);
         boxesList.add(pp0);
@@ -282,7 +288,7 @@ sHandle().debugPrint(here + ": ld: " + ld);
             if (ld <= 0) continue;
 
             // create a list of boxes.
-            val bs = new ArrayList[IntervalVec[K]]();
+            val bs = new LinkedList[IntervalVec[K]]();
             val p = new Pair[Int,Cell[Int]](neighbors(i), new Cell[Int](ld));
             val pp = new Pair[List[IntervalVec[K]],Pair[Int,Cell[Int]]](bs, p);
             boxesList.add(pp);

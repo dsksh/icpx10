@@ -23,7 +23,7 @@ public class PlaceAgentSeq[K] extends PlaceAgent[K] {
 		}
     	this.nSearchSteps = gNSS().value;
 
-        listShared = new ArrayList[IntervalVec[K]]();
+        listShared = new LinkedList[IntervalVec[K]]();
 
         // TODO
         active = true;

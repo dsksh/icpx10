@@ -129,6 +129,8 @@ public class RPX10[K] {
             return new PlaceAgent[K](solver);
         case 1:
             //return new PlaceAgentSeparated[K](solver);
+            return new PlaceAgentSeqSI[K](solver);
+        case 11:
             return new PlaceAgentSeqSIW[K](solver);
         /*case 2:
             //return new PlaceAgentClockedRequest[K](solver);
@@ -146,6 +148,12 @@ public class RPX10[K] {
             return pa;
         }*/
         case 6: {
+            val pa = new PlaceAgentSeqSI[K](solver);
+            val pp = new PreprocessorSeq[K](core, prec, pa);
+            pa.setPreprocessor(pp);
+            return pa;
+        }
+        case 16: {
             val pa = new PlaceAgentSeqSIW[K](solver);
             val pp = new PreprocessorSeq[K](core, prec, pa);
             pa.setPreprocessor(pp);
@@ -192,10 +200,12 @@ public class RPX10[K] {
         val masterP = here;
 
         var time0:Long = System.nanoTime();
-        //finish for (p in Place.places()) at (p) async 
-        finish sHandle().setup(sHandle);
+        //finish 
+        //for (p in Place.places()) at (p) async 
+        sHandle().setup(sHandle);
 
-        finish for (p in Place.places()) async at (p) {
+        //@Pragma(Pragma.FINISH_SPMD) 
+        finish for (p in Place.places()) at (p) async {
             sHandle().run(sHandle);
         }
 
@@ -270,6 +280,7 @@ at (Place(0)) {
         val nReqs      = new GlobalRef(new Cell(0));
         val nSends     = new GlobalRef(new Cell(0));
         val tWaitComm  = new GlobalRef(new Cell(0.));
+        val nIters     = new GlobalRef(new Cell(0));
         val cTEndPP	   = new Cell[String]("  \"time pp (sep)\" : ["); 
         val cTSearch   = new Cell[String]("  \"time search (sep)\" : ["); 
         val cContracts = new Cell[String]("  \"# contracts (sep)\" : ["); 
@@ -278,6 +289,7 @@ at (Place(0)) {
         val cReqs      = new Cell[String]("  \"# reqs (sep)\" : ["); 
         val cSends     = new Cell[String]("  \"# sends (sep)\" : ["); 
         val cTWaitComm = new Cell[String]("  \"time waiting (sep)\" : ["); 
+        val cIters     = new Cell[String]("  \"# iters (sep)\" : ["); 
         val gTEndPP    = GlobalRef[Cell[String]](cTEndPP);
         val gTSearch   = GlobalRef[Cell[String]](cTSearch);
         val gContracts = GlobalRef[Cell[String]](cContracts);
@@ -286,6 +298,7 @@ at (Place(0)) {
         val gReqs      = GlobalRef[Cell[String]](cReqs);
         val gSends     = GlobalRef[Cell[String]](cSends);
         val gTWaitComm = GlobalRef[Cell[String]](cTWaitComm);
+        val gIters     = GlobalRef[Cell[String]](cIters);
         for (p in Place.places()) at (p) {
             val vTEndPP = format(sHandle().tEndPP);
             //val vContacts = sHandle().nContracts.get();
@@ -300,6 +313,7 @@ at (Place(0)) {
             //val vTContacts = format(sHandle().tContracts.get());
             val vTContacts = format(sHandle().tContracts);
             val vTWaitComm = format(sHandle().tWaitComm);
+            val vIters = sHandle().nIters;
             at (tEndPP.home) {
                 gTEndPP().set(gTEndPP()() + (p == here ? "" : ", ") + vTEndPP);
 
@@ -328,6 +342,9 @@ at (Place(0)) {
 
                 gTWaitComm().set(gTWaitComm()() + (p == here ? "" : ", ") + vTWaitComm);
                 tWaitComm().value += vTWaitComm;
+
+                gIters().set(gIters()() + (p == here ? "" : ", ") + vIters);
+                nIters().value += vIters;
             }
         }
         sb.add(cTEndPP() + "],\n");
@@ -342,6 +359,7 @@ at (Place(0)) {
         sb.add(cSplits()    + "\n],    \"# splits\" : " + nSplits().value + ",\n");
         sb.add(cTWaitComm() + "],\n");
         sb.add("  \"time waiting\" : " + tWaitComm().value + ",\n");
+        sb.add(cIters()     + "], \"# iters\" : " + nIters().value + ",\n");
         sb.add(cReqs()      + "], \"# reqs\" : " + nReqs().value + ",\n");
         sb.add(cSends()     + "], \"# sends\" : " + nSends().value);
         sb.add(" } }");

@@ -140,7 +140,7 @@ public class PreprocessorSeq[K] {
 
 sHandle().debugPrint(here + ": search done, " + list.size());
 
-        val sets = new ArrayList[List[IntervalVec[K]]]();
+        val sets = new ArrayList[List[IntervalVec[K]]](nDestinations);
         for (1..nDestinations)
             sets.add(new ArrayList[IntervalVec[K]]());
 

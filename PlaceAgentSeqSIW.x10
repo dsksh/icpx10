@@ -181,7 +181,7 @@ sHandle().debugPrint(here + ": balance");
         val loadWeighted = (load as Double) * loadWeight;
 
         // send load to neighborsInv.
-sHandle().debugPrint(here + ": my load: " + loadWeighted);
+sHandle().debugPrint(here + ": my load: " + load + ", " + loadWeighted);
         val hereId = here.id();
         //async {
 		//lockNborsInv();
@@ -218,9 +218,11 @@ sHandle().unlockTerminate();
 sHandle().debugPrint(here + ": inform to: " + p.id());
         }
 
+        nReqs += neighborsInv.size();
+
         // compute the average load.
-        var loadAvg:Double = load;
-        var c:Int = 1;
+        var loadAvg:Double = 0.;
+        var c:Int = 0;
         for (i in neighbors.indices()) {
             val l:Double = getLoad(i);
 sHandle().debugPrint(here + ": load: " + l);
@@ -230,10 +232,10 @@ sHandle().debugPrint(here + ": load: " + l);
             }
         }
         if (c > 0) loadAvg /= c;
-        else loadAvg = 1.;
+        else loadAvg = load;
 
-        loadWeight = (1. + (load/loadAvg - 1.)*loadCoeff) *c;
-sHandle().debugPrint(here + ": loadWeight: " + loadWeight);
+        loadWeight = 1. + (load/loadAvg - 1.)*loadCoeff;
+sHandle().debugPrint(here + ": load: "+load+", avg: "+loadAvg+", loadWeight: " + loadWeight);
 
 sHandle().debugPrint(here + ": delta: " + load + " vs. " + loadAvg);
 

@@ -43,6 +43,7 @@ public class PlaceAgent[K] {
     public var nReqs:Int = 0;
     public var nSends:Int = 0;
     public var tWaitComm:Long = 0l;
+    public var nIters:Int = 0;
 
     protected random:Random;
 
@@ -70,7 +71,8 @@ public class PlaceAgent[K] {
 		}
     	this.doDebugPrint = gDebug().value;
 
-        list = new ArrayList[IntervalVec[K]]();
+        //list = new ArrayList[IntervalVec[K]]();
+        list = new LinkedList[IntervalVec[K]]();
 //        list1 = new ArrayList[Pair[Result,IntervalVec[K]]]();
         solutions = new ArrayList[Pair[BAPSolver.Result,IntervalVec[K]]]();
 
