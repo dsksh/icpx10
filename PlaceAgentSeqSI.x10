@@ -9,6 +9,7 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
     //val sizeNbors:Int = 5; // FIXME
     val maxDelta:Int;
     //var nSendsBox:Double;
+    var nSendsLoad:Int;
     //val minNSendsBox:Double;
 
     val neighbors:List[Int];
@@ -31,8 +32,8 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
     }
 
 	def getLoad(i:Int) {
+		lockLoads();
 		try {
-			lockLoads();
 			return loads(i);
 		}
 		finally {
@@ -86,7 +87,7 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
     	maxDelta = gMD().value;
     	//nSendsBox = gNSB().value;
     	//minNSendsBox = gNSB().value;
-    	val nSendsLoad = gNSL().value;
+    	nSendsLoad = gNSL().value;
 
         neighbors = new ArrayList[Int](nSendsLoad);
 
