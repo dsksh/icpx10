@@ -15,7 +15,7 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
     val neighbors:List[Int];
 
 	// list of the neighbors' loads.
-    val loads:List[Int];
+    val loads:List[Box[Int]];
     var weight:Double;
 
 	private val lockLoads:Lock = new Lock();
@@ -31,7 +31,7 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
         lockLoads.unlock();
     }
 
-	def getLoad(i:Int) {
+	def getLoad(i:Int) : Box[Int] {
 		lockLoads();
 		try {
 			return loads(i);
@@ -42,7 +42,7 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
 	}
 	def setLoad(i:Int, l:Int) {
 		lockLoads();
-		loads(i) = l;
+		loads(i) = new Box[Int](l);
 		unlockLoads();
 	}
 
@@ -111,10 +111,10 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
                 neighbors.add(pid);
         }
 
-        loads = new ArrayList[Int](nSendsLoad);
-        for (neighbors.indices()) 
+        loads = new ArrayList[Box[Int]](nSendsLoad);
+        //for (neighbors.indices()) 
             //loads.add(Int.MAX_VALUE/(neighbors.size()+1));
-            loads.add(-1);
+            //loads.add(new Box(-1));
 
         neighborsInv = new ArrayList[Int](nSendsLoad);
     }
@@ -250,10 +250,10 @@ sHandle().debugPrint(here + ": inform to: " + p.id());
         var loadAvg:Int = load;
         var c:Int = 1;
         for (i in neighbors.indices()) {
-            val l:Int = getLoad(i);
+            val l = getLoad(i);
 sHandle().debugPrint(here + ": load: " + l);
-            if (l >= 0) {
-                loadAvg += l;
+            if (l != null) {
+                loadAvg += l();
                 ++c;
             }
         }
@@ -265,12 +265,12 @@ sHandle().debugPrint(here + ": delta: " + load + " vs. " + loadAvg);
 
 		// send boxes.
         if (loadDelta >= maxDelta)
-            distributeSearchSpace(sHandle, loadAvg);
+            distributeSearchSpace(sHandle, load);
 
 sHandle().debugPrint(here + ": balance done");
     }
 
-    def distributeSearchSpace(sHandle:PlaceLocalHandle[PlaceAgent[K]], loadAvg:Int) {
+    def distributeSearchSpace(sHandle:PlaceLocalHandle[PlaceAgent[K]], load:Int) {
         // list of lists of boxes
         val boxesList = new ArrayList[Pair[List[IntervalVec[K]],Pair[Int,Cell[Int]]]](neighbors.size()+1);
 
@@ -281,10 +281,10 @@ sHandle().debugPrint(here + ": balance done");
         boxesList.add(pp0);
 
         for (i in neighbors.indices()) {
-            val l:Int = getLoad(i);
-            if (l < 0) continue;
+            val l = getLoad(i);
+            if (l == null) continue;
 
-            val ld = loadAvg - l;
+            val ld = load - l();
 sHandle().debugPrint(here + ": ld: " + ld);
             if (ld <= 0) continue;
 
