@@ -6,6 +6,8 @@ import x10.io.Console;
 
 public class PlaceAgentSeqSID[K] extends PlaceAgentSeqSI[K] {
 
+    val weights:List[Int] = new ArrayList[Int]();
+
 	def setLoadAvg(i:Int, la:Int) {
 		lockLoads();
 		loads(i+nSendsLoad) = la;
@@ -16,9 +18,14 @@ public class PlaceAgentSeqSID[K] extends PlaceAgentSeqSI[K] {
     public def this(solver:BAPSolver[K]) {
         super(solver);
 
+        for (0..loads.size())
+            weights.add(1);
+
         // adds slots for the averages.
-        for (loads.size()..(2*nSendsLoad-1)) 
+        for (loads.size()..(2*nSendsLoad-1)) {
             loads.add(-1);
+            weights.add(nSendsLoad);
+        }
     }
 
 
@@ -35,10 +42,12 @@ sHandle().debugPrint(here + ": balance");
         var c:Int = 1;
         for (i in neighbors.indices()) {
             val l:Int = getLoad(i);
+            val w = weights(i);
 sHandle().debugPrint(here + ": load: " + l);
             if (l >= 0) {
-                la += l;
-                ++c;
+                la += l*w;
+                //++c;
+                c += w;
             }
         }
         la /= c;
@@ -74,7 +83,7 @@ if (sHandle().getTerminate() != TokDead) {
                 if (id >= 0) {
 sHandle().debugPrint(here + ": setting load " + load + " from " + hereId + " at " + id);
                     (sHandle() as PlaceAgentSeqSI[K]).setLoad(id, load);
-                    (sHandle() as PlaceAgentSeqSIW[K]).setLoadAvg(id, loadAvg);
+                    (sHandle() as PlaceAgentSeqSID[K]).setLoadAvg(id, loadAvg);
                 }
 }
 else
