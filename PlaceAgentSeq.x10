@@ -1,10 +1,12 @@
 import x10.compiler.*;
 import x10.util.*;
 import x10.util.concurrent.Lock;
+import x10.util.concurrent.AtomicDouble;
 
 public class PlaceAgentSeq[K] extends PlaceAgent[K] {
 
-	val nSearchSteps:Int;
+	//val nSearchSteps:Int;
+	var nSearchSteps:AtomicDouble;
 
     var listShared:List[IntervalVec[K]] = null;
 
@@ -21,7 +23,7 @@ public class PlaceAgentSeq[K] extends PlaceAgent[K] {
 			at (gNSS.home) 
 				gNSS().set(nSS);
 		}
-    	this.nSearchSteps = gNSS().value;
+    	this.nSearchSteps = new AtomicDouble(gNSS().value);
 
         listShared = new LinkedList[IntervalVec[K]]();
 
@@ -174,7 +176,7 @@ debugPrint(here + ": activated: " + active + ", " + list.size()+","+listShared.s
         joinTwoLists();
 
     	finish 
-    	for (1..nSearchSteps) {
+    	for (1..(nSearchSteps.get() as Int)) {
     		if (!searchBody(sHandle))
     			break;
         }

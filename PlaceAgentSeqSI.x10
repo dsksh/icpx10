@@ -112,9 +112,10 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
         }
 
         loads = new ArrayList[Box[Int]](nSendsLoad);
-        //for (neighbors.indices()) 
+        for (neighbors.indices()) 
             //loads.add(Int.MAX_VALUE/(neighbors.size()+1));
             //loads.add(new Box(-1));
+            loads.add(null);
 
         neighborsInv = new ArrayList[Int](nSendsLoad);
     }

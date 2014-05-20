@@ -6,29 +6,13 @@ import x10.io.Console;
 
 public class PlaceAgentSeqSID[K] extends PlaceAgentSeqSI[K] {
 
-    val weights:List[Int] = new ArrayList[Int]();
-
-	def setLoadAvg(i:Int, la:Int) {
-		lockLoads();
-		loads(i+nSendsLoad) = new Box[Int](la);
-		unlockLoads();
-	}
-
-
     public def this(solver:BAPSolver[K]) {
         super(solver);
-
-        /*for (0..loads.size())
-            weights.add(1);
-
-        // adds slots for the averages.
-        for (loads.size()..(2*nSendsLoad-1)) {
-            loads.add(-1);
-            weights.add(nSendsLoad*10);
-        }
-        */
     }
 
+    var loadBak:Int = Int.MAX_VALUE;
+    var loadDeltaBak:Int = 0;
+    var loadRatioBak:Double = 1.;
 
     def balance(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 sHandle().debugPrint(here + ": balance");
@@ -53,9 +37,10 @@ sHandle().debugPrint(here + ": load: " + l);
         }
         la /= c;
 
-        val loadAvg = la;
+        val loadAvg = Math.max(la, 0);
 
 
+        // estimate the required sends.
         la = load;
         for (i in neighbors.indices()) {
             val l = getLoad(i);
@@ -65,6 +50,14 @@ sHandle().debugPrint(here + ": load: " + l);
 
         val loadExt = la;
 
+        var deltaC:Double = loadAvg /10.;
+        //val deltaC = 10;
+        if (load != 0) {
+            deltaC *= loadAvg;
+            deltaC /= load;
+        }
+
+if (Math.abs(loadExt - loadBak) > maxDelta * deltaC) {
 
         // send load to neighborsInv.
 sHandle().debugPrint(here + ": load: " + load + ", avg: " + loadAvg + ", ext: " + loadExt);
@@ -106,116 +99,46 @@ sHandle().debugPrint(here + ": inform to: " + p.id());
 
         nReqs += neighborsInv.size();
 
+}
+
+
 sHandle().debugPrint(here + ": delta: " + load + " vs. " + loadAvg);
 
         val loadDelta = list.size() - loadAvg;
 
 		// send boxes.
-        if (loadDelta >= maxDelta)
+        if (loadDelta >= maxDelta * deltaC) {
             distributeSearchSpace(sHandle, load);
+        }
+
+/*        //if (loadDeltaBak != 0) {
+            //var loadRatio:Double = load as Double;
+            //loadRatio /= loadAvg;
+if (loadDeltaBak != 0)
+Console.OUT.println(here + ": ratio: " + (loadDelta / loadDeltaBak));
+            if (loadDelta > 0 && loadDeltaBak > 0 && loadDelta / loadDeltaBak > 2. &&
+                nSearchSteps.get() > 10.)
+
+                nSearchSteps.set(10.);
+            else if (loadDelta < 0 && loadDeltaBak < 0 &&
+                //loadDelta / loadDeltaBak < 0.8 && 
+                nSearchSteps.get() < 1000.)
+
+                nSearchSteps.set(1000.);
+            else
+                nSearchSteps.set(100.);
+
+            //loadRatioBak = loadRatio;
+        //}
+Console.OUT.println(here + ": nSS: " + nSearchSteps.get());
+
+
+        loadBak = loadExt;
+        loadDeltaBak = loadDelta;
+*/
 
 sHandle().debugPrint(here + ": balance done");
     }
-
-/*    def distributeSearchSpace(sHandle:PlaceLocalHandle[PlaceAgent[K]], loadAvg:Int) {
-        // list of lists of boxes
-        val boxesList = new ArrayList[Pair[List[IntervalVec[K]],Pair[Int,Cell[Int]]]](neighbors.size()+1);
-
-        // list of boxes to be kept local.
-        val bs0 = new LinkedList[IntervalVec[K]]();
-        val p0 = new Pair[Int,Cell[Int]](here.id(),new Cell[Int](-1));
-        val pp0 = new Pair[List[IntervalVec[K]],Pair[Int,Cell[Int]]](bs0, p0);
-        boxesList.add(pp0);
-
-        for (i in 0..(nSendsLoad-1)) {
-            val l0 = getLoad(i);
-            val w0 = weights(i);
-            val la = getLoad(i+nSendsLoad);
-            val wa = weights(i+nSendsLoad);
-            val l = (l0*w0+la*wa)/(w0+wa) * (nSendsLoad+1);
-            if (l < 0) continue;
-
-            val ld = loadAvg - l;
-sHandle().debugPrint(here + ": ld: " + ld);
-Console.OUT.println(here + ": ld: " + ld);
-            if (ld <= 0) continue;
-
-            // create a list of boxes.
-            val bs = new LinkedList[IntervalVec[K]]();
-            val p = new Pair[Int,Cell[Int]](neighbors(i), new Cell[Int](ld));
-            val pp = new Pair[List[IntervalVec[K]],Pair[Int,Cell[Int]]](bs, p);
-            boxesList.add(pp);
-        }
-
-        // distribute the content of the list
-        var i:Int = 0;
-        while (!list.isEmpty()) {
-            val j = i % boxesList.size();
-            val pair = boxesList(j);
-            val cnt = pair.second.second();
-            if ((j == 0 && cnt < 0) || cnt > 0) {
-                val box:IntervalVec[K] = list.removeLast();
-                if (box.size() > 0) { // ! dummy
-                    pair.first.add(box); pair.second.second() = cnt-1;
-                    box.count();
-                }
-                else
-                    addDomShared(box);
-            }
-            ++i;
-        }
-
-        for (pair in boxesList) {
-            val boxes = pair.first;
-
-            if (boxes.isEmpty()) continue;
-
-            async 
-			{
-                val gRes = new GlobalRef(new Cell[Boolean](false));
-                val p = Place(pair.second.first);
-sHandle().debugPrint(here + ": sending to: " + p.id());
-val hereId = here.id();
-
-if (p.id() != here.id())
-                at (p) {
-                    var res:Boolean = false;
-sHandle().debugPrint(here + ": sending from: " + hereId);
-                    //sHandle().lockTerminate();
-                    if (sHandle().tryLockTerminate() && sHandle().terminate != TokDead) {
-                        (sHandle() as PlaceAgentSeq[K]).joinWithListShared(boxes);
-                        //atomic sHandle().active = true;
-                        res = true;
-
-	                    sHandle().unlockTerminate();
-                    }
-
-                    val r = res;
-                    at (gRes.home) { gRes().set(r); }
-                }
-sHandle().debugPrint(here + ": sending to " + p.id() + " done: " + gRes().value);
-
-                if (gRes().value) { // boxes were sent to other place.
-                    if (p.id() < here.id()) sentBw.set(true);
-                }
-                else {
-                    // retract the list.
-                    joinWithListShared(boxes);
-                    //for (b in listShared) boxes.add(b);
-                    //listShared = null;
-                    //listShared = boxes;
-                    //atomic {
-                    //    active = true;
-                    //    nSends--;
-                    //}
-                    nSends--;
-                }
-            }
-
-            nSends++;
-        }
-    }
-*/
 }
 
 // vim: shiftwidth=4:tabstop=4:expandtab
