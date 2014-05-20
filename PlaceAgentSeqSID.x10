@@ -11,7 +11,7 @@ public class PlaceAgentSeqSID[K] extends PlaceAgentSeqSI[K] {
     }
 
     var loadBak:Int = Int.MAX_VALUE;
-    var loadDeltaBak:Int = 0;
+    var deltaBak:Int = 0;
     var loadRatioBak:Double = 1.;
 
     def balance(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
@@ -50,14 +50,10 @@ sHandle().debugPrint(here + ": load: " + l);
 
         val loadExt = la;
 
-        var deltaC:Double = loadAvg /10.;
+        var deltaC:Double = loadAvg;
         //val deltaC = 10;
-        if (load != 0) {
-            deltaC *= loadAvg;
-            deltaC /= load;
-        }
 
-if (Math.abs(loadExt - loadBak) > maxDelta * deltaC) {
+if (Math.abs(loadExt - loadBak) > deltaLoad + dlC * deltaC) {
 
         // send load to neighborsInv.
 sHandle().debugPrint(here + ": load: " + load + ", avg: " + loadAvg + ", ext: " + loadExt);
@@ -102,26 +98,31 @@ sHandle().debugPrint(here + ": inform to: " + p.id());
 }
 
 
-sHandle().debugPrint(here + ": delta: " + load + " vs. " + loadAvg);
+sHandle().debugPrint(here + ": load: " + load + " vs. " + loadAvg);
 
-        val loadDelta = list.size() - loadAvg;
+        if (load != 0) {
+            deltaC *= loadAvg;
+            deltaC /= load;
+        }
+
+        val delta = list.size() - loadAvg;
 
 		// send boxes.
-        if (loadDelta >= maxDelta * deltaC) {
+        if (delta >= maxDelta + dbC * deltaC) {
             distributeSearchSpace(sHandle, load);
         }
 
-/*        //if (loadDeltaBak != 0) {
+/*        //if (deltaBak != 0) {
             //var loadRatio:Double = load as Double;
             //loadRatio /= loadAvg;
-if (loadDeltaBak != 0)
-Console.OUT.println(here + ": ratio: " + (loadDelta / loadDeltaBak));
-            if (loadDelta > 0 && loadDeltaBak > 0 && loadDelta / loadDeltaBak > 2. &&
+if (deltaBak != 0)
+Console.OUT.println(here + ": ratio: " + (delta / deltaBak));
+            if (delta > 0 && deltaBak > 0 && delta / deltaBak > 2. &&
                 nSearchSteps.get() > 10.)
 
                 nSearchSteps.set(10.);
-            else if (loadDelta < 0 && loadDeltaBak < 0 &&
-                //loadDelta / loadDeltaBak < 0.8 && 
+            else if (delta < 0 && deltaBak < 0 &&
+                //delta / deltaBak < 0.8 && 
                 nSearchSteps.get() < 1000.)
 
                 nSearchSteps.set(1000.);
@@ -131,11 +132,10 @@ Console.OUT.println(here + ": ratio: " + (loadDelta / loadDeltaBak));
             //loadRatioBak = loadRatio;
         //}
 Console.OUT.println(here + ": nSS: " + nSearchSteps.get());
-
+*/
 
         loadBak = loadExt;
-        loadDeltaBak = loadDelta;
-*/
+        deltaBak = delta;
 
 sHandle().debugPrint(here + ": balance done");
     }

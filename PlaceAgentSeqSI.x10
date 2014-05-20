@@ -8,6 +8,9 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
 
     //val sizeNbors:Int = 5; // FIXME
     val maxDelta:Int;
+    val deltaLoad:Int;
+    val dlC:Double;
+    val dbC:Double;
     //var nSendsBox:Double;
     var nSendsLoad:Int;
     //val minNSendsBox:Double;
@@ -68,23 +71,38 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
 
         // read env variables.
 		val gMD = new GlobalRef(new Cell[Int](0));
+		val gDL = new GlobalRef(new Cell[Int](0));
+		val gDLC = new GlobalRef(new Cell[Double](0.));
+		val gDBC = new GlobalRef(new Cell[Double](0.));
 		val gNSB = new GlobalRef(new Cell[Double](0.));
 		val gNSL = new GlobalRef(new Cell[Int](0));
         val p0 = Place(0);
 		at (p0) {
    			val sMD = System.getenv("RPX10_MAX_DELTA");
+   			val sDL = System.getenv("RPX10_DELTA_LOAD");
+   			val sDLC = System.getenv("RPX10_DLC");
+   			val sDBC = System.getenv("RPX10_DBC");
    			val sNSB = System.getenv("RPX10_N_SENDS_BOX");
    			val sNSL = System.getenv("RPX10_N_SENDS_LOAD");
 			val nMD:Int = sMD != null ? Int.parse(sMD) : 10;
+			val nDL:Int = sDL != null ? Int.parse(sDL) : 10;
+			val nDLC:Double = sDLC != null ? Double.parse(sDLC) : 1.;
+			val nDBC:Double = sDBC != null ? Double.parse(sDBC) : 1.;
 			val nNSB:Double = sNSB != null ? Double.parse(sNSB) : 2.;
 			val nNSL:Int    = sNSL != null ? Int.parse(sNSL) : 2;
 			at (gMD.home) {
 				gMD().set(nMD);
+				gDL().set(nDL);
+				gDLC().set(nDLC);
+				gDBC().set(nDBC);
 				gNSB().set(nNSB);
 				gNSL().set(nNSL);
             }
 		}
     	maxDelta = gMD().value;
+    	deltaLoad = gDL().value;
+    	dlC = gDLC().value;
+    	dbC = gDBC().value;
     	//nSendsBox = gNSB().value;
     	//minNSendsBox = gNSB().value;
     	nSendsLoad = gNSL().value;
@@ -260,12 +278,12 @@ sHandle().debugPrint(here + ": load: " + l);
         }
         loadAvg /= c;
 
-sHandle().debugPrint(here + ": delta: " + load + " vs. " + loadAvg);
+sHandle().debugPrint(here + ": load: " + load + " vs. " + loadAvg);
 
-        val loadDelta = list.size() - loadAvg;
+        val delta = list.size() - loadAvg;
 
 		// send boxes.
-        if (loadDelta >= maxDelta)
+        if (delta >= maxDelta)
             distributeSearchSpace(sHandle, load);
 
 sHandle().debugPrint(here + ": balance done");
