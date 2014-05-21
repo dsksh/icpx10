@@ -8,11 +8,25 @@ public class PlaceAgentSeqSID[K] extends PlaceAgentSeqSI[K] {
 
     public def this(solver:BAPSolver[K]) {
         super(solver);
+
+        for (0..4) loadsBak.add(0);
     }
 
     var loadBak:Int = Int.MAX_VALUE;
     var deltaBak:Int = 0;
     var loadRatioBak:Double = 1.;
+
+    var loadsBak:List[Int] = new ArrayList[Int](5);
+    var lbPos:Int = 0;
+    def pushLB(lb:Int) { 
+        loadsBak(lbPos) = lb; 
+        lbPos = lbPos < (loadsBak.size()-1) ? lbPos+1 : 0;
+    }
+    def getLBAvg() {
+        var sum:Int = 0;
+        for (lb in loadsBak) sum += lb;
+        return sum/loadsBak.size();
+    }
 
     def balance(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 sHandle().debugPrint(here + ": balance");
@@ -37,26 +51,29 @@ sHandle().debugPrint(here + ": load: " + l);
         }
         la /= c;
 
-        val loadAvg = Math.max(la, 0);
+        //val loadAvg = Math.max(la, 0);
+        val loadAvg = la;
 
 
         // estimate the required sends.
         la = load;
-        for (i in neighbors.indices()) {
-            val l = getLoad(i);
-            if (l != null && l() < loadAvg)
-                la -= loadAvg - l();
-        }
+        if (load < loadAvg)
+            for (i in neighbors.indices()) {
+                val l = getLoad(i);
+                if (l != null && l() < loadAvg)
+                    la -= loadAvg - l();
+            }
 
-        val loadExt = la;
+        val loadDim = la;
 
-        var deltaC:Double = loadAvg;
+        var deltaC:Int = Math.max(loadAvg, 0);
         //val deltaC = 10;
 
-if (Math.abs(loadExt - loadBak) > deltaLoad + dlC * deltaC) {
+if (Math.abs(loadDim - loadBak) >= deltaLoad + deltaRelLoad * deltaC) {
+loadBak = loadDim;
 
         // send load to neighborsInv.
-sHandle().debugPrint(here + ": load: " + load + ", avg: " + loadAvg + ", ext: " + loadExt);
+sHandle().debugPrint(here + ": load: " + load + ", avg: " + loadAvg + ", dim: " + loadDim);
         val hereId = here.id();
         //async {
 		//lockNborsInv();
@@ -82,8 +99,7 @@ if (sHandle().getTerminate() != TokDead) {
                 val id = (sHandle() as PlaceAgentSeqSI[K]).neighbors.indexOf(hereId);
                 if (id >= 0) {
 sHandle().debugPrint(here + ": setting load " + load + " from " + hereId + " at " + id);
-                    (sHandle() as PlaceAgentSeqSI[K]).setLoad(id, loadExt);
-                    //(sHandle() as PlaceAgentSeqSID[K]).setLoadAvg(id, loadAvg);
+                    (sHandle() as PlaceAgentSeqSI[K]).setLoad(id, loadDim);
                 }
 }
 else
@@ -96,6 +112,9 @@ sHandle().debugPrint(here + ": inform to: " + p.id());
         nReqs += neighborsInv.size();
 
 }
+//else
+//    Console.OUT.println(here + ": skipped");
+pushLB(loadDim);
 
 
 sHandle().debugPrint(here + ": load: " + load + " vs. " + loadAvg);
@@ -108,9 +127,12 @@ sHandle().debugPrint(here + ": load: " + load + " vs. " + loadAvg);
         val delta = list.size() - loadAvg;
 
 		// send boxes.
-        if (delta >= maxDelta + dbC * deltaC) {
+//Console.OUT.println(here + ": avg: " + loadAvg + ",\tdelta: " + delta);
+        if (delta >= deltaBox + deltaRelBox * deltaC) {
             distributeSearchSpace(sHandle, load);
         }
+//else
+//    Console.OUT.println(here + ": skipped");
 
 /*        //if (deltaBak != 0) {
             //var loadRatio:Double = load as Double;
@@ -132,10 +154,12 @@ Console.OUT.println(here + ": ratio: " + (delta / deltaBak));
             //loadRatioBak = loadRatio;
         //}
 Console.OUT.println(here + ": nSS: " + nSearchSteps.get());
+
+        deltaBak = delta;
 */
 
-        loadBak = loadExt;
-        deltaBak = delta;
+        if (accelThres > 0 && loadAvg > accelThres)
+            nSearchSteps.set(nSearchSteps0 * 10);
 
 sHandle().debugPrint(here + ": balance done");
     }

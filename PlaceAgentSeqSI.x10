@@ -7,10 +7,11 @@ import x10.io.Console;
 public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
 
     //val sizeNbors:Int = 5; // FIXME
-    val maxDelta:Int;
+    val deltaBox:Int;
+    val deltaRelBox:Double;
     val deltaLoad:Int;
-    val dlC:Double;
-    val dbC:Double;
+    val deltaRelLoad:Double;
+    val accelThres:Int;
     //var nSendsBox:Double;
     var nSendsLoad:Int;
     //val minNSendsBox:Double;
@@ -70,39 +71,44 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
         super(solver);
 
         // read env variables.
-		val gMD = new GlobalRef(new Cell[Int](0));
+		val gDB = new GlobalRef(new Cell[Int](0));
+		val gDRB = new GlobalRef(new Cell[Double](0.));
 		val gDL = new GlobalRef(new Cell[Int](0));
-		val gDLC = new GlobalRef(new Cell[Double](0.));
-		val gDBC = new GlobalRef(new Cell[Double](0.));
+		val gDRL = new GlobalRef(new Cell[Double](0.));
+		val gAT = new GlobalRef(new Cell[Int](0));
 		val gNSB = new GlobalRef(new Cell[Double](0.));
 		val gNSL = new GlobalRef(new Cell[Int](0));
         val p0 = Place(0);
 		at (p0) {
-   			val sMD = System.getenv("RPX10_MAX_DELTA");
+   			val sDB = System.getenv("RPX10_DELTA_BOX");
+   			val sDRB = System.getenv("RPX10_DELTA_REL_BOX");
    			val sDL = System.getenv("RPX10_DELTA_LOAD");
-   			val sDLC = System.getenv("RPX10_DLC");
-   			val sDBC = System.getenv("RPX10_DBC");
+   			val sDRL = System.getenv("RPX10_DELTA_REL_LOAD");
+   			val sAT = System.getenv("RPX10_ACCEL_THRES");
    			val sNSB = System.getenv("RPX10_N_SENDS_BOX");
    			val sNSL = System.getenv("RPX10_N_SENDS_LOAD");
-			val nMD:Int = sMD != null ? Int.parse(sMD) : 10;
-			val nDL:Int = sDL != null ? Int.parse(sDL) : 10;
-			val nDLC:Double = sDLC != null ? Double.parse(sDLC) : 1.;
-			val nDBC:Double = sDBC != null ? Double.parse(sDBC) : 1.;
+			val nDB:Int = sDB != null ? Int.parse(sDB) : 10;
+			val nDRB:Double = sDRB != null ? Double.parse(sDRB) : 0.;
+			val nDL:Int = sDL != null ? Int.parse(sDL) : 0;
+			val nDRL:Double = sDRL != null ? Double.parse(sDRL) : 0.;
+			val nAT:Int = sAT != null ? Int.parse(sAT) : -1;
 			val nNSB:Double = sNSB != null ? Double.parse(sNSB) : 2.;
 			val nNSL:Int    = sNSL != null ? Int.parse(sNSL) : 2;
-			at (gMD.home) {
-				gMD().set(nMD);
+			at (gDB.home) {
+				gDB().set(nDB);
+				gDRB().set(nDRB);
 				gDL().set(nDL);
-				gDLC().set(nDLC);
-				gDBC().set(nDBC);
+				gAT().set(nAT);
+				gDRL().set(nDRL);
 				gNSB().set(nNSB);
 				gNSL().set(nNSL);
             }
 		}
-    	maxDelta = gMD().value;
+    	deltaBox = gDB().value;
+    	deltaRelBox = gDRB().value;
     	deltaLoad = gDL().value;
-    	dlC = gDLC().value;
-    	dbC = gDBC().value;
+    	deltaRelLoad = gDRL().value;
+    	accelThres = gAT().value;
     	//nSendsBox = gNSB().value;
     	//minNSendsBox = gNSB().value;
     	nSendsLoad = gNSL().value;
@@ -141,18 +147,18 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) { 
         super.setup(sHandle);
 
-        @Pragma(Pragma.FINISH_SPMD) 
+        //@Pragma(Pragma.FINISH_SPMD) 
         finish for (p in Place.places())
         // at (p) async { <-- this results in an error
-        async at (p) {
+        at (p) async {
             when ((sHandle() as PlaceAgentSeqSI[K]).neighbors != null) {}
 
             val id = here.id();
-            @Pragma(Pragma.FINISH_SPMD) finish
+            //@Pragma(Pragma.FINISH_SPMD) finish
             for (pid in (sHandle() as PlaceAgentSeqSI[K]).neighbors) {
 sHandle().debugPrint(here + ": neighbor: " + pid);
                 val p1 = Place(pid);
-                at (p1) async
+                at (p1) //async
                 atomic {
 					//lockNborsInv();
                     (sHandle() as PlaceAgentSeqSI[K]).neighborsInv.add(id);
@@ -210,14 +216,14 @@ sHandle().debugPrint(here + ": balance");
 		if (Place.numPlaces() == 1) return;
 
         /*// not the initial path and not possessing many boxes.
-		if (!initPhase && list.size() <= maxDelta) {
+		if (!initPhase && list.size() <= deltaBox) {
 //sHandle().debugPrint(here + ": quit balance: " + terminate);
             return;
         }*/
 
         val load = list.size();
 
-        //if (loadBak < 0 || Math.abs(load - loadBak) > maxDelta) {
+        //if (loadBak < 0 || Math.abs(load - loadBak) > deltaLoad) {
             loadBak = load;
     
             // send load to neighborsInv.
@@ -283,7 +289,7 @@ sHandle().debugPrint(here + ": load: " + load + " vs. " + loadAvg);
         val delta = list.size() - loadAvg;
 
 		// send boxes.
-        if (delta >= maxDelta)
+        if (delta >= deltaBox)
             distributeSearchSpace(sHandle, load);
 
 sHandle().debugPrint(here + ": balance done");
