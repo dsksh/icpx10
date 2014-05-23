@@ -345,6 +345,8 @@ sHandle().debugPrint(here + ": ld: " + ld);
 
             async 
 			{
+tBoxSend.addAndGet(-System.nanoTime());
+
                 val gRes = new GlobalRef(new Cell[Boolean](false));
                 val p = Place(pair.second.first);
 sHandle().debugPrint(here + ": sending to: " + p.id());
@@ -352,6 +354,7 @@ val hereId = here.id();
 
 if (p.id() != here.id())
                 at (p) {
+
                     var res:Boolean = false;
 sHandle().debugPrint(here + ": sending from: " + hereId);
                     //sHandle().lockTerminate();
@@ -365,8 +368,11 @@ sHandle().debugPrint(here + ": sending from: " + hereId);
 
                     val r = res;
                     at (gRes.home) { gRes().set(r); }
+
                 }
 sHandle().debugPrint(here + ": sending to " + p.id() + " done: " + gRes().value);
+
+//BoxSend.addAndGet(-System.nanoTime());
 
                 if (gRes().value) { // boxes were sent to other place.
                     if (p.id() < here.id()) sentBw.set(true);
@@ -383,9 +389,12 @@ sHandle().debugPrint(here + ": sending to " + p.id() + " done: " + gRes().value)
                     //}
                     nSends--;
                 }
+
+tBoxSend.addAndGet(System.nanoTime());
             }
 
             nSends++;
+            nSentBoxes += boxes.size();
         }
     }
 }

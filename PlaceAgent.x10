@@ -42,8 +42,10 @@ public class PlaceAgent[K] {
     public var nSplits:Int = 0;
     public var nReqs:Int = 0;
     public var nSends:Int = 0;
+    public var nSentBoxes:Int = 0;
     public var tWaitComm:Long = 0l;
     public var nIters:Int = 0;
+    public var tBoxSend:AtomicLong = new AtomicLong(0l);
 
     protected random:Random;
 

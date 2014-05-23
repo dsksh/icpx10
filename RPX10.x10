@@ -279,7 +279,9 @@ at (Place(0)) {
         val nSplits    = new GlobalRef(new Cell(0));
         val nReqs      = new GlobalRef(new Cell(0));
         val nSends     = new GlobalRef(new Cell(0));
+        val nSentBoxes = new GlobalRef(new Cell(0));
         val tWaitComm  = new GlobalRef(new Cell(0.));
+        val tBoxSend   = new GlobalRef(new Cell(0.));
         val nIters     = new GlobalRef(new Cell(0));
         val cTEndPP	   = new Cell[String]("  \"time pp (sep)\" : ["); 
         val cTSearch   = new Cell[String]("  \"time search (sep)\" : ["); 
@@ -288,7 +290,9 @@ at (Place(0)) {
         val cSplits    = new Cell[String]("  \"# splits (sep)\" : ["); 
         val cReqs      = new Cell[String]("  \"# reqs (sep)\" : ["); 
         val cSends     = new Cell[String]("  \"# sends (sep)\" : ["); 
+        val cSentBoxes = new Cell[String]("  \"# sent boxes (sep)\" : ["); 
         val cTWaitComm = new Cell[String]("  \"time waiting (sep)\" : ["); 
+        val cTBoxSend = new Cell[String]("  \"time sending boxes (sep)\" : ["); 
         val cIters     = new Cell[String]("  \"# iters (sep)\" : ["); 
         val gTEndPP    = GlobalRef[Cell[String]](cTEndPP);
         val gTSearch   = GlobalRef[Cell[String]](cTSearch);
@@ -297,7 +301,9 @@ at (Place(0)) {
         val gSplits    = GlobalRef[Cell[String]](cSplits);
         val gReqs      = GlobalRef[Cell[String]](cReqs);
         val gSends     = GlobalRef[Cell[String]](cSends);
+        val gSentBoxes = GlobalRef[Cell[String]](cSentBoxes);
         val gTWaitComm = GlobalRef[Cell[String]](cTWaitComm);
+        val gTBoxSend = GlobalRef[Cell[String]](cTBoxSend);
         val gIters     = GlobalRef[Cell[String]](cIters);
         for (p in Place.places()) at (p) {
             val vTEndPP = format(sHandle().tEndPP);
@@ -309,10 +315,12 @@ at (Place(0)) {
             //val vSends = sHandle().nSends.get();
             val vReqs = sHandle().nReqs;
             val vSends = sHandle().nSends;
+            val vSentBoxes = sHandle().nSentBoxes;
             val vTSearch = format(sHandle().tSearch);
             //val vTContacts = format(sHandle().tContracts.get());
             val vTContacts = format(sHandle().tContracts);
             val vTWaitComm = format(sHandle().tWaitComm);
+            val vTBoxSend = format(sHandle().tBoxSend.get());
             val vIters = sHandle().nIters;
             at (tEndPP.home) {
                 gTEndPP().set(gTEndPP()() + (p == here ? "" : ", ") + vTEndPP);
@@ -340,11 +348,17 @@ at (Place(0)) {
                 gSends().set(gSends()() + (p == here ? "" : ", ") + vSends);
                 nSends().value += vSends;
 
+                gSentBoxes().set(gSentBoxes()() + (p == here ? "" : ", ") + vSentBoxes);
+                nSentBoxes().value += vSentBoxes;
+
                 gTWaitComm().set(gTWaitComm()() + (p == here ? "" : ", ") + vTWaitComm);
                 tWaitComm().value += vTWaitComm;
 
                 gIters().set(gIters()() + (p == here ? "" : ", ") + vIters);
                 nIters().value += vIters;
+
+                gTBoxSend().set(gTBoxSend()() + (p == here ? "" : ", ") + vTBoxSend);
+                tBoxSend().value += vTBoxSend;
             }
         }
         sb.add(cTEndPP() + "],\n");
@@ -359,9 +373,12 @@ at (Place(0)) {
         sb.add(cSplits()    + "\n],    \"# splits\" : " + nSplits().value + ",\n");
         sb.add(cTWaitComm() + "],\n");
         sb.add("  \"time waiting\" : " + tWaitComm().value + ",\n");
+        sb.add(cTBoxSend() + "],\n");
+        sb.add("  \"time sending boxes\" : " + tBoxSend().value + ",\n");
         sb.add(cIters()     + "], \"# iters\" : " + nIters().value + ",\n");
         sb.add(cReqs()      + "], \"# reqs\" : " + nReqs().value + ",\n");
-        sb.add(cSends()     + "], \"# sends\" : " + nSends().value);
+        sb.add(cSends()     + "], \"# sends\" : " + nSends().value + ",\n");
+        sb.add(cSentBoxes() + "], \"# sent boxes\" : " + nSentBoxes().value);
         sb.add(" } }");
 
         Console.OUT.flush();
