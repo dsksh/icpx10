@@ -8,13 +8,16 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
 
     //val sizeNbors:Int = 5; // FIXME
     val deltaBox:Int;
-    val deltaRelBox:Double;
+    val deltaRelBox1:Double;
+    val deltaRelBox2:Double;
     val deltaLoad:Int;
     val deltaRelLoad:Double;
     val accelThres:Int;
     //var nSendsBox:Double;
     var nSendsLoad:Int;
     //val minNSendsBox:Double;
+
+    val tSearchInterval:Double;
 
     val neighbors:List[Int];
 
@@ -39,6 +42,17 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
 		lockLoads();
 		try {
 			return loads(i);
+		}
+		finally {
+			unlockLoads();
+		}
+	}
+	def getAndResetLoad(i:Int) : Box[Int] {
+		lockLoads();
+		try {
+			val l = loads(i);
+            loads(i) = null;
+            return l;
 		}
 		finally {
 			unlockLoads();
@@ -72,46 +86,56 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
 
         // read env variables.
 		val gDB = new GlobalRef(new Cell[Int](0));
-		val gDRB = new GlobalRef(new Cell[Double](0.));
+		val gDRB1 = new GlobalRef(new Cell[Double](0.));
+		val gDRB2 = new GlobalRef(new Cell[Double](0.));
 		val gDL = new GlobalRef(new Cell[Int](0));
 		val gDRL = new GlobalRef(new Cell[Double](0.));
 		val gAT = new GlobalRef(new Cell[Int](0));
 		val gNSB = new GlobalRef(new Cell[Double](0.));
 		val gNSL = new GlobalRef(new Cell[Int](0));
+		val gSI = new GlobalRef(new Cell[Double](0.));
         val p0 = Place(0);
 		at (p0) {
    			val sDB = System.getenv("RPX10_DELTA_BOX");
-   			val sDRB = System.getenv("RPX10_DELTA_REL_BOX");
+   			val sDRB1 = System.getenv("RPX10_DELTA_REL_BOX1");
+   			val sDRB2 = System.getenv("RPX10_DELTA_REL_BOX2");
    			val sDL = System.getenv("RPX10_DELTA_LOAD");
    			val sDRL = System.getenv("RPX10_DELTA_REL_LOAD");
    			val sAT = System.getenv("RPX10_ACCEL_THRES");
    			val sNSB = System.getenv("RPX10_N_SENDS_BOX");
    			val sNSL = System.getenv("RPX10_N_SENDS_LOAD");
+   			val sSI = System.getenv("RPX10_SEARCH_INTERVAL");
 			val nDB:Int = sDB != null ? Int.parse(sDB) : 10;
-			val nDRB:Double = sDRB != null ? Double.parse(sDRB) : 0.;
+			val nDRB1:Double = sDRB1 != null ? Double.parse(sDRB1) : 0.;
+			val nDRB2:Double = sDRB2 != null ? Double.parse(sDRB2) : 0.;
 			val nDL:Int = sDL != null ? Int.parse(sDL) : 0;
 			val nDRL:Double = sDRL != null ? Double.parse(sDRL) : 0.;
 			val nAT:Int = sAT != null ? Int.parse(sAT) : -1;
 			val nNSB:Double = sNSB != null ? Double.parse(sNSB) : 2.;
 			val nNSL:Int    = sNSL != null ? Int.parse(sNSL) : 2;
+			val nSI:Double  = sSI != null ? Double.parse(sSI) : 1.;
 			at (gDB.home) {
 				gDB().set(nDB);
-				gDRB().set(nDRB);
+				gDRB1().set(nDRB1);
+				gDRB2().set(nDRB2);
 				gDL().set(nDL);
 				gAT().set(nAT);
 				gDRL().set(nDRL);
 				gNSB().set(nNSB);
 				gNSL().set(nNSL);
+				gSI().set(nSI);
             }
 		}
     	deltaBox = gDB().value;
-    	deltaRelBox = gDRB().value;
+    	deltaRelBox1 = gDRB1().value;
+    	deltaRelBox2 = gDRB2().value;
     	deltaLoad = gDL().value;
     	deltaRelLoad = gDRL().value;
     	accelThres = gAT().value;
     	//nSendsBox = gNSB().value;
     	//minNSendsBox = gNSB().value;
     	nSendsLoad = gNSL().value;
+    	tSearchInterval = gSI().value;
 
         neighbors = new ArrayList[Int](nSendsLoad);
 
@@ -306,7 +330,7 @@ sHandle().debugPrint(here + ": balance done");
         boxesList.add(pp0);
 
         for (i in neighbors.indices()) {
-            val l = getLoad(i);
+            val l = getAndResetLoad(i);
             if (l == null) continue;
 
             val ld = load - l();
@@ -328,14 +352,15 @@ sHandle().debugPrint(here + ": ld: " + ld);
             val cnt = pair.second.second();
             if ((j == 0 && cnt < 0) || cnt > 0) {
                 val box:IntervalVec[K] = list.removeLast();
-                if (box.size() > 0) { // dummy
+                if (box.size() > 0) { // not dummy
                     pair.first.add(box); pair.second.second() = cnt-1;
                     box.count();
+                    ++i;
                 }
                 else
                     addDomShared(box);
             }
-            ++i;
+            else ++i;
         }
 
         for (pair in boxesList) {
@@ -388,6 +413,7 @@ sHandle().debugPrint(here + ": sending to " + p.id() + " done: " + gRes().value)
                     //    nSends--;
                     //}
                     nSends--;
+                    nSentBoxes -= boxes.size();
                 }
 
 tBoxSend.addAndGet(System.nanoTime());

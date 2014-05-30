@@ -28,12 +28,14 @@ public class PlaceAgentSeqSID[K] extends PlaceAgentSeqSI[K] {
         return sum/loadsBak.size();
     }
 
+    var deltaC:Int = 0;
+
     def balance(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 sHandle().debugPrint(here + ": balance");
 
 		if (Place.numPlaces() == 1) return;
 
-        val load = list.size();
+        val load = list.size()+listShared.size();
 
 
         // compute the average load.
@@ -55,18 +57,17 @@ sHandle().debugPrint(here + ": load: " + l);
         val loadAvg = la;
 
 
-        // estimate the required sends.
         la = load;
+        // estimate the required sends.
         if (load < loadAvg)
             for (i in neighbors.indices()) {
                 val l = getLoad(i);
                 if (l != null && l() < loadAvg)
                     la -= loadAvg - l();
             }
-
         val loadDim = la;
 
-        var deltaC:Int = Math.max(loadAvg, 0);
+        deltaC = Math.max(loadAvg, 0);
         //val deltaC = 10;
 
 if (Math.abs(loadDim - loadBak) >= deltaLoad + deltaRelLoad * deltaC) {
@@ -119,16 +120,20 @@ pushLB(loadDim);
 
 sHandle().debugPrint(here + ": load: " + load + " vs. " + loadAvg);
 
+        var deltaC_:Double = deltaC;
         if (load != 0) {
-            deltaC *= loadAvg;
-            deltaC /= load;
+            deltaC_ *= loadAvg;
+            deltaC_ /= load;
         }
 
-        val delta = list.size() - loadAvg;
+        val delta = load - loadAvg;
+
+        val deltaRB2:Double = load == 0 ? 0. : deltaRelBox2 * (deltaC/load);
 
 		// send boxes.
 //Console.OUT.println(here + ": avg: " + loadAvg + ",\tdelta: " + delta);
-        if (delta >= deltaBox + deltaRelBox * deltaC) {
+        //if (delta >= deltaBox + deltaRelBox1 * deltaC + deltaRB2) {
+        if (delta >= deltaBox + deltaRelBox1 * deltaC_) {
             distributeSearchSpace(sHandle, load);
         }
 //else
@@ -163,6 +168,44 @@ Console.OUT.println(here + ": nSS: " + nSearchSteps.get());
 
 sHandle().debugPrint(here + ": balance done");
     }
+
+val tLogStart:Long = System.nanoTime();
+var tLogNext:Double = 0.;
+val logData:List[Pair[Int,Int]] = new ArrayList[Pair[Int,Int]]();
+var nSBBak:Int = 0;
+
+    def search(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
+
+if (tEndPP < 0l) tEndPP += System.nanoTime();
+
+debugPrint(here + ": wait");
+        when (active || list.size()+listShared.size() > 0) {
+debugPrint(here + ": activated: " + active + ", " + list.size()+","+listShared.size());
+            active = false;
+        }
+
+        //waitActivation();
+
+        joinTwoLists();
+
+        val tSearchStart = System.nanoTime();
+
+    	finish 
+    	while (RPX10.format(System.nanoTime() - tSearchStart) < tSearchInterval) {
+    		if (!searchBody(sHandle))
+    			break;
+
+val t = System.nanoTime();
+while (RPX10.format(t - tLogStart) >= tLogNext) {
+    tLogNext += 1.; // FIXME
+    //Console.OUT.println(here + ": time: " + RPX10.format(t - tLogStart) +  ", load: " + list.size());
+    logData.add(new Pair(list.size()+listShared.size(), nSentBoxes - nSBBak));
+    nSBBak = nSentBoxes;
+} 
+        }
+debugPrint(here + ": done search");
+    }
+
 }
 
 // vim: shiftwidth=4:tabstop=4:expandtab

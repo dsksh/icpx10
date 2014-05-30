@@ -251,6 +251,36 @@ at (Place(0)) {
 	        Console.OUT.flush();
         }*/
 
+        // print load log
+        Console.OUT.println(); 
+        val sbLog = new StringBuilder();
+        val sbLogG = new GlobalRef[StringBuilder](sbLog);
+        sbLog.add("{");
+        var first:Boolean = true;
+        for (p in Place.places()) { 
+            if (first) first = false;
+            else
+                sbLog.add(",\n");
+    		finish at (p) {
+                val sbl = new StringBuilder();
+                sbl.add("{");
+                val ld = (sHandle() as PlaceAgentSeqSID[Int]).logData;
+                var f:Boolean = true;
+                for (lp in ld) {
+                    if (f) f = false;
+                    else
+                        sbl.add(",");
+                    sbl.add("{"+lp.first+","+lp.second+"}");
+                }
+                sbl.add("}");
+                at (sbLogG.home) sbLogG().add(sbl.result());
+            }
+        }
+        sbLog.add("}");
+        Console.OUT.println(sbLog);
+        Console.OUT.println();
+        Console.OUT.flush();
+
         // print description of the solving process.
         val sb = new StringBuilder();
         val sbG = new GlobalRef[StringBuilder](sb);
