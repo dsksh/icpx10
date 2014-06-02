@@ -171,6 +171,7 @@ Console.OUT.println(here + ": nSS: " + nSearchSteps.get());
 sHandle().debugPrint(here + ": balance done");
     }
 
+
 val tLogStart:Long = System.nanoTime();
 var tLogNext:Double = 0.;
 val logData:List[Pair[Int,Int]] = new ArrayList[Pair[Int,Int]]();
@@ -199,7 +200,7 @@ debugPrint(here + ": activated: " + active + ", " + list.size()+","+listShared.s
 
 val t = System.nanoTime();
 while (RPX10.format(t - tLogStart) >= tLogNext) {
-    tLogNext += 1.; // FIXME
+    tLogNext += 0.1; // FIXME
     //Console.OUT.println(here + ": time: " + RPX10.format(t - tLogStart) +  ", load: " + list.size());
     val nSB = nSentBoxes.get();
     logData.add(new Pair(list.size()+listShared.size(), nSB - nSBBak));

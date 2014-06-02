@@ -319,42 +319,59 @@ sHandle().debugPrint(here + ": load: " + load + " vs. " + loadAvg);
 sHandle().debugPrint(here + ": balance done");
     }
 
+    class RecipientInfo {
+        public val boxes:List[IntervalVec[K]] = new LinkedList[IntervalVec[K]]();
+        public val id:Int;
+        public var amount:Int;
+
+        public def this(id:Int, amount:Int) {
+            this.id = id; this.amount = amount;
+        }
+    }
+
     def distributeSearchSpace(sHandle:PlaceLocalHandle[PlaceAgent[K]], load:Int) {
         // list of lists of boxes
-        val boxesList = new ArrayList[Pair[List[IntervalVec[K]],Pair[Int,Cell[Int]]]](neighbors.size()+1);
+        //val boxesList = new ArrayList[Pair[List[IntervalVec[K]],Pair[Int,Cell[Int]]]](neighbors.size()+1);
+        val boxesList = new ArrayList[RecipientInfo](neighbors.size()+1);
 
         // list of boxes to be kept local.
-        val bs0 = new LinkedList[IntervalVec[K]]();
-        val p0 = new Pair[Int,Cell[Int]](here.id(),new Cell[Int](-1));
-        val pp0 = new Pair[List[IntervalVec[K]],Pair[Int,Cell[Int]]](bs0, p0);
-        boxesList.add(pp0);
+        //val bs0 = new LinkedList[IntervalVec[K]]();
+        //val p0 = new Pair[Int,Cell[Int]](here.id(),new Cell[Int](-1));
+        //val pp0 = new Pair[List[IntervalVec[K]],Pair[Int,Cell[Int]]](bs0, p0);
+        //boxesList.add(pp0);
+
+        boxesList.add(new RecipientInfo(here.id(), -1));
 
         for (i in neighbors.indices()) {
             val l = getAndResetLoad(i);
             if (l == null) continue;
 
-            //val ld = load - l();
-            val ld = (load - l()) / nSendsLoad;
-sHandle().debugPrint(here + ": ld: " + ld);
-            if (ld <= 0) continue;
+            //val amount = load - l();
+            val amount = (load - l()) / nSendsLoad;
+sHandle().debugPrint(here + ": amount: " + amount);
+            if (amount <= 0) continue;
 
             // create a list of boxes.
-            val bs = new LinkedList[IntervalVec[K]]();
-            val p = new Pair[Int,Cell[Int]](neighbors(i), new Cell[Int](ld));
-            val pp = new Pair[List[IntervalVec[K]],Pair[Int,Cell[Int]]](bs, p);
-            boxesList.add(pp);
+            //val bs = new LinkedList[IntervalVec[K]]();
+            //val p = new Pair[Int,Cell[Int]](neighbors(i), new Cell[Int](amount));
+            //val pp = new Pair[List[IntervalVec[K]],Pair[Int,Cell[Int]]](bs, p);
+            val info = new RecipientInfo(neighbors(i), amount);
+            boxesList.add(info);
         }
 
         // distribute the content of the list
         var i:Int = 0;
         while (!list.isEmpty()) {
             val j = i % boxesList.size();
-            val pair = boxesList(j);
-            val cnt = pair.second.second();
-            if ((j == 0 && cnt < 0) || cnt > 0) {
+            //val pair = boxesList(j);
+            val info = boxesList(j);
+            //val cnt = pair.second.second();
+            if ((j == 0 && info.amount < 0) || info.amount > 0) {
                 val box:IntervalVec[K] = list.removeLast();
                 if (box.size() > 0) { // not dummy
-                    pair.first.add(box); pair.second.second() = cnt-1;
+                    //pair.first.add(box); pair.second.second() = cnt-1;
+                    info.boxes.add(box);
+                    info.amount--;
                     box.count();
                     ++i;
                 }
@@ -364,8 +381,10 @@ sHandle().debugPrint(here + ": ld: " + ld);
             else ++i;
         }
 
-        for (pair in boxesList) {
-            val boxes = pair.first;
+        //for (pair in boxesList) {
+        for (info in boxesList) {
+            //val boxes = pair.first;
+            val boxes = info.boxes;
 
             if (boxes.isEmpty()) continue;
 
@@ -374,7 +393,8 @@ sHandle().debugPrint(here + ": ld: " + ld);
 tBoxSend.addAndGet(-System.nanoTime());
 
                 val gRes = new GlobalRef(new Cell[Boolean](false));
-                val p = Place(pair.second.first);
+                //val p = Place(pair.second.first);
+                val p = Place(info.id);
 sHandle().debugPrint(here + ": sending to: " + p.id());
 val hereId = here.id();
 
@@ -409,13 +429,6 @@ sHandle().debugPrint(here + ": sending to " + p.id() + " done: " + gRes().value)
                 else {
                     // retract the list.
                     joinWithListShared(boxes);
-                    //for (b in listShared) boxes.add(b);
-                    //listShared = null;
-                    //listShared = boxes;
-                    //atomic {
-                    //    active = true;
-                    //    nSends--;
-                    //}
 
                     //nSends.decrementAndGet();
                 }
