@@ -41,8 +41,8 @@ public class PlaceAgent[K] {
     public var tSearch:Long = 0l;
     public var nSplits:Int = 0;
     public var nReqs:Int = 0;
-    public var nSends:Int = 0;
-    public var nSentBoxes:Int = 0;
+    public var nSends:AtomicInteger = new AtomicInteger(0);
+    public var nSentBoxes:AtomicInteger = new AtomicInteger(0);
     public var tWaitComm:Long = 0l;
     public var nIters:Int = 0;
     public var tBoxSend:AtomicLong = new AtomicLong(0l);
@@ -165,8 +165,7 @@ debugPrint(here + ": selected " + p);
             }
 //Console.OUT.println(here + ": responded to " + id);
             if (id < here.id()) sentBw.set(true);
-            //nSends.getAndIncrement();
-            nSends++;
+            nSends.incrementAndGet();
 
             return true;
         }

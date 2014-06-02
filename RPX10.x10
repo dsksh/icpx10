@@ -344,8 +344,8 @@ at (Place(0)) {
             //val vReqs = sHandle().nReqs.get();
             //val vSends = sHandle().nSends.get();
             val vReqs = sHandle().nReqs;
-            val vSends = sHandle().nSends;
-            val vSentBoxes = sHandle().nSentBoxes;
+            val vSends = sHandle().nSends.get();
+            val vSentBoxes = sHandle().nSentBoxes.get();
             val vTSearch = format(sHandle().tSearch);
             //val vTContacts = format(sHandle().tContracts.get());
             val vTContacts = format(sHandle().tContracts);

@@ -163,8 +163,10 @@ Console.OUT.println(here + ": nSS: " + nSearchSteps.get());
         deltaBak = delta;
 */
 
-        if (accelThres > 0 && loadAvg > accelThres)
+        if (accelThres > 0 && loadAvg > accelThres) {
             nSearchSteps.set(nSearchSteps0 * 10);
+            tSearchInterval * 10;
+        }
 
 sHandle().debugPrint(here + ": balance done");
     }
@@ -199,8 +201,9 @@ val t = System.nanoTime();
 while (RPX10.format(t - tLogStart) >= tLogNext) {
     tLogNext += 1.; // FIXME
     //Console.OUT.println(here + ": time: " + RPX10.format(t - tLogStart) +  ", load: " + list.size());
-    logData.add(new Pair(list.size()+listShared.size(), nSentBoxes - nSBBak));
-    nSBBak = nSentBoxes;
+    val nSB = nSentBoxes.get();
+    logData.add(new Pair(list.size()+listShared.size(), nSB - nSBBak));
+    nSBBak = nSB;
 } 
         }
 debugPrint(here + ": done search");

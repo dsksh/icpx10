@@ -54,8 +54,7 @@ sHandle().totalVolume.addAndGet(box.volume());
             }
 //sHandle().debugPrint(here + ": responded to " + id);
             if (id < here.id()) sentBw.set(true);
-            //nSends.getAndIncrement();
-            nSends++;
+            nSends.getAndIncrement();
 
             return true;
         }

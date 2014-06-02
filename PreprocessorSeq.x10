@@ -168,7 +168,7 @@ val b = (p != here);
 	            atomic sHandle().active = true;
             }
 
-            if (b) sHandle().nSends++;
+            if (b) sHandle().nSends.incrementAndGet();
             if (p.id() < here.id()) sHandle().sentBw.set(true);
         }
 

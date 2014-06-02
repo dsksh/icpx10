@@ -333,7 +333,8 @@ sHandle().debugPrint(here + ": balance done");
             val l = getAndResetLoad(i);
             if (l == null) continue;
 
-            val ld = load - l();
+            //val ld = load - l();
+            val ld = (load - l()) / nSendsLoad;
 sHandle().debugPrint(here + ": ld: " + ld);
             if (ld <= 0) continue;
 
@@ -401,6 +402,9 @@ sHandle().debugPrint(here + ": sending to " + p.id() + " done: " + gRes().value)
 
                 if (gRes().value) { // boxes were sent to other place.
                     if (p.id() < here.id()) sentBw.set(true);
+
+                    nSends.incrementAndGet();
+                    nSentBoxes.addAndGet(boxes.size());
                 }
                 else {
                     // retract the list.
@@ -412,15 +416,12 @@ sHandle().debugPrint(here + ": sending to " + p.id() + " done: " + gRes().value)
                     //    active = true;
                     //    nSends--;
                     //}
-                    nSends--;
-                    nSentBoxes -= boxes.size();
+
+                    //nSends.decrementAndGet();
                 }
 
 tBoxSend.addAndGet(System.nanoTime());
             }
-
-            nSends++;
-            nSentBoxes += boxes.size();
         }
     }
 }
