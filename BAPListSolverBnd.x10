@@ -4,7 +4,7 @@ import x10.io.Console;
 
 public class BAPListSolverBnd[K] extends BAPListSolver[K] {
 
-    public var maxDomSize : Int = 0;
+    public var maxDomSize : Long = 0;
 
     private list1 : List[IntervalVec[K]];
 
@@ -27,7 +27,7 @@ public class BAPListSolverBnd[K] extends BAPListSolver[K] {
     public atomic def hasDom() : Boolean {
         return !list1.isEmpty();
     }
-    public atomic def domSize() : Int {
+    public atomic def domSize() : Long {
         return list1.size();
     }
     protected atomic def sortDom() {

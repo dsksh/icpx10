@@ -12,23 +12,23 @@ public class PlaceAgentSeqSID[K] extends PlaceAgentSeqSI[K] {
         for (0..4) loadsBak.add(0);
     }
 
-    var loadBak:Int = Int.MAX_VALUE;
-    var deltaBak:Int = 0;
+    var loadBak:Long = Long.MAX_VALUE;
+    var deltaBak:Long = 0;
     var loadRatioBak:Double = 1.;
 
-    var loadsBak:List[Int] = new ArrayList[Int](5);
-    var lbPos:Int = 0;
-    def pushLB(lb:Int) { 
+    var loadsBak:List[Long] = new ArrayList[Long](5);
+    var lbPos:Long = 0;
+    def pushLB(lb:Long) { 
         loadsBak(lbPos) = lb; 
         lbPos = lbPos < (loadsBak.size()-1) ? lbPos+1 : 0;
     }
     def getLBAvg() {
-        var sum:Int = 0;
+        var sum:Long = 0;
         for (lb in loadsBak) sum += lb;
         return sum/loadsBak.size();
     }
 
-    var deltaC:Int = 0;
+    var deltaC:Long = 0;
 
     def balance(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 sHandle().debugPrint(here + ": balance");
@@ -39,8 +39,8 @@ sHandle().debugPrint(here + ": balance");
 
 
         // compute the average load.
-        var la:Int = load;
-        var c:Int = 1;
+        var la:Long = load;
+        var c:Long = 1;
         for (i in neighbors.indices()) {
             val l = getLoad(i);
             //val w = weights(i);
@@ -82,14 +82,14 @@ sHandle().debugPrint(here + ": load: " + load + ", avg: " + loadAvg + ", dim: " 
         // TODO: For some reason this often results in an error.
         //for (pid in neighborsInv.get()) {
         //for (pid in neighborsInv) {
-        var iMax:Int = -1;
+        var iMax:Long = -1;
 		iMax = neighborsInv.size() - 1;
         for (i in 0..iMax) {
         // TODO: (inefficient) workaround
         //for (p in Place.places()) {
             //if (p == here) continue;
             //val p = Place(pid);
-			var pid:Int = -1;
+			var pid:Long = -1;
 			pid = neighborsInv(i);
 			if (pid < 0) continue;
             val p = Place(pid);
@@ -174,8 +174,8 @@ sHandle().debugPrint(here + ": balance done");
 
 val tLogStart:Long = System.nanoTime();
 var tLogNext:Double = 0.;
-val logData:List[Pair[Int,Int]] = new ArrayList[Pair[Int,Int]]();
-var nSBBak:Int = 0;
+val logData:List[Pair[Long,Long]] = new ArrayList[Pair[Long,Long]]();
+var nSBBak:Long = 0;
 
     def search(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 

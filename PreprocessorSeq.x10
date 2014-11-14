@@ -15,10 +15,10 @@ public class PreprocessorSeq[K] {
         return new BAPSolverSimpleUnsafe(core, select1);
     }
 
-    val nDestinations:Int;
-    val nBoxes:Int;
-    val nBoxesMin:Int;
-    var nBoxesMax:Int;
+    val nDestinations:Long;
+    val nBoxes:Long;
+    val nBoxesMin:Long;
+    var nBoxesMax:Long;
 
     private val solver : BAPSolverSimpleUnsafe[K];
 
@@ -27,7 +27,7 @@ public class PreprocessorSeq[K] {
     val listShared:List[IntervalVec[K]];
 
     // information of the distribution route tree.
-    val sizeRouteTree:List[Int];
+    val sizeRouteTree:List[Long];
 
     var minVolume:Double;
 
@@ -41,16 +41,16 @@ public class PreprocessorSeq[K] {
         solver.setList(list);
 
         // read env variables.
-		val gND = new GlobalRef(new Cell[Int](0));
-		val gNBM = new GlobalRef(new Cell[Int](0));
-		val gDD = new GlobalRef(new Cell[Int](0));
+		val gND = new GlobalRef(new Cell[Long](0));
+		val gNBM = new GlobalRef(new Cell[Long](0));
+		val gDD = new GlobalRef(new Cell[Long](0));
 		at (Place(0)) {
    			val sND = System.getenv("RPX10_N_DESTINATIONS");
    			val sNBM = System.getenv("RPX10_N_BOXES_MIN");
    			val sDD = System.getenv("RPX10_DIST_DELAY");
-			val nD:Int = sND != null ? Int.parse(sND) : 2;
-			val nBM:Int = sNBM != null ? Int.parse(sNBM) : 32;
-			val nDD:Int = sDD != null ? Int.parse(sDD) : 0;
+			val nD:Long = sND != null ? Long.parse(sND) : 2;
+			val nBM:Long = sNBM != null ? Long.parse(sNBM) : 32;
+			val nDD:Long = sDD != null ? Long.parse(sDD) : 0;
 			at (gND.home) {
 				gND().set(nD);
 				gNBM().set(nBM);
@@ -64,13 +64,13 @@ public class PreprocessorSeq[K] {
         nBoxesMax = nBoxes;
 
 		// setup the selectPlace parameters.
-		var pow:Int = 1;
+		var pow:Long = 1;
 		while (pow <= here.id()) pow *= nDestinations;
 		selectCoeff = pow;
 		selectOffset = here.id();		
 
 		// setup the tree size information.
-        val sizeRTCache = new ArrayList[Int](distDelay);
+        val sizeRTCache = new ArrayList[Long](distDelay);
         for (0..(distDelay-1))
             sizeRTCache.add(1);
 
@@ -95,9 +95,9 @@ public class PreprocessorSeq[K] {
     }
 
     private val random:Random = new Random(System.nanoTime());
-    private var selectedPid:Int = 0;
-	private var selectCoeff:Int = 1;
-	private var selectOffset:Int = 0;
+    private var selectedPid:Long = 0;
+	private var selectCoeff:Long = 1;
+	private var selectOffset:Long = 0;
 
     protected def selectPlace() : Place {
         // random selection.

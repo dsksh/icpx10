@@ -10,11 +10,11 @@ import x10.io.Console;
 
 public class PlaceAgent[K] {
 
-    static val TokActive = 0;
-    static val TokInvoke = 1;
-    static val TokIdle   = 2;
-    static val TokCancel = 4;
-    static val TokDead   = 8;
+    static val TokActive = 0n;
+    static val TokInvoke = 1n;
+    static val TokIdle   = 2n;
+    static val TokCancel = 4n;
+    static val TokDead   = 8n;
 
     //var loc:AtomicInteger = new AtomicInteger(0);
 
@@ -23,28 +23,28 @@ public class PlaceAgent[K] {
     //val list:CircularQueue[IntervalVec[K]];
     val solutions:List[Pair[BAPSolver.Result,IntervalVec[K]]];
 
-    val reqQueue:CircularQueue[Int];
+    val reqQueue:CircularQueue[Long];
     var terminate:Int = TokActive;
-    var nSentRequests:AtomicInteger = new AtomicInteger(0);
+    var nSentRequests:AtomicInteger = new AtomicInteger(0n);
     var sentBw:AtomicBoolean = new AtomicBoolean(false);
     var active:Boolean = true;
 	var totalVolume:AtomicDouble = new AtomicDouble(0.);
 
     var sentRequest:AtomicBoolean = new AtomicBoolean(false);
     var isActive:AtomicBoolean = new AtomicBoolean(false);
-    var nSearchPs:AtomicInteger = new AtomicInteger(0);
+    var nSearchPs:AtomicInteger = new AtomicInteger(0n);
 
     public var tEndPP:Long = 0l;
-    public var nSols:Int = 0;
-    public var nContracts:Int = 0;
+    public var nSols:Long = 0;
+    public var nContracts:Long = 0;
     public var tContracts:Long = 0l;
     public var tSearch:Long = 0l;
-    public var nSplits:Int = 0;
-    public var nReqs:Int = 0;
-    public var nSends:AtomicInteger = new AtomicInteger(0);
-    public var nSentBoxes:AtomicInteger = new AtomicInteger(0);
+    public var nSplits:Long = 0;
+    public var nReqs:Long = 0;
+    public var nSends:AtomicLong = new AtomicLong(0n);
+    public var nSentBoxes:AtomicLong = new AtomicLong(0n);
     public var tWaitComm:Long = 0l;
-    public var nIters:Int = 0;
+    public var nIters:Long = 0;
     public var tBoxSend:AtomicLong = new AtomicLong(0l);
 
     protected random:Random;
@@ -78,7 +78,7 @@ public class PlaceAgent[K] {
 //        list1 = new ArrayList[Pair[Result,IntervalVec[K]]]();
         solutions = new ArrayList[Pair[BAPSolver.Result,IntervalVec[K]]]();
 
-        reqQueue = new CircularQueue[Int](2*Place.numPlaces()+10);
+        reqQueue = new CircularQueue[Long](2*Place.numPlaces()+10);
 
         random = new Random(System.nanoTime());
 
@@ -92,8 +92,8 @@ public class PlaceAgent[K] {
 totalVolume.addAndGet(box.volume());
         list.add(box);
 
-        var dst:Int = 0;
-        var pow2:Int = 1;
+        var dst:Long = 0;
+        var pow2:Long = 1;
         for (pi in 1..(Place.numPlaces()-1)) {
             at (Place(dst)) sHandle().reqQueue.addLast(pi);
             at (Place(pi)) {
@@ -113,10 +113,10 @@ totalVolume.addAndGet(box.volume());
     }
 
     //private var selected:Iterator[Place] = null;
-    private var selectedPid:Int = 0;
+    private var selectedPid:Long = 0;
 
     protected def selectPlace() : Place {
-/*        var id:Int;
+/*        var id:Long;
         do {
             id = random.nextInt(Place.numPlaces());
         } while (Place.numPlaces() > 1 && (id == here.id()));
@@ -148,7 +148,7 @@ debugPrint(here + ": selected " + p);
 
     public def respondIfRequested(sHandle:PlaceLocalHandle[PlaceAgent[K]], 
                                   box:IntervalVec[K]) : Boolean {
-        var id:Int = -1;
+        var id:Long = -1;
         atomic if (reqQueue.getSize() > 0) {
             id = reqQueue.removeFirstUnsafe();
 //Console.OUT.println(here + ": got req from: " + id);
@@ -173,9 +173,9 @@ debugPrint(here + ": selected " + p);
             return false;
     }
 
-/*    public atomic def getMultipleRequests(nMax:Int) : List[Int] {
+/*    public atomic def getMultipleRequests(nMax:Long) : List[Long] {
         val n = Math.min(nMax, reqQueue.getSize());
-        val list = new ArrayList[Int](n);
+        val list = new ArrayList[Long](n);
         for (i in 1..n) {
             val id = reqQueue.removeFirstUnsafe();
             list.add(id);
@@ -200,7 +200,7 @@ debugPrint(here + ": selected " + p);
         if (!terminateLock.tryLock()) {
             Runtime.increaseParallelism();
             terminateLock.lock();
-            Runtime.decreaseParallelism(1);
+            Runtime.decreaseParallelism(1n);
         }
     }
     protected def unlockTerminate() {
@@ -264,7 +264,7 @@ sHandle().tSearch += time;
 
                 // cancel the received requests.
                 while (!active && reqQueue.getSize() > 0) {
-                    val id:Int = reqQueue.removeFirstUnsafe();
+                    val id:Long = reqQueue.removeFirstUnsafe();
 //async
                     at (here.next()) {
                         sHandle().sentRequest.set(false);

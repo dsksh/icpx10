@@ -2,6 +2,7 @@ import x10.io.Console;
 import x10.compiler.*;
 import x10.util.*;
 import x10.io.*;
+import x10.regionarray.Dist;
 
 // kludge for "Interval is incomplete type" error
 //class Dummy_RPX10 {
@@ -35,19 +36,19 @@ public class RPX10[K] {
     @NativeCPPOutputFile("prover.h")
     @NativeCPPCompilationUnit("prover.cc")
     @NativeCPPOutputFile("config.h")
-    static class CoreIArray implements BAPSolver.Core[Int] {
+    static class CoreIArray implements BAPSolver.Core[Long] {
         public def this(filename:String, n:Int) : CoreIArray {}
         @Native("c++", "(#0)->initialize((#1))")
         public def initialize(filename:String, n:Int) : void {};
         @Native("c++", "(#0)->getInitialDomain()")
-        public def getInitialDomain() : IntervalVec[Int] { 
+        public def getInitialDomain() : IntervalVec[Long] { 
             return new IntervalArray(1); 
         };
         @Native("c++", "(#0)->contract((#1))")
-        public def contract(box:IntervalVec[Int]) : BAPSolver.Result { return BAPSolver.Result.unknown(); };
+        public def contract(box:IntervalVec[Long]) : BAPSolver.Result { return BAPSolver.Result.unknown(); };
         @Native("c++", "(#0)->isProjected((#1))")
-        public def isProjected(v:Int) : Boolean { return false; }
-        public def dummyBox() : IntervalVec[Int] { return new IntervalArray(0); }
+        public def isProjected(v:Long) : Boolean { return false; }
+        public def dummyBox() : IntervalVec[Long] { return new IntervalArray(0); }
     }
     @NativeRep("c++", "RPX10__CoreIMap *", "RPX10__CoreIMap", null)
     @NativeCPPOutputFile("RPX10__CoreIMap.h")
@@ -72,10 +73,10 @@ public class RPX10[K] {
         public def dummyBox() : IntervalVec[String] { return new IntervalMap(); }
     }
 
-    private def setup(core:BAPSolver.Core[K], args:Array[String](1)) : PlaceAgent[K] {
+    private def setup(core:BAPSolver.Core[K], args:Rail[String]) : PlaceAgent[K] {
 
         val tester = new VariableSelector.Tester[K]();
-        var an:Int = 2;
+        var an:Long = 2;
         val prec = Double.parse(args(an++));
         //val debug = Boolean.parse(args(an++));
         val test = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => 
@@ -89,12 +90,12 @@ public class RPX10[K] {
             ((res:BAPSolver.Result, box:IntervalVec[K]) =>
                 selector.selectBoundary(select0, res, box) );
         switch (Int.parse(args(an++))) {
-        case 0:
+        case 0n:
             select = selectBnd(
                 (res:BAPSolver.Result, box:IntervalVec[K]) =>
                      selector.selectGRR(res, box) );
             break;
-        case 1:
+        case 1n:
             select = selectBnd(
                 (res:BAPSolver.Result, box:IntervalVec[K]) =>
                      selector.selectLRR(res, box) );
@@ -108,16 +109,16 @@ public class RPX10[K] {
 
         var solver:BAPSolver[K] = null;
         switch (Int.parse(args(an++))) {
-        case 0:
+        case 0n:
             solver = new BAPSolver[K](core, select);
             break;
-        case 1:
+        case 1n:
             solver = new BAPListSolver[K](core, select);
             break;
-        case 2:
+        case 2n:
             solver = new BAPSolverSimple[K](core, select);
             break;
-        case 3:
+        case 3n:
             solver = new BAPSolverDumb[K](core, select);
             break;
         default:
@@ -125,41 +126,41 @@ public class RPX10[K] {
         }
 
         switch (Int.parse(args(an++))) {
-        case 0:
+        case 0n:
             return new PlaceAgent[K](solver);
-        case 1:
+        case 1n:
             //return new PlaceAgentSeparated[K](solver);
             return new PlaceAgentSeqSI[K](solver);
-        case 11:
+        case 11n:
             return new PlaceAgentSeqSID[K](solver);
-        /*case 2:
+        /*case 2n:
             //return new PlaceAgentClockedRequest[K](solver);
             return new PlaceAgentClockedSI[K](solver);*/
-        case 4: {
+        case 4n: {
             val pa = new PlaceAgentSeq[K](solver);
             val pp = new PreprocessorSeq[K](core, prec, pa);
             pa.setPreprocessor(pp);
             return pa;
         }
-        /*case 5: {
+        /*case 5n: {
             val pa = new PlaceAgentClockedSI[K](solver);
             val pp = new PreprocessorClocked[K](core, prec, pa);
             pa.setPreprocessor(pp);
             return pa;
         }*/
-        case 6: {
+        case 6n: {
             val pa = new PlaceAgentSeqSI[K](solver);
             val pp = new PreprocessorSeq[K](core, prec, pa);
             pa.setPreprocessor(pp);
             return pa;
         }
-        case 16: {
+        case 16n: {
             val pa = new PlaceAgentSeqSID[K](solver);
             val pp = new PreprocessorSeq[K](core, prec, pa);
             pa.setPreprocessor(pp);
             return pa;
         }
-        case 7: {
+        case 7n: {
             val pa = new PlaceAgentSeqRI[K](solver);
             val pp = new PreprocessorSeq[K](core, prec, pa);
             pa.setPreprocessor(pp);
@@ -177,7 +178,7 @@ public class RPX10[K] {
     val dummyI:Interval = new Interval(0.,0.);
     val dummyR:BAPSolver.Result = BAPSolver.Result.unknown();
 
-    public static def main(args:Array[String](1)) {
+    public static def main(args:Rail[String]) {
 
         if (args.size < 6) {
             Console.OUT.println("usage: RPX10 prob.rp n prec sel solver pagent");
@@ -189,10 +190,11 @@ public class RPX10[K] {
 
         // create a solver at each place
         val everyone = Dist.makeUnique();
-        val sHandle = PlaceLocalHandle.make[PlaceAgent[Int]](
-            everyone, 
+        val sHandle = PlaceLocalHandle.make[PlaceAgent[Long]](
+            //everyone, 
+            Place.places(),
             ()=> {
-                val main = new RPX10[Int]();
+                val main = new RPX10[Long]();
                 val core = new CoreIArray(args(0), Int.parse(args(1)));
                 return main.setup(core, args);
             } );
@@ -264,7 +266,7 @@ at (Place(0)) {
     		finish at (p) {
                 val sbl = new StringBuilder();
                 sbl.add("{");
-                val ld = (sHandle() as PlaceAgentSeqSID[Int]).logData;
+                val ld = (sHandle() as PlaceAgentSeqSID[Long]).logData;
                 var f:Boolean = true;
                 for (lp in ld) {
                     if (f) f = false;

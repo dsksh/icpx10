@@ -8,20 +8,20 @@ public class PlaceAgentSeqRI[K] extends PlaceAgentSeq[K] {
     val requestThreshold:Double;
 
     // max number of requests
-    val maxNRequests:Int;
+    val maxNRequests:Long;
 
     public def this(solver:BAPSolver[K]) {
         super(solver);
 
 		var rth:Double = 0;
-		var mnr:Int = 0;
+		var mnr:Long = 0;
 		val gRth = new GlobalRef(new Cell(rth));
 		val gMnr = new GlobalRef(new Cell(mnr));
 		at (Place(0)) {
     		val sRth = System.getenv("RPX10_REQUEST_THRESHOLD");
    			val sMnr = System.getenv("RPX10_MAX_N_REQUESTS");
 			val rth1:Double = sRth != null ? Double.parse(sRth) : 1.;
-			val mnr1:Int = sMnr != null ? Int.parse(sMnr) : 5;
+			val mnr1:Long = sMnr != null ? Long.parse(sMnr) : 5;
 			at (gRth.home) {
 				gRth().set(rth1);
 				gMnr().set(mnr1);
@@ -35,7 +35,7 @@ public class PlaceAgentSeqRI[K] extends PlaceAgentSeq[K] {
 
     public def respondIfRequested(sHandle:PlaceLocalHandle[PlaceAgent[K]], 
                                   box:IntervalVec[K]) : Boolean {
-        var id:Int = -1;
+        var id:Long = -1;
         atomic if (reqQueue.getSize() > 0) {
             id = reqQueue.removeFirstUnsafe();
 //sHandle().debugPrint(here + ": got req from: " + id);
@@ -118,7 +118,7 @@ debugPrint(here + ": requested to " + p);
     /// cancel the received requests.
     def cancelRequests(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
         while (true) {
-            var id:Int = -1;
+            var id:Long = -1;
             atomic if (reqQueue.getSize() > 0)
                 id = reqQueue.removeFirstUnsafe();
 

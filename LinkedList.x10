@@ -80,9 +80,9 @@ import x10.util.*;
 
 public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
 
-    var size:Int = 0;
+    var size:Long = 0;
 
-    protected var modCount:Int = 0;
+    protected var modCount:Long = 0;
 
     /**
      * Pointer to first node.
@@ -224,7 +224,7 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
      * @param element element to be inserted
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
-    public def addBefore(index:Int, element:E): void {
+    public def addBefore(index:Long, element:E): void {
         checkPositionIndex(index);
 
         if (index == size)
@@ -233,7 +233,7 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
             linkBefore(element, node(index));
     }
 
-    public operator this(i:Int)=(v:E): E = set(v, i);
+    public operator this(i:Long)=(v:E): E = set(v, i);
 
     /**
      * Replaces the element at the specified position in this list with the
@@ -244,7 +244,7 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
      * @return the element previously at the specified position
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
-    public def set(element:E, index:Int): E {
+    public def set(element:E, index:Long): E {
         checkElementIndex(index);
         val x:Node[E] = node(index);
         val oldVal:E = x.item();
@@ -283,7 +283,7 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
 //     * @throws IndexOutOfBoundsException {@inheritDoc}
 //     * @throws NullPointerException if the specified collection is null
 //     */
-//    public def addAll(index:Int, c:Collection[E]): Boolean {
+//    public def addAll(index:Long, c:Collection[E]): Boolean {
 //        checkPositionIndex(index);
 //
 //        Object[] a = c.toArray();
@@ -363,12 +363,12 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
      * @return the element previously at the specified position
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
-    public def removeAt(index:int): E {
+    public def removeAt(index:Long): E {
         checkElementIndex(index);
         return unlink(node(index));
     }
 
-    public operator this(i: int) = get(i);
+    public operator this(i: Long) = get(i);
 
     /**
      * Returns the element at the specified position in this list.
@@ -377,7 +377,7 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
      * @return the element at the specified position in this list
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
-    public def get(index:int): E {
+    public def get(index:Long): E {
         checkElementIndex(index);
         return node(index).item();
     }
@@ -387,7 +387,7 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
      *
      * @return the number of elements in this list
      */
-    public def size(): int {
+    public def size(): Long {
         return size;
     }
 
@@ -407,9 +407,9 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
      * @return an array containing all of the elements in this list
      *         in proper sequence
      */
-    public def toArray(): Array[Box[E]] {
-        val result = new Array[Box[E]](size);
-        var i:Int = 0;
+    public def toArray(): Rail[Box[E]] {
+        val result = new Rail[Box[E]](size);
+        var i:Long = 0;
         for (var x:Node[E] = first; x != null; x = x.next)
             result(i++) = x.item;
         return result;
@@ -467,18 +467,18 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
         return unlinkLast(l);
     }
 
-    public def indices(): List[Int] {
-        val l = new ArrayList[Int]();
-        for (var i: Int = 0; i < size(); i++) {
+    public def indices(): List[Long] {
+        val l = new ArrayList[Long]();
+        for (var i: Long = 0; i < size(); i++) {
             l.add(i);
         }
         return l;
     }
 
-    public def subList(begin:Int, end:Int): List[E] {
+    public def subList(begin:Long, end:Long): List[E] {
         val l = new LinkedList[E]();
     	var n:Node[E] = node(begin);
-        for (var i: Int = begin; i < size() && i < end; i++) {
+        for (var i: Long = begin; i < size() && i < end; i++) {
 			if (n == null)
             	throw new NoSuchElementException();
            	l.add(n.item());
@@ -498,12 +498,12 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
      * @return the index of the first occurrence of the specified element in
      *         this list, or -1 if this list does not contain the element
      */
-    public def indexOf(o:E): Int {
+    public def indexOf(o:E): Long {
 		return indexOf(0, o);
 	}
 
-    public def indexOf(i0:Int, o:E): Int {
-        var index:Int = i0;
+    public def indexOf(i0:Long, o:E): Long {
+        var index:Long = i0;
         if (o == null) {
             for (var x:Node[E] = first; x != null; x = x.next) {
                 if (x.item == null)
@@ -531,12 +531,12 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
      * @return the index of the last occurrence of the specified element in
      *         this list, or -1 if this list does not contain the element
      */
-    public def lastIndexOf(o:E): Int {
+    public def lastIndexOf(o:E): Long {
 		return lastIndexOf(size, o);
 	}
 
-    public def lastIndexOf(i0:Int, o:E): Int {
-        var index:Int = i0;
+    public def lastIndexOf(i0:Long, o:E): Long {
+        var index:Long = i0;
         if (o == null) {
             for (var x:Node[E] = last; x != null; x = x.prev) {
                 index--;
@@ -674,7 +674,7 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
     /**
      * Tells if the argument is the index of an existing element.
      */
-    private def isElementIndex(index:Int): Boolean {
+    private def isElementIndex(index:Long): Boolean {
         return index >= 0 && index < size;
     }
 
@@ -682,7 +682,7 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
      * Tells if the argument is the index of a valid position for an
      * iterator or an add operation.
      */
-    private def isPositionIndex(index:Int): Boolean {
+    private def isPositionIndex(index:Long): Boolean {
         return index >= 0 && index <= size;
     }
 
@@ -691,16 +691,16 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
      * Of the many possible refactorings of the error handling code,
      * this "outlining" performs best with both server and client VMs.
      */
-    private def outOfBoundsMsg(index:Int): String {
+    private def outOfBoundsMsg(index:Long): String {
         return "Index: "+index+", Size: "+size;
     }
 
-    private def checkElementIndex(index:Int): void {
+    private def checkElementIndex(index:Long): void {
         if (!isElementIndex(index))
             throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
     }
 
-    private def checkPositionIndex(index:Int): void {
+    private def checkPositionIndex(index:Long): void {
         if (!isPositionIndex(index))
             throw new IndexOutOfBoundsException(outOfBoundsMsg(index));
     }
@@ -708,17 +708,17 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
     /**
      * Returns the (non-null) Node at the specified element index.
      */
-    def node(index:Int): Node[E] {
+    def node(index:Long): Node[E] {
         // assert isElementIndex(index);
 
         if (index < (size >> 1)) {
             var x:Node[E] = first;
-            for (var i:Int = 0; i < index; i++)
+            for (var i:Long = 0; i < index; i++)
                 x = x.next;
             return x;
         } else {
             var x:Node[E] = last;
-            for (var i:Int = size - 1; i > index; i--)
+            for (var i:Long = size - 1; i > index; i--)
                 x = x.prev;
             return x;
         }
@@ -959,17 +959,17 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
         return new ListItr(0);
     }
 
-    public def iteratorFrom(i:Int): ListIterator[E] {
+    public def iteratorFrom(i:Long): ListIterator[E] {
         return new ListItr(i);
     }
 
     private class ListItr implements ListIterator[E] {
         private var lastReturned:Node[E] = null;
         private var next:Node[E];
-        private var nextIndex:Int;
-        private var expectedModCount:Int = modCount;
+        private var nextIndex:Long;
+        private var expectedModCount:Long = modCount;
 
-        def this(index:Int) {
+        def this(index:Long) {
             // assert isPositionIndex(index);
             next = (index == size) ? null : node(index);
             nextIndex = index;
@@ -979,7 +979,7 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
             return nextIndex < size;
         }
 
-        public def nextIndex(): Int {
+        public def nextIndex(): Long {
             return nextIndex;
         }
 
@@ -998,7 +998,7 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
             return nextIndex > 0;
         }
 
-        public def previousIndex(): Int {
+        public def previousIndex(): Long {
             return nextIndex - 1;
         }
 
@@ -1207,9 +1207,9 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
 		sort((x:E, y:E) => (x as Comparable[E]).compareTo(y)); 
 	}
     public def sort(cmp:(E,E)=>Int) {
-		val a:Array[Node[E]]{rank == 1} = toNodeArray();
+		val a:Rail[Node[E]] = toNodeArray();
 		val cmpN = (xn:Node[E], yn:Node[E]) => cmp(xn.item(), yn.item());
-		ArrayUtils.sort[Node[E]](a, cmpN); 
+		RailUtils.sort[Node[E]](a, cmpN); 
 		reflectArrayOrder(a);
 	}
 
@@ -1222,26 +1222,26 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
      * @param key the value to find
      * @param cmp the comparison function to use
      */
-    public def binarySearch(key:E) {E <: Comparable[E]}: Int {
+    public def binarySearch(key:E) {E <: Comparable[E]}: Long {
 		 return binarySearch(key, (x:E, y:E) => (x as Comparable[E]).compareTo(y)); 
 	}
-    public def binarySearch(key:E, cmp:(E,E)=>Int) {E <: Comparable[E]}: Int {
-		val a:Array[Node[E]]{rank == 1} = toNodeArray();		
+    public def binarySearch(key:E, cmp:(E,E)=>Int) {E <: Comparable[E]}: Long {
+		val a:Rail[Node[E]] = toNodeArray();		
 		val keyN:Node[E] = node(indexOf(key));
 		val cmpN = (xn:Node[E], yn:Node[E]) => cmp(xn.item(), yn.item());
-        val res = ArrayUtils.binarySearch[Node[E]](a, keyN, cmpN);
+        val res = RailUtils.binarySearch[Node[E]](a, keyN, cmpN);
 		reflectArrayOrder(a);
 		return res;
     }
 
-	private def toNodeArray(): Array[Node[E]]{rank == 1} {
-        val a = new Array[Node[E]](size);
-        var i:Int = 0;
+	private def toNodeArray(): Rail[Node[E]] {
+        val a = new Rail[Node[E]](size);
+        var i:Long = 0;
         for (var x:Node[E] = first; x != null; x = x.next)
             a(i++) = x;
 		return a;
 	}
-	private def reflectArrayOrder(a:Array[Node[E]]) {a.rank == 1} {
+	private def reflectArrayOrder(a:Rail[Node[E]]) {
 		if (size == 0) return;
 		first = a(0);
 		last = a(a.size-1);

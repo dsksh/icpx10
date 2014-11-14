@@ -8,8 +8,8 @@ import x10.io.Console;
 public class BAPSolver[K] {
 
     public static struct Result {
-        private val code:Int;
-        private def this(code:Int) : Result { 
+        private val code:Long;
+        private def this(code:Long) : Result { 
             this.code = code; 
         }
         public static def noSolution() : Result { return new Result(1); }
@@ -66,10 +66,10 @@ sHandle().nContracts++;
     
     protected val selectVariable : (res:Result, box:IntervalVec[K]) => Box[K];
 
-var sid0:Int = 0;
+var sid0:Long = 0;
 
     protected def search(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) {
-val sid:Int = sid0++;
+val sid:Long = sid0++;
 //atomic sHandle().debugPrint(here + "," + sid + ": search:\n" + box + '\n');
 //try {
         // for dummy boxes

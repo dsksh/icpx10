@@ -5,7 +5,7 @@ import x10.util.concurrent.AtomicDouble;
 
 public class PlaceAgentSeq[K] extends PlaceAgent[K] {
 
-	val nSearchSteps0:Int;
+	val nSearchSteps0:Long;
 	val nSearchSteps:AtomicDouble;
 
     var listShared:List[IntervalVec[K]] = null;
@@ -15,11 +15,11 @@ public class PlaceAgentSeq[K] extends PlaceAgent[K] {
     public def this(solver:BAPSolver[K]) {
         super(solver);
 
-		val gNSS = new GlobalRef(new Cell[Int](0));
+		val gNSS = new GlobalRef(new Cell[Long](0));
         val p0 = Place(0);
 		at (p0) {
    			val sNSS = System.getenv("RPX10_N_SEARCH_STEPS");
-			val nSS:Int = sNSS != null ? Int.parse(sNSS) : 1;
+			val nSS:Long = sNSS != null ? Long.parse(sNSS) : 1;
 			at (gNSS.home) 
 				gNSS().set(nSS);
 		}

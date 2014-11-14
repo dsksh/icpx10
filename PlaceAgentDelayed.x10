@@ -40,8 +40,8 @@ public class PlaceAgentDelayed[K] extends PlaceAgent[K] {
         //list.add(solver.core.getInitialDomain());
 
         // construct a btree-formed network.
-        var dst:Int = 0;
-        var pow2:Int = 1;
+        var dst:Long = 0;
+        var pow2:Long = 1;
         finish for (pi in 1..(Place.numPlaces()-1)) {
             at (Place(dst)) //async 
             {

@@ -1,4 +1,6 @@
 import x10.util.*;
+import x10.io.Deserializer;
+import x10.io.Serializer;
 
 // kludge for "Interval is incomplete type" error
 class Dummy_IntervalMap {
@@ -19,8 +21,17 @@ implements IntervalVec[String] {
 
     public def this() : IntervalMap { } 
     public def this(lhs:IntervalMap) : IntervalMap { 
-        super(lhs.serialize()); 
-        //this.vit = lhs.vit.clone(this); // TODO: this cannot be compiled
+        super(); 
+
+        // copy
+        // TODO: use serializer?
+        val it = lhs.entries().iterator();
+        while (it.hasNext()) {
+            val e:Map.Entry[String,Interval] = it.next();
+            // TODO
+            //put(e.getKey(), e.getValue());
+        }
+
         this.prevVar = lhs.prevVar;
     } 
 
@@ -51,7 +62,7 @@ implements IntervalVec[String] {
     }
 
     public def toString() :String {
-        return toString(3);
+        return toString(3n);
     }
     public def toString(plot:Int) :String {
         val sb:StringBuilder = new StringBuilder();
@@ -71,79 +82,14 @@ implements IntervalVec[String] {
         return sb.result();
     }
 
-/*    public def varIterator() : VarIterator {
-        val iterator = new EntriesIterator[String,Interval](this);
-        iterator.advance();
-        return new VarIterator(iterator, (e: IntervalVec.HashEntry[String,Interval]) => e.key);
-    }                            
-
-    //protected static class VarIterator implements Iterator[IntervalVec.HashEntry[String,Interval]] {
-    protected static class VarIterator implements Iterator[String] {
-        val i : IntervalVec.EntriesIterator[String,Interval];
-        val f : (IntervalVec.HashEntry[String,Interval]) => String;
-
-        def this(i:IntervalVec.EntriesIterator[String,Interval], f:(IntervalVec.HashEntry[String,Interval])=>String) {
-            this.i = i;
-            this.f = f;
-        }
-        def this(lhs:VarIterator) {
-            this(new IntervalVec.EntriesIterator[String,Interval](lhs.i), lhs.f);
-        }
-
-        public def hasNext() : Boolean = i.hasNext();
-        public def next() : String = f(i.next());
-    }
-
-    //protected static class EntriesIterator[String,Interval] implements Iterator[HashMap[String,Interval].HashEntry[String,Interval]] {
-    protected static class EntriesIterator extends HashMap.EntriesIterator[String,Interval] {
-        val map: IntervalVec;
-        var i: Int;
-        var originalModCount:Int;        
-
-        def this(map:IntervalVec) { 
-            this.map = map;
-            this.i = 0; 
-            this.originalModCount = map.modCount;
-        }
-        def this(lhs:EntriesIterator) {
-            this.map = lhs.map; 
-            this.i = lhs.i; 
-            this.originalModCount = lhs.originalModCount;
-        }
-
-        def advance(): void {
-            while (i < map.table.length()) { 
-                if (map.table(i) != null && ! map.table(i).removed)
-                     return;
-                i++;
-            }
-        }
-
-        public def hasNext(): Boolean {
-            if (i < map.table.length()) {
-                return true;
-            }   
-            return false;
-        }   
-
-        public def next(): HashEntry[Key,Value] {
-            if (originalModCount!=map.modCount) throw new Exception("Your code has a concurrency bug! You updated the hashmap "+(map.modCount-originalModCount)+" times since you created the iterator.");
-            val j = i;
-            i++;
-            advance();
-            return map.table(j);
-        }   
-    }
-*/
-
     public def volume() : Double {
         // FIXME
         return -1.;
     }
 
-    var count:Int = 0;
+    var count:Long = 0;
 
-    public def count() : Int {
+    public def count() : Long {
         return count++;
     }
 }

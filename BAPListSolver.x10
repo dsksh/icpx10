@@ -27,7 +27,7 @@ public class BAPListSolver[K] extends BAPSolver[K] {
     protected atomic def hasDom() : Boolean {
         return !list.isEmpty();
     }
-    protected atomic def domSize() : Int {
+    protected atomic def domSize() : Long {
         return list.size();
     }
     protected def sortDom() {

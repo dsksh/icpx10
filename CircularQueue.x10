@@ -15,28 +15,28 @@ import x10.util.concurrent.*;
  */
 public class CircularQueue[T]{T haszero} {
 	/** the maximum queue length we'll allow */
-	public val maximumSize: Int;
+	public val maximumSize: Long;
 	/** if read mod maximumSize, the index of the first entry, if any */
-	private var first: Int = 0;
+	private var first: Long = 0;
 	/** if read mod maximumSize, the index of the next slot to store into */
-	private var  next:  Int = 0;
+	private var  next:  Long = 0;
 	/** bounded buffer to hold entries */
-	public val buffer: Array[T](1);
+	public val buffer: Rail[T];
 
 	/**
 	 * create a queue with the argument as its maximum size and the
 	 * default zero for T used to populate the buffer.
 	 * @param sizeLimit a bound on the number of entries permitted
 	 */
-	public def this(sizeLimit: Int) { this(sizeLimit, Zero.get[T]()); }
+	public def this(sizeLimit:Long) { this(sizeLimit, Zero.get[T]()); }
 	/**
 	 * create a queue with the argument as its maximum size and the
 	 * buffer populated with the initial value.
 	 * @param sizeLimit a bound on the number of entries permitted
 	 */
-	public def this(sizeLimit: Int, initialValue: T) { 
+	public def this(sizeLimit:Long, initialValue:T) { 
 	   this.maximumSize = sizeLimit;
-	   this.buffer = new Array[T](sizeLimit, initialValue);
+	   this.buffer = new Rail[T](sizeLimit, initialValue);
 	}
     public def clear() {
        first = 0; next = 0;
@@ -69,5 +69,5 @@ public class CircularQueue[T]{T haszero} {
        return this.buffer(first % this.maximumSize);
 	}
 	/** returns the number of elements in the queue */
-	public def getSize(): Int { atomic { return next -first; }}
+	public def getSize(): Long { atomic { return next -first; }}
 }

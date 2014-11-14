@@ -6,23 +6,23 @@ import x10.io.Console;
 
 public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
 
-    //val sizeNbors:Int = 5; // FIXME
-    val deltaBox:Int;
+    //val sizeNbors:Long = 5; // FIXME
+    val deltaBox:Long;
     val deltaRelBox1:Double;
     val deltaRelBox2:Double;
-    val deltaLoad:Int;
+    val deltaLoad:Long;
     val deltaRelLoad:Double;
-    val accelThres:Int;
+    val accelThres:Long;
     //var nSendsBox:Double;
-    var nSendsLoad:Int;
+    var nSendsLoad:Long;
     //val minNSendsBox:Double;
 
     val tSearchInterval:Double;
 
-    val neighbors:List[Int];
+    val neighbors:List[Long];
 
 	// list of the neighbors' loads.
-    val loads:List[Box[Int]];
+    val loads:List[Box[Long]];
     var weight:Double;
 
 	private val lockLoads:Lock = new Lock();
@@ -30,7 +30,7 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
         if (!lockLoads.tryLock()) {
             Runtime.increaseParallelism();
             lockLoads.lock();
-            Runtime.decreaseParallelism(1);
+            Runtime.decreaseParallelism(1n);
         }
         //lockLoads.lock();
     }
@@ -38,7 +38,7 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
         lockLoads.unlock();
     }
 
-	def getLoad(i:Int) : Box[Int] {
+	def getLoad(i:Long) : Box[Long] {
 		lockLoads();
 		try {
 			return loads(i);
@@ -47,7 +47,7 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
 			unlockLoads();
 		}
 	}
-	def getAndResetLoad(i:Int) : Box[Int] {
+	def getAndResetLoad(i:Long) : Box[Long] {
 		lockLoads();
 		try {
 			val l = loads(i);
@@ -58,22 +58,22 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
 			unlockLoads();
 		}
 	}
-	def setLoad(i:Int, l:Int) {
+	def setLoad(i:Long, l:Long) {
 		lockLoads();
-		loads(i) = new Box[Int](l);
+		loads(i) = new Box[Long](l);
 		unlockLoads();
 	}
 
 
 	// list of the inverse neighbor links.
-    val neighborsInv:List[Int];
+    val neighborsInv:List[Long];
 
 	private val lockNborsInv:Lock = new Lock();
     protected def lockNborsInv() {
         if (!lockNborsInv.tryLock()) {
             Runtime.increaseParallelism();
             lockNborsInv.lock();
-            Runtime.decreaseParallelism(1);
+            Runtime.decreaseParallelism(1n);
         }
     }
     protected def unlockNborsInv() {
@@ -85,14 +85,14 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
         super(solver);
 
         // read env variables.
-		val gDB = new GlobalRef(new Cell[Int](0));
+		val gDB = new GlobalRef(new Cell[Long](0));
 		val gDRB1 = new GlobalRef(new Cell[Double](0.));
 		val gDRB2 = new GlobalRef(new Cell[Double](0.));
-		val gDL = new GlobalRef(new Cell[Int](0));
+		val gDL = new GlobalRef(new Cell[Long](0));
 		val gDRL = new GlobalRef(new Cell[Double](0.));
-		val gAT = new GlobalRef(new Cell[Int](0));
+		val gAT = new GlobalRef(new Cell[Long](0));
 		val gNSB = new GlobalRef(new Cell[Double](0.));
-		val gNSL = new GlobalRef(new Cell[Int](0));
+		val gNSL = new GlobalRef(new Cell[Long](0));
 		val gSI = new GlobalRef(new Cell[Double](0.));
         val p0 = Place(0);
 		at (p0) {
@@ -105,14 +105,14 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
    			val sNSB = System.getenv("RPX10_N_SENDS_BOX");
    			val sNSL = System.getenv("RPX10_N_SENDS_LOAD");
    			val sSI = System.getenv("RPX10_SEARCH_INTERVAL");
-			val nDB:Int = sDB != null ? Int.parse(sDB) : 10;
+			val nDB:Long = sDB != null ? Long.parse(sDB) : 10;
 			val nDRB1:Double = sDRB1 != null ? Double.parse(sDRB1) : 0.;
 			val nDRB2:Double = sDRB2 != null ? Double.parse(sDRB2) : 0.;
-			val nDL:Int = sDL != null ? Int.parse(sDL) : 0;
+			val nDL:Long = sDL != null ? Long.parse(sDL) : 0;
 			val nDRL:Double = sDRL != null ? Double.parse(sDRL) : 0.;
-			val nAT:Int = sAT != null ? Int.parse(sAT) : -1;
+			val nAT:Long = sAT != null ? Long.parse(sAT) : -1;
 			val nNSB:Double = sNSB != null ? Double.parse(sNSB) : 2.;
-			val nNSL:Int    = sNSL != null ? Int.parse(sNSL) : 2;
+			val nNSL:Long = sNSL != null ? Long.parse(sNSL) : 2;
 			val nSI:Double  = sSI != null ? Double.parse(sSI) : 1.;
 			at (gDB.home) {
 				gDB().set(nDB);
@@ -137,7 +137,7 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
     	nSendsLoad = gNSL().value;
     	tSearchInterval = gSI().value;
 
-        neighbors = new ArrayList[Int](nSendsLoad);
+        neighbors = new ArrayList[Long](nSendsLoad);
 
         /*var pow:Int = 1;
         for (1..nSendsLoad) {
@@ -148,9 +148,9 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
         }*/
 
         val num = 1./(nSendsLoad as Double);
-        var pidBak:Int = -1;
+        var pidBak:Long = -1;
         for (i in 0..(nSendsLoad-1)) {
-            var pid:Int = here.id() + (Math.floor(Math.pow((Place.numPlaces() as Double), i*num)) as Int);
+            var pid:Long = here.id() + (Math.floor(Math.pow((Place.numPlaces() as Double), i*num)) as Long);
             if (pid <= pidBak) pid = pidBak+1;
             pidBak = pid;
             pid = pid % Place.numPlaces();
@@ -159,13 +159,13 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
                 neighbors.add(pid);
         }
 
-        loads = new ArrayList[Box[Int]](nSendsLoad);
+        loads = new ArrayList[Box[Long]](nSendsLoad);
         for (neighbors.indices()) 
             //loads.add(Int.MAX_VALUE/(neighbors.size()+1));
             //loads.add(new Box(-1));
             loads.add(null);
 
-        neighborsInv = new ArrayList[Int](nSendsLoad);
+        neighborsInv = new ArrayList[Long](nSendsLoad);
     }
 
     public def setup(sHandle:PlaceLocalHandle[PlaceAgent[K]]) { 
@@ -232,7 +232,7 @@ tWaitComm += System.nanoTime();
         }
 	}
 
-    var loadBak:Int = -1;
+    var loadBak:Long = -1;
 
     def balance(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 sHandle().debugPrint(here + ": balance");
@@ -259,14 +259,14 @@ sHandle().debugPrint(here + ": my load: " + load);
             // TODO: For some reason this often results in an error.
             //for (pid in neighborsInv.get()) {
             //for (pid in neighborsInv) {
-            var iMax:Int = -1;
+            var iMax:Long = -1;
 			iMax = neighborsInv.size() - 1;
             for (i in 0..iMax) {
             // TODO: (inefficient) workaround
             //for (p in Place.places()) {
                 //if (p == here) continue;
                 //val p = Place(pid);
-				var pid:Int = -1;
+				var pid:Long = -1;
 				pid = neighborsInv(i);
 				if (pid < 0) continue;
                 val p = Place(pid);
@@ -296,8 +296,8 @@ sHandle().debugPrint(here + ": inform to: " + p.id());
         //}
 
         // compute the average load.
-        var loadAvg:Int = load;
-        var c:Int = 1;
+        var loadAvg:Long = load;
+        var c:Long = 1;
         for (i in neighbors.indices()) {
             val l = getLoad(i);
 sHandle().debugPrint(here + ": load: " + l);
@@ -321,15 +321,15 @@ sHandle().debugPrint(here + ": balance done");
 
     class RecipientInfo {
         public val boxes:List[IntervalVec[K]] = new LinkedList[IntervalVec[K]]();
-        public val id:Int;
-        public var amount:Int;
+        public val id:Long;
+        public var amount:Long;
 
-        public def this(id:Int, amount:Int) {
+        public def this(id:Long, amount:Long) {
             this.id = id; this.amount = amount;
         }
     }
 
-    def distributeSearchSpace(sHandle:PlaceLocalHandle[PlaceAgent[K]], load:Int) {
+    def distributeSearchSpace(sHandle:PlaceLocalHandle[PlaceAgent[K]], load:Long) {
         // list of lists of boxes
         //val boxesList = new ArrayList[Pair[List[IntervalVec[K]],Pair[Int,Cell[Int]]]](neighbors.size()+1);
         val boxesList = new ArrayList[RecipientInfo](neighbors.size()+1);
@@ -360,7 +360,7 @@ sHandle().debugPrint(here + ": amount: " + amount);
         }
 
         // distribute the content of the list
-        var i:Int = 0;
+        var i:Long = 0;
         while (!list.isEmpty()) {
             val j = i % boxesList.size();
             //val pair = boxesList(j);
