@@ -113,6 +113,10 @@ atomic {
     public def count() : Long {
         return count++;
     }
+
+    public operator this+(b:IntervalVec[Long]) : IntervalVec[Long] {
+        return this;
+    }
 }
 
 // vim: shiftwidth=4:tabstop=4:expandtab

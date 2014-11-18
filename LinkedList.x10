@@ -407,7 +407,7 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
      * @return an array containing all of the elements in this list
      *         in proper sequence
      */
-    public def toArray(): Rail[Box[E]] {
+    public def toRail(): Rail[Box[E]] {
         val result = new Rail[Box[E]](size);
         var i:Long = 0;
         for (var x:Node[E] = first; x != null; x = x.next)

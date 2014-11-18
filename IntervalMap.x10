@@ -92,6 +92,10 @@ implements IntervalVec[String] {
     public def count() : Long {
         return count++;
     }
+
+    public operator this+(b:IntervalVec[String]) : IntervalVec[String] {
+        return this;
+    }
 }
 
 // vim: shiftwidth=4:tabstop=4:expandtab

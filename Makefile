@@ -1,4 +1,4 @@
-TARGET		= RPX10
+TARGET		= Main
 
 all: $(TARGET)
 
@@ -38,6 +38,9 @@ X10_POST_CMD    = \# \# $(CFLAGS) -I . \# -L . $(LDFLAGS)
 
 RPX10: $(X10_HEADERS) $(X10_SOURCES) $(X10_CPP_SOURCES)
 	$(X10CXX) RPX10.x10 -d $(OUTDIR) -post '$(X10_POST_CMD)' -o RPX10
+
+Main: $(X10_HEADERS) $(X10_SOURCES) $(X10_CPP_SOURCES)
+	$(X10CXX) Main.x10 -d $(OUTDIR) -post '$(X10_POST_CMD)' -o Main
 
 Test: $(X10_HEADERS) $(X10_SOURCES) $(X10_CPP_SOURCES)
 	$(X10CXX) Test.x10 -d $(OUTDIR) -post '$(X10_POST_CMD)' -o Test

@@ -73,7 +73,7 @@ public class RPX10[K] {
         public def dummyBox() : IntervalVec[String] { return new IntervalMap(); }
     }
 
-    private def setup(core:BAPSolver.Core[K], args:Rail[String]) : PlaceAgent[K] {
+    static def setup[K](core:BAPSolver.Core[K], args:Rail[String]) : PlaceAgent[K] {
 
         val tester = new VariableSelector.Tester[K]();
         var an:Long = 2;
@@ -196,7 +196,7 @@ public class RPX10[K] {
             ()=> {
                 val main = new RPX10[Long]();
                 val core = new CoreIArray(args(0), Int.parse(args(1)));
-                return main.setup(core, args);
+                return main.setup[Long](core, args);
             } );
 
         val masterP = here;

@@ -26,6 +26,8 @@ public interface IntervalVec[K] {
     public def volume() : Double;
 
     public def count() : Long;
+
+    public operator this+(b:IntervalVec[K]) : IntervalVec[K];
 }
 
 // vim: shiftwidth=4:tabstop=4:expandtab
