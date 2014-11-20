@@ -23,8 +23,11 @@ public class Queue[K] extends BAPSolver[K] implements TaskQueue[Queue[K], Long] 
         super(core, selector);
 
         list = new LinkedList[IntervalVec[K]]();
-		val box = core.getInitialDomain();
-        list.add(box);
+        if (here.id() == 0) {
+		    val box = core.getInitialDomain();
+Console.OUT.println(here + ": init:\n" + box + '\n');
+            list.add(box);
+        }
 
         solutions = new ArrayList[Pair[BAPSolver.Result, IntervalVec[K]]]();
     }
@@ -38,6 +41,7 @@ public class Queue[K] extends BAPSolver[K] implements TaskQueue[Queue[K], Long] 
 //var time:Long = -System.nanoTime();
 
             box = list.removeFirst();
+//Console.OUT.println(here + ": search:\n" + box + '\n');
 
             var res:Result = Result.unknown();
             res = core.contract(box); 
@@ -56,7 +60,7 @@ public class Queue[K] extends BAPSolver[K] implements TaskQueue[Queue[K], Long] 
 		            solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
             }        
         }
-Console.OUT.println(here + ": processed: " + count);
+//Console.OUT.println(here + ": processed: " + count);
         return i == n;
     }
 
@@ -73,6 +77,8 @@ Console.OUT.println(here + ": processed: " + count);
             if (it.hasNext())
                 bag.data(i) = it.next();
         }
+
+        list = list1;
 
         return bag;
     }
@@ -133,7 +139,7 @@ Console.OUT.println(here + ": processed: " + count);
         }
     }
     */
-    public class RPX10Result extends GLBResult[Long]{
+    public class RPX10Result extends GLBResult[Long] {
         r:Rail[Long] = new Rail[Long](1);
         public def getResult() : Rail[Long] {
             r(0) = count;
