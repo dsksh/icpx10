@@ -3,10 +3,10 @@ import x10.util.*;
 import x10.util.concurrent.Lock;
 import x10.util.concurrent.AtomicDouble;
 
-import x10.glb.Context;
-import x10.glb.GLBResult;
-import x10.glb.TaskQueue;
-import x10.glb.TaskBag;
+import glb.Context;
+import glb.GLBResult;
+import glb.TaskQueue;
+import glb.TaskBag;
 
 // kludge for "Interval is incomplete type" error
 class Dummy_Queue {
@@ -43,7 +43,7 @@ Console.OUT.println(here + ": init:\n" + box + '\n');
 //var time:Long = -System.nanoTime();
 
             box = list.removeFirst();
-Console.OUT.println(here + ": search:\n" + box + '\n');
+//Console.OUT.println(here + ": search:\n" + box + '\n');
 
             var res:Result = Result.unknown();
             res = core.contract(box); 

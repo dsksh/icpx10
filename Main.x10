@@ -5,9 +5,8 @@ import x10.util.Box;
 import x10.util.Random;
 import x10.util.ArrayList;
 
-import x10.glb.GLB;
-import x10.glb.GLBResult;
-import x10.glb.GLBParameters;
+import glb.GLB;
+import glb.GLBParameters;
 
 // kludge for "Interval is incomplete type" error
 class Dummy_Main {

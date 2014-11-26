@@ -6,7 +6,7 @@ class Dummy_Bag {
     val dummy : Interval = new Interval(0.,0.);
 }
 
-public final class Bag[K] implements x10.glb.TaskBag {
+public final class Bag[K] implements glb.TaskBag {
     public val data:Rail[IntervalVec[K]];
 
     public def this(size:Long) {
