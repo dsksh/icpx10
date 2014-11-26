@@ -5,10 +5,10 @@ import x10.io.*;
 import x10.regionarray.Dist;
 
 // kludge for "Interval is incomplete type" error
-//class Dummy_RPX10 {
-//    val dummy : Interval = new Interval(0.,0.);
-//    val dummyRes : BAPSolver.Result = BAPSolver.Result.unknown();
-//}
+class Dummy_RPX10 {
+    val dummy : Interval = new Interval(0.,0.);
+    val dummyRes : BAPSolver.Result = BAPSolver.Result.unknown();
+}
 
 public class RPX10[K] {
 
@@ -73,7 +73,7 @@ public class RPX10[K] {
         public def dummyBox() : IntervalVec[String] { return new IntervalMap(); }
     }
 
-    static def setup[K](core:BAPSolver.Core[K], args:Rail[String]) : PlaceAgent[K] {
+    /*static def setup[K](core:BAPSolver.Core[K], args:Rail[String]) : PlaceAgent[K] {
 
         val tester = new VariableSelector.Tester[K]();
         var an:Long = 2;
@@ -133,21 +133,21 @@ public class RPX10[K] {
             return new PlaceAgentSeqSI[K](solver);
         case 11n:
             return new PlaceAgentSeqSID[K](solver);
-        /*case 2n:
-            //return new PlaceAgentClockedRequest[K](solver);
-            return new PlaceAgentClockedSI[K](solver);*/
+        //case 2n:
+        //    //return new PlaceAgentClockedRequest[K](solver);
+        //    return new PlaceAgentClockedSI[K](solver);
         case 4n: {
             val pa = new PlaceAgentSeq[K](solver);
             val pp = new PreprocessorSeq[K](core, prec, pa);
             pa.setPreprocessor(pp);
             return pa;
         }
-        /*case 5n: {
-            val pa = new PlaceAgentClockedSI[K](solver);
-            val pp = new PreprocessorClocked[K](core, prec, pa);
-            pa.setPreprocessor(pp);
-            return pa;
-        }*/
+        //case 5n: {
+        //    val pa = new PlaceAgentClockedSI[K](solver);
+        //    val pp = new PreprocessorClocked[K](core, prec, pa);
+        //    pa.setPreprocessor(pp);
+        //    return pa;
+        //}
         case 6n: {
             val pa = new PlaceAgentSeqSI[K](solver);
             val pp = new PreprocessorSeq[K](core, prec, pa);
@@ -214,44 +214,44 @@ public class RPX10[K] {
         var time:Long = System.nanoTime() - time0;
 
         // print solutions
-        /*Console.OUT.println(); 
-        for (p in Place.places()) { 
-		at (p) {
-            val ss = sHandle().getSolutions();
-            val it = ss.iterator();
-            while (it.hasNext()) {
-                val pair = it.next();
-                val plot = pair.first.entails(BAPSolver.Result.inner()) ? 5 : 3;
-                val stringB = pair.second.toString(plot);
-at (Place(0)) {
-                Console.OUT.println(stringB);
-                Console.OUT.println(); 
-                Console.OUT.flush();
-}
-            }
-        }
-	        Console.OUT.flush();
-        }*/
+        //Console.OUT.println(); 
+        //for (p in Place.places()) { 
+        //at (p) {
+        //    val ss = sHandle().getSolutions();
+        //    val it = ss.iterator();
+        //    while (it.hasNext()) {
+        //        val pair = it.next();
+        //        val plot = pair.first.entails(BAPSolver.Result.inner()) ? 5 : 3;
+        //        val stringB = pair.second.toString(plot);
+        //at (Place(0)) {
+        //        Console.OUT.println(stringB);
+        //        Console.OUT.println(); 
+        //        Console.OUT.flush();
+        //}
+        //    }
+        //}
+	      //  Console.OUT.flush();
+        //}
 
         // print count
-        /*Console.OUT.println(); 
-        for (p in Place.places()) { 
-		at (p) {
-            val ss = sHandle().getSolutions();
-            var max:Int = 0;
-            var avg:Int = 0;
-            for (pair in ss) {
-                val c = pair.second.count();
-                if (c > max) max = c;
-                avg += c;
-            }
-            avg /= ss.size();
+        //Console.OUT.println(); 
+        //for (p in Place.places()) { 
+		  //at (p) {
+        //    val ss = sHandle().getSolutions();
+        //    var max:Int = 0;
+        //    var avg:Int = 0;
+        //    for (pair in ss) {
+        //        val c = pair.second.count();
+        //        if (c > max) max = c;
+        //        avg += c;
+        //    }
+        //    avg /= ss.size();
 
-            Console.OUT.println("{\"count max\" : " + max + ", \"count avg\" : " + avg + "}");
-            Console.OUT.println(); 
-        }
-	        Console.OUT.flush();
-        }*/
+        //    Console.OUT.println("{\"count max\" : " + max + ", \"count avg\" : " + avg + "}");
+        //    Console.OUT.println(); 
+        //}
+	      //  Console.OUT.flush();
+        //}
 
         // print load log
         Console.OUT.println(); 
@@ -415,7 +415,7 @@ at (Place(0)) {
 
         Console.OUT.flush();
         Console.OUT.println(sb);
-    }
+    */
 }
 
 // vim: shiftwidth=4:tabstop=4:expandtab

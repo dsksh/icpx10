@@ -1,5 +1,3 @@
-
-
 import x10.compiler.*;
 import x10.util.Option;
 import x10.util.OptionsParser;
@@ -11,7 +9,15 @@ import x10.glb.GLB;
 import x10.glb.GLBResult;
 import x10.glb.GLBParameters;
 
+// kludge for "Interval is incomplete type" error
+class Dummy_Main {
+    val dummy : Interval = new Interval(0.,0.);
+    val dummy_result : BAPSolver.Result = BAPSolver.Result.unknown();
+}
+
 public class Main[K] extends RPX10[K] {
+    val dummy : Interval = new Interval(0.,0.);
+    val dummy_result : BAPSolver.Result = BAPSolver.Result.unknown();
 
     public static def init[K](core:BAPSolver.Core[K], prec:Double) {
 Console.OUT.println(here.id() + ": init");
@@ -56,7 +62,7 @@ Console.OUT.println(here.id() + ": init");
         val prec = opts("-e", 0.1);
         val prob = opts("-p", 2n);
 
-        val P = Place.MAX_PLACES;
+        val P = Place.numPlaces();
 
         var z0:Int = 1n;
         var zz:Int = l;
@@ -81,7 +87,7 @@ Console.OUT.println(here.id() + ": init");
             val core = new CoreIArray("hoge", prob);
             return Main.init(core, prec); 
         };
-        val glb = new GLB[Queue[Long],Long](init, 
+        val glb = new GLB[Queue[Long], SolutionSet[Long]](init, 
             GLBParameters(n, w, l, z, m, verbose), true );
         glb.run(()=>{});
     }

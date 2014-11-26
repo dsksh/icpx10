@@ -44,7 +44,7 @@ implements IntervalVec[String] {
         //if (vit != null) b1.vit = vit.clone(b1);
         val b2 = new IntervalMap(this); 
         //if (vit != null) b2.vit = vit.clone(b2);
-        val ip = get(variable).value.split();
+        val ip = get(variable)().split();
         b1.put(variable, ip.first);
         b2.put(variable, ip.second);
         return new Pair[IntervalVec[String],IntervalVec[String]](b1,b2);

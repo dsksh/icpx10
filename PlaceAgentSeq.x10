@@ -253,33 +253,33 @@ debugPrint(here + ": terminate: " + terminate);
 
             // begin termination detection
             if (here.id() == 0 && term == TokInvoke) {
-                at (here.next()) {
+                at (here.places().next(here)) {
                     sHandle().setTerminate(TokIdle);
                     // put a dummy box
                     //(sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
                     atomic sHandle().active = true;
                 }
-debugPrint(here + ": sent token Idle to " + here.next());
+debugPrint(here + ": sent token Idle to " + here.places().next(here));
             }
             // termination token went round.
             else if (here.id() == 0 && term == TokDead) {
-                at (here.next()) {
+                at (here.places().next(here)) {
                     sHandle().setTerminate(TokDead);
                     //(sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
                     atomic sHandle().active = true;
                 }
-debugPrint(here + ": sent token Dead to " + here.next());
+debugPrint(here + ": sent token Dead to " + here.places().next(here));
             }
             else if (here.id() > 0) {
 				val sb = sentBw.getAndSet(false);
                 val t = (termBak == TokIdle && sb) ? TokCancel : termBak;
-debugPrint(here + ": sending token " + t + " to " + here.next());
-                at (here.next()) {
+debugPrint(here + ": sending token " + t + " to " + here.places().next(here));
+                at (here.places().next(here)) {
                     sHandle().setTerminate(t);
                     //(sHandle() as PlaceAgentSeq[K]).addDomShared(sHandle().solver.core.dummyBox());
                     atomic sHandle().active = true;
                 }
-debugPrint(here + ": sent token " + t + " to " + here.next());
+debugPrint(here + ": sent token " + t + " to " + here.places().next(here));
             }
         }
     }

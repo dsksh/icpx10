@@ -14,10 +14,11 @@ class Dummy_Queue {
     val dummyVec : IntervalVec[Long] = new IntervalArray(0);
 }
 
-public class Queue[K] extends BAPSolver[K] implements TaskQueue[Queue[K], Long] {
+public class Queue[K] extends BAPSolver[K] implements TaskQueue[Queue[K], SolutionSet[K]] {
     var list:List[IntervalVec[K]] = null;
     var count:Long = 0;
-    val solutions:List[Pair[BAPSolver.Result,IntervalVec[K]]];
+    //val solutions:ArrayList[Pair[BAPSolver.Result,IntervalVec[K]]];
+    val solutions:ArrayList[IntervalVec[K]];
 
     public def this(core:Core[K], selector:(Result, IntervalVec[K])=>Box[K]) {
         super(core, selector);
@@ -29,10 +30,11 @@ Console.OUT.println(here + ": init:\n" + box + '\n');
             list.add(box);
         }
 
-        solutions = new ArrayList[Pair[BAPSolver.Result, IntervalVec[K]]]();
+        //solutions = new ArrayList[Pair[BAPSolver.Result, IntervalVec[K]]]();
+        solutions = new ArrayList[IntervalVec[K]]();
     }
 
-    public def process(n:Long, context:Context[Queue[K], Long]) {
+    public def process(n:Long, context:Context[Queue[K], SolutionSet[K]]) {
         var box:IntervalVec[K] = null;
 
         var i:Long = 0;
@@ -41,7 +43,7 @@ Console.OUT.println(here + ": init:\n" + box + '\n');
 //var time:Long = -System.nanoTime();
 
             box = list.removeFirst();
-//Console.OUT.println(here + ": search:\n" + box + '\n');
+Console.OUT.println(here + ": search:\n" + box + '\n');
 
             var res:Result = Result.unknown();
             res = core.contract(box); 
@@ -57,7 +59,8 @@ Console.OUT.println(here + ": init:\n" + box + '\n');
                     list.add(bp.second);
                 }
                 else 
-		            solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
+		            //solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
+		            solutions.add(box);
             }        
         }
 //Console.OUT.println(here + ": processed: " + count);
@@ -104,42 +107,20 @@ Console.OUT.println(here + ": init:\n" + box + '\n');
         return new RPX10Result();
     }
 
-    /*public class RPX10Result extends GLBResult[IntervalVec[K]]{
-        r:Rail[IntervalVec[K]];
-        public def this(sols:List[Pair[Result,IntervalVec[K]]]) {
-            //r = new Rail[IntervalVec[K]](sols.size);
-            r = new Rail[IntervalVec[K]](1);
-            //var i = 0;
-            //for (b in r) {
-            //    res(i++) = b.second;
-            //}
-            r(0) = sols(0).second;
-        }
-        public def getResult() : Rail[IntervalVec[K]] {
-            return (solutions as ArrayList[IntervalVec[K]]).toRail();
+    public class RPX10Result extends GLBResult[SolutionSet[K]]{
+        r:Rail[SolutionSet[K]] = new Rail[SolutionSet[K]](1);
+        public def getResult() : Rail[SolutionSet[K]] {
+            r(0) = SolutionSet[K](solutions.toRail());
+            return r;
         }
         public def getReduceOperator() : Int {
             return Team.AND;
         }
-        public def display(r:Rail[IntervalVec[K]]) : void {
-            Console.OUT.println("# results: " + r.size);
-        }
-
-        public operator this+(r1:RPX10Result) : RPX10Result {
-            //val res = new Rail[IntervalVec[K]](r.size + r1.size);
-            //var i = 0;
-            //for (b in r) {
-            //    res(i++) = b;
-            //}
-            //for (b in r1) {
-            //    res(i++) = b;
-            //}
-            //return res;
-            return new RPX10Result(solutions);
+        public def display(r:Rail[SolutionSet[K]]) : void {
+            Console.OUT.println("# results: " + r(0).data.size);
         }
     }
-    */
-    public class RPX10Result extends GLBResult[Long] {
+    /*public class RPX10Result extends GLBResult[Long] {
         r:Rail[Long] = new Rail[Long](1);
         public def getResult() : Rail[Long] {
             r(0) = count;
@@ -152,7 +133,7 @@ Console.OUT.println(here + ": init:\n" + box + '\n');
             Console.OUT.println("# results: " + r(0) +", "+ r.size);
         }
     }
-
+    */
 }
 
 // vim: shiftwidth=4:tabstop=4:expandtab

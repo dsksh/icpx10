@@ -50,7 +50,7 @@ public class BAPSolver[K] {
         dummyI = new Interval(0.,0.);
     }
 
-    protected def contract(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) : Result {
+    /*protected def contract(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) : Result {
         var res:Result = Result.unknown();
 var time:Long = -System.nanoTime();
         //atomic { 
@@ -63,12 +63,13 @@ sHandle().nContracts++;
         //}
         return res;
     }
+    */
     
     protected val selectVariable : (res:Result, box:IntervalVec[K]) => Box[K];
 
 var sid0:Long = 0;
 
-    protected def search(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) {
+    /*protected def search(sHandle:PlaceLocalHandle[PlaceAgent[K]], box:IntervalVec[K]) {
 val sid:Long = sid0++;
 //atomic sHandle().debugPrint(here + "," + sid + ": search:\n" + box + '\n');
 //try {
@@ -131,6 +132,7 @@ sHandle().totalVolume.addAndGet(-vol0);
 //    exp.printStackTrace(Console.ERR);
 //}
     }
+    */
 }
 
 // vim: shiftwidth=4:tabstop=4:expandtab

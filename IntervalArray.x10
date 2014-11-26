@@ -39,7 +39,7 @@ public class IntervalArray implements IntervalVec[Long] {
     }
     public def getOrThrow(k:Long) : Interval //throws NoSuchElementException
     {
-        return this.theArray(k);
+        return theArray(k);
     }
 
     public def put(k:Long, value:Interval) : Box[Interval] {
@@ -62,7 +62,7 @@ public class IntervalArray implements IntervalVec[Long] {
 atomic {
         val b1 = new IntervalArray(this); 
         val b2 = new IntervalArray(this); 
-        val ip = get(variable).value.split();
+        val ip = get(variable)().split();
         b1.put(variable, ip.first);
         b2.put(variable, ip.second);
         return new Pair[IntervalVec[Long],IntervalVec[Long]](b1,b2);

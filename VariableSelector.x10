@@ -4,7 +4,7 @@ import x10.util.concurrent.AtomicInteger;
 public class VariableSelector[K] {
     public static class Tester[K] {
         public def testPrec(prec:Double, res:BAPSolver.Result, box:IntervalVec[K], v:K) : Boolean {
-            return box(v).value.width() > prec;
+            return box(v)().width() > prec;
         }
         public def testRegularity(test:(BAPSolver.Result,IntervalVec[K],K)=>Boolean, 
                                   checkScope:(K)=>Boolean,
@@ -39,7 +39,7 @@ public class VariableSelector[K] {
                 else return false;
         }
         public var maxLSize:Int;
-        public def testLSize(test:(BAPSolver.Result,IntervalVec[K],K)=>Boolean,
+        /*public def testLSize(test:(BAPSolver.Result,IntervalVec[K],K)=>Boolean,
                              listSolver:BAPListSolver[K], 
                              res:BAPSolver.Result, box:IntervalVec[K], v:K) : Boolean {
             if (listSolver.domSize()+1 >= maxLSize) {
@@ -50,11 +50,12 @@ public class VariableSelector[K] {
             else 
                 return test(res, box, v);
         }
+        */
     }
 
     public def this(precision:Double) {
         this.test = (res:BAPSolver.Result, box:IntervalVec[K], v:K) =>
-            box(v).value.width() > precision;
+            box(v)().width() > precision;
     }
     public def this(test:(BAPSolver.Result,IntervalVec[K],K)=>Boolean) { 
         this.test = test;
@@ -183,7 +184,7 @@ atomic {
         val it = box.varIterator();
         while (it.hasNext()) {
             val v = it.next();
-            val c = box(v).value;
+            val c = box(v)();
             if (c.width() > maxW && test(res, box, v)) {
                 variable = new Box[K](v); 
                 maxW = c.width();
