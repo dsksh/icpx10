@@ -14,7 +14,7 @@ class Dummy_Main {
     val dummy_result : BAPSolver.Result = BAPSolver.Result.unknown();
 }
 
-public class Main[K] extends RPX10[K] {
+public class GlbMain[K] extends RPX10[K] {
     val dummy : Interval = new Interval(0.,0.);
     val dummy_result : BAPSolver.Result = BAPSolver.Result.unknown();
 
@@ -38,9 +38,6 @@ Console.OUT.println(here.id() + ": init");
 
     public static def main(args:Rail[String]) {
 	    val opts = new OptionsParser(args, new Rail[Option](), [
-            Option("b", "", "Branching factor"),
-            Option("r", "", "Seed (0 <= r < 2^31"),
-            Option("d", "", "Tree depth"),
             Option("n", "", "Number of nodes to process before probing. Default 200."),
             Option("w", "", "Number of thieves to send out. Default 1."),
             Option("l", "", "Base of the lifeline"),
@@ -50,9 +47,6 @@ Console.OUT.println(here.id() + ": init");
             Option("e", "", "Precision (epsilon)."),
             Option("p", "", "Problem ID.")]);
 
-        val b = opts("-b", 2n);
-        val r = opts("-r", 19n);
-        val d = opts("-d", 13n);
         val n = opts("-n", 511n);
         val l = opts("-l", 32n);
         val m = opts("-m", 1024n);
@@ -74,17 +68,14 @@ Console.OUT.println(here.id() + ": init");
         val w = opts("-w", z);
 
         Console.OUT.println("places=" + P +
-                "   b=" + b +
-                        "   r=" + r +
-                                "   d=" + d +
-                                        "   w=" + w +
-                                                "   n=" + n +
-                                                        "   l=" + l + 
-                                                                "   m=" + m + 
-                                                                        "   z=" + z);
+                            "   w=" + w +
+                                    "   n=" + n +
+                                            "   l=" + l + 
+                                                    "   m=" + m + 
+                                                            "   z=" + z);
         val init = ()=>{ 
             val core = new CoreIArray("hoge", prob);
-            return Main.init(core, prec); 
+            return GlbMain.init(core, prec); 
         };
         val glb = new GLB[Queue[Long], SolutionSet[Long]](init, 
             GLBParameters(n, w, l, z, m, verbose), true );

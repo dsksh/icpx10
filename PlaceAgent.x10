@@ -266,7 +266,7 @@ sHandle().tSearch += time;
                 while (!active && reqQueue.getSize() > 0) {
                     val id:Long = reqQueue.removeFirstUnsafe();
 //async
-                    at (here.places().next(here)) {
+                    at (here.next()) {
                         sHandle().sentRequest.set(false);
                         atomic sHandle().list.add(sHandle().solver.core.dummyBox());
                     }
@@ -291,29 +291,29 @@ finally {
                 // begin termination detection
                 if (here.id() == 0 && (term == TokActive || term == TokCancel)) {
 //async
-                    at (here.places().next(here)) {
+                    at (here.next()) {
                         sHandle().setTerminate(TokIdle);
                         // put a dummy box
                         atomic sHandle().list.add(sHandle().solver.core.dummyBox());
                     }
-//Console.OUT.println(here + ": sent token Idle to " + here.places().next(here));
+//Console.OUT.println(here + ": sent token Idle to " + here..next());
                 }
                 // termination token went round.
                 else if (here.id() == 0 && term == TokIdle) {
-                    at (here.places().next(here)) {
+                    at (here.next()) {
                         sHandle().setTerminate(TokDead);
                         atomic sHandle().list.add(sHandle().solver.core.dummyBox());
                     }
-//Console.OUT.println(here + ": sent token Dead to " + here.places().next(here));
+//Console.OUT.println(here + ": sent token Dead to " + here.next());
                     break;
                 }
                 else if (here.id() > 0 && term != TokActive) {
                     val v = (term == TokIdle && sentBw.getAndSet(false)) ? TokCancel : term;
-                    at (here.places().next(here)) {
+                    at (here.next()) {
                         sHandle().setTerminate(v);
                         atomic sHandle().list.add(sHandle().solver.core.dummyBox());
                     }
-//Console.OUT.println(here + ": sent token " + v + " to " + here.places().next(here));
+//Console.OUT.println(here + ": sent token " + v + " to " + here.next());
                     if (term == TokDead) {
                         break;
                     }

@@ -127,6 +127,7 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
      * @param st the place local handle of Worker
      */
     final def processStack(st:PlaceLocalHandle[Worker[Queue, R]]){Queue<:TaskQueue[Queue, R]} {
+        //Console.OUT.println(here.id()+": Worker.processStack");
         do {
             while (queue.process(n, context)) {
                 Runtime.probe();
@@ -279,6 +280,7 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
      * @param source victim id
      */
     def deal(st:PlaceLocalHandle[Worker[Queue, R]], loot:TaskBag, source:Long) {
+        //Console.OUT.println(here.id()+": Worker.deal");
         try {
             val lifeline = source >= 0;
             if (lifeline) lifelinesActivated(source) = false;
@@ -309,6 +311,7 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
      * the workload can only be self-generated.
      */
     def main(st:PlaceLocalHandle[Worker[Queue, R]], start:()=>void) {
+        //Console.OUT.println(here.id()+": Worker.main");
         @Pragma(Pragma.FINISH_DENSE) finish {
             try {
                 empty = false;

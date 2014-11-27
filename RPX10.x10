@@ -73,7 +73,8 @@ public class RPX10[K] {
         public def dummyBox() : IntervalVec[String] { return new IntervalMap(); }
     }
 
-    /*static def setup[K](core:BAPSolver.Core[K], args:Rail[String]) : PlaceAgent[K] {
+
+    static def setup[K](core:BAPSolver.Core[K], args:Rail[String]) : PlaceAgent[K] {
 
         val tester = new VariableSelector.Tester[K]();
         var an:Long = 2;
@@ -415,7 +416,7 @@ public class RPX10[K] {
 
         Console.OUT.flush();
         Console.OUT.println(sb);
-    */
+    }
 }
 
 // vim: shiftwidth=4:tabstop=4:expandtab
