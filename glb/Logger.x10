@@ -76,10 +76,18 @@ public final class Logger {
      * Print out the actual workload re-distribution by showing the steals that were carried out.
      */
     public def stats() {
-        Console.OUT.println(nodesGiven + " Task items stolen = " + nodesReceived + " (direct) + " +
+        /*Console.OUT.println(nodesGiven + " Task items stolen = " + nodesReceived + " (direct) + " +
             lifelineNodesReceived + " (lifeline)."); 
         Console.OUT.println(stealsPerpetrated + " successful direct steals."); 
         Console.OUT.println(lifelineStealsPerpetrated + " successful lifeline steals.");
+        */
+        Console.OUT.println("{\"stats\" : {");
+        Console.OUT.println("\"# items stolen\":" + nodesGiven + ",");
+        Console.OUT.println("\"# items stolen (direct)\":" + nodesReceived + ",");
+        Console.OUT.println("\"# items stolen (ll)\":" + lifelineNodesReceived + ","); 
+        Console.OUT.println("\"# successful steals (direct)\":" + stealsPerpetrated + ","); 
+        Console.OUT.println("\"# successful steals (ll)\":" + lifelineStealsPerpetrated + "}}");
+        Console.OUT.println();
     }
 
     /**
@@ -110,7 +118,7 @@ public final class Logger {
      */
     public def get(verbose:Boolean) {
         if (verbose) {
-            Console.OUT.println("" + Runtime.hereLong() + " -> " +
+            /*Console.OUT.println("" + Runtime.hereLong() + " -> " +
                 sub("" + (timeAlive/1E9), 0n, 6n) + " : " +
                 sub("" + (timeDead/1E9), 0n, 6n) + " : " + 
                 sub("" + ((timeAlive + timeDead)/1E9), 0n, 6n) + " : " + 
@@ -129,6 +137,27 @@ public final class Logger {
                 (stealsAttempted - stealsPerpetrated) + " :: " +
                 lifelineStealsAttempted + " : " +
                 (lifelineStealsAttempted - lifelineStealsPerpetrated));
+            */
+            Console.OUT.println("{\"pid\":" + Runtime.hereLong() + ", " +
+                "\"t alive\":"     + sub("" + (timeAlive/1E9), 0n, 6n) + ", " +
+                "\"t dead\":"      + sub("" + (timeDead/1E9), 0n, 6n) + ", " + 
+                "\"t total\":"     + sub("" + ((timeAlive + timeDead)/1E9), 0n, 6n) + ", " + 
+                "\"ta ratio (%)\":" + sub("" + (100.0*timeAlive/(timeAlive+timeDead)), 0n, 6n) + ", " +
+                "\"t rel\":"       + sub("" + ((startTime-timeReference)/1E9), 0n, 6n) + ", " +
+                "\"t lssl\":"      + sub("" + ((lastStartStopLiveTimeStamp-timeReference)/1E9), 0n, 6n)  + ", " +
+                "\"nodes count\":" + nodesCount + ", " +
+                "\"nodes given\":" + nodesGiven + ", " +
+                "\"nodes recv\":"  + nodesReceived + ", " +
+                "\"ll nodes recv\":" + lifelineNodesReceived + ", " +
+                "\"steals recv\":" + stealsReceived + ", " +
+                "\"ll steals recv\":" + lifelineStealsReceived + ", " +
+                "\"steals suff\":" + stealsSuffered + " : " +
+                "\"ll steals suff\":" + lifelineStealsSuffered + ", " +
+                "\"steals att\":" + stealsAttempted + ", " +
+                //"\"ll steals att\":" + (stealsAttempted - stealsPerpetrated) + ", " +
+                "\"ll steals att\":" + lifelineStealsAttempted + //", " +
+                //"\"\":" + (lifelineStealsAttempted - lifelineStealsPerpetrated)
+              "}");
         }
         return this;
     }

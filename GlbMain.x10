@@ -9,7 +9,7 @@ import glb.GLB;
 import glb.GLBParameters;
 
 // kludge for "Interval is incomplete type" error
-class Dummy_Main {
+class Dummy_GlbMain {
     val dummy : Interval = new Interval(0.,0.);
     val dummy_result : BAPSolver.Result = BAPSolver.Result.unknown();
 }
@@ -19,7 +19,7 @@ public class GlbMain[K] extends RPX10[K] {
     val dummy_result : BAPSolver.Result = BAPSolver.Result.unknown();
 
     public static def init[K](core:BAPSolver.Core[K], prec:Double) {
-Console.OUT.println(here.id() + ": init");
+//Console.OUT.println(here.id() + ": init");
 
         val tester = new VariableSelector.Tester[K]();
         val test = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => 
@@ -67,18 +67,19 @@ Console.OUT.println(here.id() + ": init");
 
         val w = opts("-w", z);
 
-        Console.OUT.println("places=" + P +
-                            "   w=" + w +
-                                    "   n=" + n +
-                                            "   l=" + l + 
-                                                    "   m=" + m + 
-                                                            "   z=" + z);
+        Console.OUT.println("{\"places\":" + P +
+            ", \"w\":" + w + ", \"n\":" + n + ", \"l\":" + l + ", \"m\":" + m + ", \"z\":" + z + "}");
+        Console.OUT.println();
         val init = ()=>{ 
             val core = new CoreIArray("hoge", prob);
             return GlbMain.init(core, prec); 
         };
-        val glb = new GLB[Queue[Long], SolutionSet[Long]](init, 
-            GLBParameters(n, w, l, z, m, verbose), true );
+        val glb = 
+          new GLB[Queue[Long], Long](
+          //new GLB[Queue[Long], SolutionSet[Long]](
+            init, GLBParameters(n, w, l, z, m, verbose), true );
         glb.run(()=>{});
     }
 }
+
+// vim: shiftwidth=4:tabstop=4:expandtab

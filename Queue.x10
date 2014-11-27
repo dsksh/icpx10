@@ -14,9 +14,13 @@ class Dummy_Queue {
     val dummyVec : IntervalVec[Long] = new IntervalArray(0);
 }
 
-public class Queue[K] extends BAPSolver[K] implements TaskQueue[Queue[K], SolutionSet[K]] {
+public class Queue[K] extends BAPSolver[K] 
+  implements TaskQueue[Queue[K], Long] {
+  //implements TaskQueue[Queue[K], SolutionSet[K]] {
+
     var list:List[IntervalVec[K]] = null;
-    var count:Long = 0;
+    var cntPrune:Long = 0;
+    var cntBranch:Long = 0;
     //val solutions:ArrayList[Pair[BAPSolver.Result,IntervalVec[K]]];
     val solutions:ArrayList[IntervalVec[K]];
 
@@ -26,7 +30,6 @@ public class Queue[K] extends BAPSolver[K] implements TaskQueue[Queue[K], Soluti
         list = new LinkedList[IntervalVec[K]]();
         if (here.id() == 0) {
 		    val box = core.getInitialDomain();
-Console.OUT.println(here + ": init:\n" + box + '\n');
             list.add(box);
         }
 
@@ -34,7 +37,10 @@ Console.OUT.println(here + ": init:\n" + box + '\n');
         solutions = new ArrayList[IntervalVec[K]]();
     }
 
-    public def process(n:Long, context:Context[Queue[K], SolutionSet[K]]) {
+    public def process(n:Long, context:
+      Context[Queue[K], Long]) 
+      //Context[Queue[K], SolutionSet[K]]) 
+    {
         var box:IntervalVec[K] = null;
 
         var i:Long = 0;
@@ -48,13 +54,14 @@ Console.OUT.println(here + ": init:\n" + box + '\n');
             var res:Result = Result.unknown();
             res = core.contract(box); 
             //res:Result = contract(sHandle, box);
-            ++count;
+            ++cntPrune;
  
             if (!res.hasNoSolution()) {
                 val v = selectVariable(res, box);
                 if (v != null) {
 //Console.OUT.println(here + ": split: " + v);
                     val bp = box.split(v());
+                    ++cntBranch;
                     list.add(bp.first);
                     list.add(bp.second);
                 }
@@ -63,7 +70,7 @@ Console.OUT.println(here + ": init:\n" + box + '\n');
 		            solutions.add(box);
             }        
         }
-//Console.OUT.println(here + ": processed: " + count);
+//Console.OUT.println(here + ": processed: " + cntPrune);
         return i == n;
     }
 
@@ -97,9 +104,12 @@ Console.OUT.println(here + ": init:\n" + box + '\n');
 
     // override
     public def printLog(){
+        Console.OUT.println("{\"# prunes\":" + cntPrune + 
+            ", \"# branches\":" + cntBranch + 
+            ", \"# solutions\":" + solutions.size() + "}");
     }
 
-    @Inline public def count() = count;
+    @Inline public def count() = cntPrune;
 
 
     var result:RPX10Result = null;
@@ -107,7 +117,7 @@ Console.OUT.println(here + ": init:\n" + box + '\n');
         return new RPX10Result();
     }
 
-    public class RPX10Result extends GLBResult[SolutionSet[K]]{
+    /*public class RPX10Result extends GLBResult[SolutionSet[K]]{
         r:Rail[SolutionSet[K]] = new Rail[SolutionSet[K]](1);
         public def getResult() : Rail[SolutionSet[K]] {
             r(0) = SolutionSet[K](solutions.toRail());
@@ -120,20 +130,21 @@ Console.OUT.println(here + ": init:\n" + box + '\n');
             Console.OUT.println("# results: " + r(0).data.size);
         }
     }
-    /*public class RPX10Result extends GLBResult[Long] {
+    */
+    public class RPX10Result extends GLBResult[Long] {
         r:Rail[Long] = new Rail[Long](1);
         public def getResult() : Rail[Long] {
-            r(0) = count;
+            r(0) = solutions.size();
             return r;
         }
         public def getReduceOperator() : Int {
             return Team.ADD;
         }
         public def display(r:Rail[Long]) : void {
-            Console.OUT.println("# results: " + r(0) +", "+ r.size);
+            Console.OUT.println("{\"# sols\" : " + r(0) + "}");
+            Console.OUT.println();
         }
     }
-    */
 }
 
 // vim: shiftwidth=4:tabstop=4:expandtab

@@ -104,10 +104,11 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
 			rootGlbR.display(r);
 		}
 		if((glbParams.v & GLBParameters.SHOW_TIMING_FLAG) != 0n ){ // print overall timing information
-			Console.OUT.println("Setup time(s):" + ((setupTime) / 1E9));
-			Console.OUT.println("Process time(s):" + ((crunchNumberTime) / 1E9));
-			Console.OUT.println("Result reduce time(s):" + (collectResultTime / 1E9));
-			
+            Console.OUT.print("{\"time (s)\" : {");
+			Console.OUT.print("\"setup\":" + ((setupTime) / 1E9));
+			Console.OUT.print(", \"process\":" + ((crunchNumberTime) / 1E9));
+			Console.OUT.println(", \"result reduction\":" + (collectResultTime / 1E9) + "}}");
+			Console.OUT.println();
 		}
 		
 		
@@ -137,8 +138,13 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
 				return log;
 			});
 		} else {
+            Console.OUT.println("{\"generic log\" : [");
+
 			//logs = new Rail[Logger](P, (i:Long)=>at (Place(i)) st().logger.get((this.glbParams.v & GLBParameters.SHOW_GLB_FLAG)!=0n));
-			logs = new Rail[Logger](P, (i:Long)=>at (Place(i)) st().logger.get(true));
+            logs = new Rail[Logger](P, (i:Long)=>at (Place(i)) { if (i>0) Console.OUT.print(", "); st().logger.get(true) });
+
+            Console.OUT.println("] }");
+            Console.OUT.println();
 		}
 		val log = new Logger(false);
 		log.collect(logs);
@@ -203,11 +209,16 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
 	 * @param st PLH for {@link Worker}
 	 */
 	private def printLog(st:PlaceLocalHandle[Worker[Queue, R]]):void{
+        Console.OUT.println("{\"user log\" : [");
 		val P = Place.MAX_PLACES;
 		for(var i:Long =0; i < P; ++i){
+            val b = i>0;
 			at(Place(i)){
+                if (b) Console.OUT.print(", ");
 				st().queue.printLog();
 			}
 		}
+        Console.OUT.println("] }");
+        Console.OUT.println();
 	}
 }
