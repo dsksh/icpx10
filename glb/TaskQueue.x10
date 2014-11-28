@@ -15,6 +15,7 @@ public interface TaskQueue[Queue, R]{ // {Queue<:TaskQueue[Queue, R]}
 	//public abstract def process(n:Long, context:ContextI):Boolean;
 	
 	public abstract def process(n:Long, context:Context[Queue, R]){Queue<:TaskQueue[Queue, R ]}:Boolean;
+	public abstract def process(interval:Double, context:Context[Queue, R], logger:Logger){Queue<:TaskQueue[Queue, R ]}:Boolean;
 	
 	/**
 	 * Split the current TaskBag

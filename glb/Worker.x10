@@ -35,6 +35,8 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
      * requests. The smaller n is, the more responsive to the work-stealing requests; on the other hand, less focused
      * on computation */
     val n:Int;
+
+    val interval:Double;
     
     /** Number of random victims to probe before sending requests to lifeline buddy*/
     val w:Int;
@@ -74,8 +76,9 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
      * @param z base of lifeline graph
      * @param tree true if the workload is dynamically generated, false if the workload can be statically generated
      */
-    public def this(init:()=>Queue, n:Int, w:Int, l:Int, z:Int, m:Int, tree:Boolean) {
+    public def this(init:()=>Queue, n:Int, interval:Double, logInterval:Double, w:Int, l:Int, z:Int, m:Int, tree:Boolean) {
         this.n = n;
+        this.interval = interval;
         this.w = w;
         this.m = m;
         this.lifelines = new Rail[Long](z, -1);
@@ -115,9 +118,9 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
             if (h > 0) lifelinesActivated((h-1)/3) = true;
         }
         
-        logger = new Logger(true);
+        logger = new Logger(true, logInterval);
     }
-    
+
     /**
      * Main process function of Worker. It does 4 things:
      * (1) execute at most n tasks 
@@ -129,7 +132,8 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
     final def processStack(st:PlaceLocalHandle[Worker[Queue, R]]){Queue<:TaskQueue[Queue, R]} {
         //Console.OUT.println(here.id()+": Worker.processStack");
         do {
-            while (queue.process(n, context)) {
+            //while (queue.process(n, context)) {
+            while (queue.process(interval, context, logger)) {
                 Runtime.probe();
                 distribute(st);
                 reject(st);

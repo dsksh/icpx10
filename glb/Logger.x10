@@ -1,4 +1,8 @@
 package glb;
+
+import x10.util.ArrayList;
+import x10.util.StringBuilder;
+
 /**
  * <p>Class that collects lifeline statistics of GLB
  * </p>
@@ -9,6 +13,8 @@ public final class Logger {
     public var nodesCount:Long = 0;
     public var nodesGiven:Long = 0;
     public var lifelineNodesReceived:Long = 0;
+
+    public val listNodesGiven = new ArrayList[Long]();
     
     /* (random)stealing requests stat*/
     public var stealsAttempted:Long = 0;
@@ -30,6 +36,8 @@ public final class Logger {
     public var timeDead:Long = 0;
     public var startTime:Long = 0;
     public val timeReference:Long;
+
+    public val tInterval:Double = 0.1;
     
     
     
@@ -42,6 +50,11 @@ public final class Logger {
         timeReference = System.nanoTime();
     }
     
+    public def this(b:Boolean, interval:Double) {
+        this(b);
+        this.tInterval = interval;
+    }
+
 
     /**
      * Timer is started before processing, which includes calculation, distribution and requesting/rejects tasks
@@ -81,13 +94,12 @@ public final class Logger {
         Console.OUT.println(stealsPerpetrated + " successful direct steals."); 
         Console.OUT.println(lifelineStealsPerpetrated + " successful lifeline steals.");
         */
-        Console.OUT.println("{\"stats\" : {");
+        Console.OUT.println("\"stats\" : {");
         Console.OUT.println("\"# items stolen\":" + nodesGiven + ",");
         Console.OUT.println("\"# items stolen (direct)\":" + nodesReceived + ",");
         Console.OUT.println("\"# items stolen (ll)\":" + lifelineNodesReceived + ","); 
         Console.OUT.println("\"# successful steals (direct)\":" + stealsPerpetrated + ","); 
-        Console.OUT.println("\"# successful steals (ll)\":" + lifelineStealsPerpetrated + "}}");
-        Console.OUT.println();
+        Console.OUT.println("\"# successful steals (ll)\":" + lifelineStealsPerpetrated + "}");
     }
 
     /**
@@ -138,25 +150,36 @@ public final class Logger {
                 lifelineStealsAttempted + " : " +
                 (lifelineStealsAttempted - lifelineStealsPerpetrated));
             */
+
+            val sbLNG = new StringBuilder();
+            sbLNG.add("[");
+            var f:Boolean = true;
+            for (d in listNodesGiven) {
+                if (f) f = false; else sbLNG.add(",");
+                sbLNG.add(d);
+            }
+            sbLNG.add("]");
+
             Console.OUT.println("{\"pid\":" + Runtime.hereLong() + ", " +
-                "\"t alive\":"     + sub("" + (timeAlive/1E9), 0n, 6n) + ", " +
-                "\"t dead\":"      + sub("" + (timeDead/1E9), 0n, 6n) + ", " + 
-                "\"t total\":"     + sub("" + ((timeAlive + timeDead)/1E9), 0n, 6n) + ", " + 
+                "\"t alive\":"      + sub("" + (timeAlive/1E9), 0n, 6n) + ", " +
+                "\"t dead\":"       + sub("" + (timeDead/1E9), 0n, 6n) + ", " + 
+                "\"t total\":"      + sub("" + ((timeAlive + timeDead)/1E9), 0n, 6n) + ", " + 
                 "\"ta ratio (%)\":" + sub("" + (100.0*timeAlive/(timeAlive+timeDead)), 0n, 6n) + ", " +
-                "\"t rel\":"       + sub("" + ((startTime-timeReference)/1E9), 0n, 6n) + ", " +
-                "\"t lssl\":"      + sub("" + ((lastStartStopLiveTimeStamp-timeReference)/1E9), 0n, 6n)  + ", " +
-                "\"nodes count\":" + nodesCount + ", " +
-                "\"nodes given\":" + nodesGiven + ", " +
-                "\"nodes recv\":"  + nodesReceived + ", " +
+                "\"t rel\":"        + sub("" + ((startTime-timeReference)/1E9), 0n, 6n) + ", " +
+                "\"t lssl\":"       + sub("" + ((lastStartStopLiveTimeStamp-timeReference)/1E9), 0n, 6n)  + ", " +
+                "\"nodes count\":"  + nodesCount + ", " +
+                "\"nodes given\":"  + nodesGiven + ", " +
+                "\"nodes recv\":"   + nodesReceived + ", " +
                 "\"ll nodes recv\":" + lifelineNodesReceived + ", " +
-                "\"steals recv\":" + stealsReceived + ", " +
+                "\"steals recv\":"  + stealsReceived + ", " +
                 "\"ll steals recv\":" + lifelineStealsReceived + ", " +
-                "\"steals suff\":" + stealsSuffered + " : " +
+                "\"steals suff\":"  + stealsSuffered + ", " +
                 "\"ll steals suff\":" + lifelineStealsSuffered + ", " +
                 "\"steals att\":" + stealsAttempted + ", " +
                 //"\"ll steals att\":" + (stealsAttempted - stealsPerpetrated) + ", " +
-                "\"ll steals att\":" + lifelineStealsAttempted + //", " +
+                "\"ll steals att\":" + lifelineStealsAttempted + ", " +
                 //"\"\":" + (lifelineStealsAttempted - lifelineStealsPerpetrated)
+                "\"list nodes given\":" + sbLNG +
               "}");
         }
         return this;

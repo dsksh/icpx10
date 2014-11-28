@@ -38,7 +38,9 @@ public class GlbMain[K] extends RPX10[K] {
 
     public static def main(args:Rail[String]) {
 	    val opts = new OptionsParser(args, new Rail[Option](), [
-            Option("n", "", "Number of nodes to process before probing. Default 200."),
+            Option("n", "", "Number of nodes to process before probing. Default 100."),
+            Option("i", "", "Time interval before probing."),
+            Option("li", "", "Time interval before logging."),
             Option("w", "", "Number of thieves to send out. Default 1."),
             Option("l", "", "Base of the lifeline"),
             Option("m", "", "Max potential victims"),
@@ -47,7 +49,9 @@ public class GlbMain[K] extends RPX10[K] {
             Option("e", "", "Precision (epsilon)."),
             Option("p", "", "Problem ID.")]);
 
-        val n = opts("-n", 511n);
+        val n = opts("-n", 100n);
+        val i = opts("-i", 0.1);
+        val li = opts("-li", 0.1);
         val l = opts("-l", 32n);
         val m = opts("-m", 1024n);
         val verbose = opts("-v", GLBParameters.SHOW_RESULT_FLAG);
@@ -67,8 +71,9 @@ public class GlbMain[K] extends RPX10[K] {
 
         val w = opts("-w", z);
 
-        Console.OUT.println("{\"places\":" + P +
-            ", \"w\":" + w + ", \"n\":" + n + ", \"l\":" + l + ", \"m\":" + m + ", \"z\":" + z + "}");
+        Console.OUT.println("{");
+        Console.OUT.println("\"places\":" + P +
+            ", \"w\":" + w + ", \"n\":" + n + ", \"i\":" + i + ", \"li\":" + li + ", \"l\":" + l + ", \"m\":" + m + ", \"z\":" + z + ",");
         Console.OUT.println();
         val init = ()=>{ 
             val core = new CoreIArray("hoge", prob);
@@ -77,8 +82,10 @@ public class GlbMain[K] extends RPX10[K] {
         val glb = 
           new GLB[Queue[Long], Long](
           //new GLB[Queue[Long], SolutionSet[Long]](
-            init, GLBParameters(n, w, l, z, m, verbose), true );
+            init, GLBParameters(n, i, li, w, l, z, m, verbose), true );
         glb.run(()=>{});
+
+        Console.OUT.println("}");
     }
 }
 

@@ -55,7 +55,7 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
 		this.glbParams = glbParams;
 		setupTime = System.nanoTime();
 		plh = PlaceLocalHandle.makeFlat[Worker[Queue, R]](PlaceGroup.WORLD, 
-				()=>new Worker[Queue, R](init, glbParams.n, glbParams.w, glbParams.l, glbParams.z, glbParams.m, tree));
+				()=>new Worker[Queue, R](init, glbParams.n, glbParams.i, glbParams.li, glbParams.w, glbParams.l, glbParams.z, glbParams.m, tree));
 		Worker.initContexts[Queue, R](plh);
 		setupTime = System.nanoTime() - setupTime;
 	}
@@ -104,10 +104,10 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
 			rootGlbR.display(r);
 		}
 		if((glbParams.v & GLBParameters.SHOW_TIMING_FLAG) != 0n ){ // print overall timing information
-            Console.OUT.print("{\"time (s)\" : {");
+            Console.OUT.print("\"time (s)\" : {");
 			Console.OUT.print("\"setup\":" + ((setupTime) / 1E9));
 			Console.OUT.print(", \"process\":" + ((crunchNumberTime) / 1E9));
-			Console.OUT.println(", \"result reduction\":" + (collectResultTime / 1E9) + "}}");
+			Console.OUT.println(", \"result reduction\":" + (collectResultTime / 1E9) + "},");
 			Console.OUT.println();
 		}
 		
@@ -138,12 +138,12 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
 				return log;
 			});
 		} else {
-            Console.OUT.println("{\"generic log\" : [");
+            Console.OUT.println("\"generic log\" : [");
 
 			//logs = new Rail[Logger](P, (i:Long)=>at (Place(i)) st().logger.get((this.glbParams.v & GLBParameters.SHOW_GLB_FLAG)!=0n));
             logs = new Rail[Logger](P, (i:Long)=>at (Place(i)) { if (i>0) Console.OUT.print(", "); st().logger.get(true) });
 
-            Console.OUT.println("] }");
+            Console.OUT.println("],");
             Console.OUT.println();
 		}
 		val log = new Logger(false);
@@ -209,7 +209,7 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
 	 * @param st PLH for {@link Worker}
 	 */
 	private def printLog(st:PlaceLocalHandle[Worker[Queue, R]]):void{
-        Console.OUT.println("{\"user log\" : [");
+        Console.OUT.println("\"user log\" : [");
 		val P = Place.MAX_PLACES;
 		for(var i:Long =0; i < P; ++i){
             val b = i>0;
@@ -218,7 +218,7 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
 				st().queue.printLog();
 			}
 		}
-        Console.OUT.println("] }");
+        Console.OUT.println("],");
         Console.OUT.println();
 	}
 }

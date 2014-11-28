@@ -7,6 +7,7 @@ import glb.Context;
 import glb.GLBResult;
 import glb.TaskQueue;
 import glb.TaskBag;
+import glb.Logger;
 
 // kludge for "Interval is incomplete type" error
 class Dummy_Queue {
@@ -74,6 +75,50 @@ public class Queue[K] extends BAPSolver[K]
         return i == n;
     }
 
+    @Inline static def format(t:Long) = (t as Double) * 1.0e-9;
+
+    var tLogNext:Double = format(System.nanoTime());
+
+    public def process(interval:Double, context:Context[Queue[K], Long], logger:Logger) {
+        var box:IntervalVec[K] = null;
+
+        val tStart = System.nanoTime();
+
+    	while (System.nanoTime() - tStart < interval && !list.isEmpty()) {
+
+//var time:Long = -System.nanoTime();
+
+            box = list.removeFirst();
+//Console.OUT.println(here + ": search:\n" + box + '\n');
+
+            var res:Result = Result.unknown();
+            res = core.contract(box); 
+            ++cntPrune;
+ 
+            if (!res.hasNoSolution()) {
+                val v = selectVariable(res, box);
+                if (v != null) {
+//Console.OUT.println(here + ": split: " + v);
+                    val bp = box.split(v());
+                    ++cntBranch;
+                    list.add(bp.first);
+                    list.add(bp.second);
+                }
+                else 
+		            //solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
+		            solutions.add(box);
+
+val t = format(System.nanoTime());
+while (t >= tLogNext) {
+    tLogNext = t + logger.tInterval;
+    logger.listNodesGiven.add(logger.nodesGiven);
+} 
+            }        
+        }
+//Console.OUT.println(here + ": processed: " + cntPrune);
+        return !list.isEmpty();
+    }
+
     public def split() {
         val sz = list.size();
         if (sz <= 1)
@@ -94,7 +139,7 @@ public class Queue[K] extends BAPSolver[K]
     }
 
     public def merge(bag:Bag[K]) {
-        for (b in bag.data)
+        for (b in bag.data) if (b != null)
             list.add(b);
     }
 
@@ -141,7 +186,7 @@ public class Queue[K] extends BAPSolver[K]
             return Team.ADD;
         }
         public def display(r:Rail[Long]) : void {
-            Console.OUT.println("{\"# sols\" : " + r(0) + "}");
+            Console.OUT.println("\"# sols\" : " + r(0) + ",");
             Console.OUT.println();
         }
     }
