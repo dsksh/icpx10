@@ -78,6 +78,9 @@ public class Queue[K] extends BAPSolver[K]
     @Inline static def format(t:Long) = (t as Double) * 1.0e-9;
 
     var tLogNext:Double = format(System.nanoTime());
+    var ncBak:Long = 0;
+    var ngBak:Long = 0;
+    var nrBak:Long = 0;
 
     public def process(interval:Double, context:Context[Queue[K], Long], logger:Logger) {
         var box:IntervalVec[K] = null;
@@ -110,8 +113,16 @@ public class Queue[K] extends BAPSolver[K]
 
 val t = format(System.nanoTime());
 while (t >= tLogNext) {
-    tLogNext = t + logger.tInterval;
-    logger.listNodesGiven.add(logger.nodesGiven);
+    tLogNext += logger.tInterval;
+    val nc = count();
+    val ng = logger.nodesGiven;
+    val nr = logger.nodesReceived;
+    logger.listNodesCount.add(nc - ncBak);
+    logger.listNodesGiven.add(ng - ngBak);
+    logger.listNodesReceived.add(nr - nrBak);
+    ncBak = nc;
+    ngBak = ng;
+    nrBak = nr;
 } 
             }        
         }

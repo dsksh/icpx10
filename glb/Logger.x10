@@ -14,6 +14,7 @@ public final class Logger {
     public var nodesGiven:Long = 0;
     public var lifelineNodesReceived:Long = 0;
 
+    public val listNodesCount = new ArrayList[Long]();
     public val listNodesGiven = new ArrayList[Long]();
     
     /* (random)stealing requests stat*/
@@ -22,6 +23,8 @@ public final class Logger {
     public var stealsReceived:Long = 0;
     public var stealsSuffered:Long = 0;
     public var nodesReceived:Long = 0;
+
+    public val listNodesReceived = new ArrayList[Long]();
 
     /* (lifeline)stealing requests stat*/
     public var lifelineStealsAttempted:Long = 0;
@@ -99,7 +102,8 @@ public final class Logger {
         Console.OUT.println("\"# items stolen (direct)\":" + nodesReceived + ",");
         Console.OUT.println("\"# items stolen (ll)\":" + lifelineNodesReceived + ","); 
         Console.OUT.println("\"# successful steals (direct)\":" + stealsPerpetrated + ","); 
-        Console.OUT.println("\"# successful steals (ll)\":" + lifelineStealsPerpetrated + "}");
+        Console.OUT.println("\"# successful steals (ll)\":" + lifelineStealsPerpetrated + "},");
+        Console.OUT.println();
     }
 
     /**
@@ -151,14 +155,32 @@ public final class Logger {
                 (lifelineStealsAttempted - lifelineStealsPerpetrated));
             */
 
-            val sbLNG = new StringBuilder();
-            sbLNG.add("[");
+            val sbNC = new StringBuilder();
+            sbNC.add("[");
             var f:Boolean = true;
-            for (d in listNodesGiven) {
-                if (f) f = false; else sbLNG.add(",");
-                sbLNG.add(d);
+            for (d in listNodesCount) {
+                if (f) f = false; else sbNC.add(",");
+                sbNC.add(d);
             }
-            sbLNG.add("]");
+            sbNC.add("]");
+
+            val sbNG = new StringBuilder();
+            sbNG.add("[");
+            f = true;
+            for (d in listNodesGiven) {
+                if (f) f = false; else sbNG.add(",");
+                sbNG.add(d);
+            }
+            sbNG.add("]");
+
+            val sbNR = new StringBuilder();
+            sbNR.add("[");
+            f = true;
+            for (d in listNodesReceived) {
+                if (f) f = false; else sbNR.add(",");
+                sbNR.add(d);
+            }
+            sbNR.add("]");
 
             Console.OUT.println("{\"pid\":" + Runtime.hereLong() + ", " +
                 "\"t alive\":"      + sub("" + (timeAlive/1E9), 0n, 6n) + ", " +
@@ -179,7 +201,9 @@ public final class Logger {
                 //"\"ll steals att\":" + (stealsAttempted - stealsPerpetrated) + ", " +
                 "\"ll steals att\":" + lifelineStealsAttempted + ", " +
                 //"\"\":" + (lifelineStealsAttempted - lifelineStealsPerpetrated)
-                "\"list nodes given\":" + sbLNG +
+                "\"list nodes count\":" + sbNC + ", " +
+                "\"list nodes given\":" + sbNG + ", " +
+                "\"list nodes recv\":"  + sbNR +
               "}");
         }
         return this;

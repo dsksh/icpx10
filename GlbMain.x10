@@ -72,8 +72,9 @@ public class GlbMain[K] extends RPX10[K] {
         val w = opts("-w", z);
 
         Console.OUT.println("{");
-        Console.OUT.println("\"places\":" + P +
-            ", \"w\":" + w + ", \"n\":" + n + ", \"i\":" + i + ", \"li\":" + li + ", \"l\":" + l + ", \"m\":" + m + ", \"z\":" + z + ",");
+        Console.OUT.println("\"params\":");
+        Console.OUT.println("  {\"places\":" + P +
+            ", \"w\":" + w + ", \"n\":" + n + ", \"i\":" + i + ", \"li\":" + li + ", \"l\":" + l + ", \"m\":" + m + ", \"z\":" + z + "},");
         Console.OUT.println();
         val init = ()=>{ 
             val core = new CoreIArray("hoge", prob);
@@ -85,6 +86,7 @@ public class GlbMain[K] extends RPX10[K] {
             init, GLBParameters(n, i, li, w, l, z, m, verbose), true );
         glb.run(()=>{});
 
+        Console.OUT.println("\"res\":" + 0);
         Console.OUT.println("}");
     }
 }
