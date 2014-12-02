@@ -205,6 +205,7 @@ public final class Logger {
                 "\"list nodes given\":" + sbNG + ", " +
                 "\"list nodes recv\":"  + sbNR +
               "}");
+           Console.OUT.flush();
         }
         return this;
     }

@@ -216,6 +216,7 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
 			at(Place(i)){
                 if (b) Console.OUT.print(", ");
 				st().queue.printLog();
+                Console.OUT.flush();
 			}
 		}
         Console.OUT.println("],");
