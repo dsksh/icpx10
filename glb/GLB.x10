@@ -1,6 +1,7 @@
 package glb;
 
 import x10.util.Team;
+import x10.util.StringBuilder;
 import x10.compiler.Inline;
 
 /**
@@ -132,22 +133,32 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
 			logs = new Rail[Logger](P/32, (i:Long)=>at (Place(i*32)) {
 				val h = Runtime.hereLong();
 				val n = min(32, P-h);
-				val logs = new Rail[Logger](n, (i:Long)=>at (Place(h+i)) st().logger.get((this.glbParams.v & GLBParameters.SHOW_GLB_FLAG)!=0n));
+				val logs = new Rail[Logger](n, 
+                    (i:Long)=>at (Place(h+i)) {
+                        //st().logger.get(sb, (this.glbParams.v & GLBParameters.SHOW_GLB_FLAG)!=0n) } );
+                        st().logger.get(true)
+                    } );
 				val log = new Logger(false);
 				log.collect(logs);
 				return log;
 			});
 		} else {
-            Console.OUT.println("\"generic log\" : [");
-
 			//logs = new Rail[Logger](P, (i:Long)=>at (Place(i)) st().logger.get((this.glbParams.v & GLBParameters.SHOW_GLB_FLAG)!=0n));
-            logs = new Rail[Logger](P, (i:Long)=>at (Place(i)) { if (i>0) Console.OUT.print(", "); st().logger.get(true) });
-
-            Console.OUT.println("],");
-            Console.OUT.println();
+            logs = new Rail[Logger](P, 
+                (i:Long)=>at (Place(i)) { 
+                    var l:Logger = st().logger.get(true);
+                    if (i>0) l.strBuffer = "\n, "+l.strBuffer; 
+                    return l;
+                } );
 		}
 		val log = new Logger(false);
 		log.collect(logs);
+
+        Console.OUT.println("\"generic log\" : [");
+        Console.OUT.println(log.strBuffer);
+        Console.OUT.println("],");
+        Console.OUT.println();
+
 		log.stats();
 	}
 	
@@ -210,15 +221,21 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
 	 */
 	private def printLog(st:PlaceLocalHandle[Worker[Queue, R]]):void{
         Console.OUT.println("\"user log\" : [");
-		val P = Place.MAX_PLACES;
-		for(var i:Long =0; i < P; ++i){
+        val sbLog = new StringBuilder();
+        val sbLogG = new GlobalRef[StringBuilder](sbLog);
+		for(var i:Long =0; i < Place.MAX_PLACES; ++i){
             val b = i>0;
 			at(Place(i)){
-                if (b) Console.OUT.print(", ");
-				st().queue.printLog();
-                Console.OUT.flush();
+                val sbl = new StringBuilder();
+                if (b) 
+                    //Console.OUT.print(", ");
+                    sbl.add("\n, ");
+				st().queue.printLog(sbl);
+                val s = sbl.result();
+                at (sbLogG.home) sbLogG().add(s);
 			}
 		}
+        Console.OUT.println(sbLog);
         Console.OUT.println("],");
         Console.OUT.println();
 	}

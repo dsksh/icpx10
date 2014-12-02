@@ -2,6 +2,7 @@ import x10.compiler.*;
 import x10.util.*;
 import x10.util.concurrent.Lock;
 import x10.util.concurrent.AtomicDouble;
+import x10.util.StringBuilder;
 
 import glb.Context;
 import glb.GLBResult;
@@ -159,8 +160,11 @@ while (t >= tLogNext) {
     }
 
     // override
-    public def printLog(){
-        Console.OUT.println("{\"# prunes\":" + cntPrune + 
+    public def printLog(sb:StringBuilder){
+        //Console.OUT.println("{\"# prunes\":" + cntPrune + 
+        //    ", \"# branches\":" + cntBranch + 
+        //    ", \"# solutions\":" + solutions.size() + "}");
+        sb.add("{\"# prunes\":" + cntPrune + 
             ", \"# branches\":" + cntBranch + 
             ", \"# solutions\":" + solutions.size() + "}");
     }

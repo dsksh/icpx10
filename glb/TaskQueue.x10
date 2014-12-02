@@ -1,5 +1,7 @@
 package glb;
 
+import x10.util.StringBuilder;
+
 /**
  * <p>
  * A TaskQueue[Queue, Z] (Z is the type of the result, Queue is the concrete type of TaskQueue).
@@ -50,6 +52,6 @@ public interface TaskQueue[Queue, R]{ // {Queue<:TaskQueue[Queue, R]}
 	 * e.g., computation time. This function will be called only after all the calculation
 	 * and results reduction are done.
 	 */
-	public  def printLog():void;
+	public  def printLog(sb:StringBuilder):void;
 	
 }

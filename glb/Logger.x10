@@ -42,6 +42,7 @@ public final class Logger {
 
     public val tInterval:Double = 0.1;
     
+    public var strBuffer:String = "";
     
     
     /**
@@ -102,7 +103,7 @@ public final class Logger {
         Console.OUT.println("\"# items stolen (direct)\":" + nodesReceived + ",");
         Console.OUT.println("\"# items stolen (ll)\":" + lifelineNodesReceived + ","); 
         Console.OUT.println("\"# successful steals (direct)\":" + stealsPerpetrated + ","); 
-        Console.OUT.println("\"# successful steals (ll)\":" + lifelineStealsPerpetrated + "},");
+        Console.OUT.println("\"# successful steals (ll)\":" + lifelineStealsPerpetrated + " },");
         Console.OUT.println();
     }
 
@@ -126,6 +127,8 @@ public final class Logger {
         stealsPerpetrated += other.stealsPerpetrated;
         lifelineNodesReceived += other.lifelineNodesReceived;
         lifelineStealsPerpetrated += other.lifelineStealsPerpetrated;
+
+        strBuffer += other.strBuffer;
     }
 
     /**
@@ -155,57 +158,52 @@ public final class Logger {
                 (lifelineStealsAttempted - lifelineStealsPerpetrated));
             */
 
-            val sbNC = new StringBuilder();
-            sbNC.add("[");
+            val sb = new StringBuilder();
+
+            sb.add("{\"pid\":" + Runtime.hereLong() + ", ");
+            sb.add("\"t alive\":"      + sub("" + (timeAlive/1E9), 0n, 6n) + ", ");
+            sb.add("\"t dead\":"       + sub("" + (timeDead/1E9), 0n, 6n) + ", ");
+            sb.add("\"t total\":"      + sub("" + ((timeAlive + timeDead)/1E9), 0n, 6n) + ", ");
+            sb.add("\"ta ratio (%)\":" + sub("" + (100.0*timeAlive/(timeAlive+timeDead)), 0n, 6n) + ", ");
+            sb.add("\"t rel\":"        + sub("" + ((startTime-timeReference)/1E9), 0n, 6n) + ", ");
+            sb.add("\"t lssl\":"       + sub("" + ((lastStartStopLiveTimeStamp-timeReference)/1E9), 0n, 6n)  + ", ");
+            sb.add("\"nodes count\":"  + nodesCount + ", ");
+            sb.add("\"nodes given\":"  + nodesGiven + ", ");
+            sb.add("\"nodes recv\":"   + nodesReceived + ", ");
+            sb.add("\"ll nodes recv\":" + lifelineNodesReceived + ", ");
+            sb.add("\"steals recv\":"  + stealsReceived + ", ");
+            sb.add("\"ll steals recv\":" + lifelineStealsReceived + ", ");
+            sb.add("\"steals suff\":"  + stealsSuffered + ", ");
+            sb.add("\"ll steals suff\":" + lifelineStealsSuffered + ", ");
+            sb.add("\"steals att\":" + stealsAttempted + ", ");
+            //sb.add("\"ll steals att\":" + (stealsAttempted - stealsPerpetrated) + ", ");
+            sb.add("\"ll steals att\":" + lifelineStealsAttempted + ", ");
+            //sb.add("\"\":" + (lifelineStealsAttempted - lifelineStealsPerpetrated)
+
+            sb.add("\"list nodes count\": [");
             var f:Boolean = true;
             for (d in listNodesCount) {
-                if (f) f = false; else sbNC.add(",");
-                sbNC.add(d);
+                if (f) f = false; else sb.add(",");
+                sb.add(d);
             }
-            sbNC.add("]");
+            sb.add("], ");
 
-            val sbNG = new StringBuilder();
-            sbNG.add("[");
+            sb.add("\"list nodes given\": [");
             f = true;
             for (d in listNodesGiven) {
-                if (f) f = false; else sbNG.add(",");
-                sbNG.add(d);
+                if (f) f = false; else sb.add(",");
+                sb.add(d);
             }
-            sbNG.add("]");
+            sb.add("], ");
 
-            val sbNR = new StringBuilder();
-            sbNR.add("[");
+            sb.add("\"list nodes recv\": [");
             f = true;
             for (d in listNodesReceived) {
-                if (f) f = false; else sbNR.add(",");
-                sbNR.add(d);
+                if (f) f = false; else sb.add(",");
+                sb.add(d);
             }
-            sbNR.add("]");
-
-            Console.OUT.println("{\"pid\":" + Runtime.hereLong() + ", " +
-                "\"t alive\":"      + sub("" + (timeAlive/1E9), 0n, 6n) + ", " +
-                "\"t dead\":"       + sub("" + (timeDead/1E9), 0n, 6n) + ", " + 
-                "\"t total\":"      + sub("" + ((timeAlive + timeDead)/1E9), 0n, 6n) + ", " + 
-                "\"ta ratio (%)\":" + sub("" + (100.0*timeAlive/(timeAlive+timeDead)), 0n, 6n) + ", " +
-                "\"t rel\":"        + sub("" + ((startTime-timeReference)/1E9), 0n, 6n) + ", " +
-                "\"t lssl\":"       + sub("" + ((lastStartStopLiveTimeStamp-timeReference)/1E9), 0n, 6n)  + ", " +
-                "\"nodes count\":"  + nodesCount + ", " +
-                "\"nodes given\":"  + nodesGiven + ", " +
-                "\"nodes recv\":"   + nodesReceived + ", " +
-                "\"ll nodes recv\":" + lifelineNodesReceived + ", " +
-                "\"steals recv\":"  + stealsReceived + ", " +
-                "\"ll steals recv\":" + lifelineStealsReceived + ", " +
-                "\"steals suff\":"  + stealsSuffered + ", " +
-                "\"ll steals suff\":" + lifelineStealsSuffered + ", " +
-                "\"steals att\":" + stealsAttempted + ", " +
-                //"\"ll steals att\":" + (stealsAttempted - stealsPerpetrated) + ", " +
-                "\"ll steals att\":" + lifelineStealsAttempted + ", " +
-                //"\"\":" + (lifelineStealsAttempted - lifelineStealsPerpetrated)
-                "\"list nodes count\":" + sbNC + ", " +
-                "\"list nodes given\":" + sbNG + ", " +
-                "\"list nodes recv\":"  + sbNR +
-              "}");
-           Console.OUT.flush();
+            sb.add("] }");
+            strBuffer = sb.result();
         }
         return this;
     }
