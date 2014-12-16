@@ -88,7 +88,7 @@ public class Queue[K] extends BAPSolver[K]
 
         val tStart = System.nanoTime();
 
-    	while (System.nanoTime() - tStart < interval && !list.isEmpty()) {
+    	while (format(System.nanoTime()-tStart) < interval && !list.isEmpty()) {
 
 //var time:Long = -System.nanoTime();
 
@@ -121,6 +121,7 @@ while (t >= tLogNext) {
     logger.listNodesCount.add(nc - ncBak);
     logger.listNodesGiven.add(ng - ngBak);
     logger.listNodesReceived.add(nr - nrBak);
+    logger.listQueueSize.add(list.size());
     ncBak = nc;
     ngBak = ng;
     nrBak = nr;

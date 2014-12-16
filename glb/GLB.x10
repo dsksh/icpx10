@@ -74,9 +74,9 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
 	public def run(start:()=>void):Rail[R] {
 		crunchNumberTime = System.nanoTime();
 		plh().main(plh, start);
+		//Console.OUT.println("Hello there!");
 		crunchNumberTime = System.nanoTime() - crunchNumberTime;
 		r:Rail[R] = collectResults();
-		//Console.OUT.println("Hello there!");
 		end(r);
 		return r;
 	}

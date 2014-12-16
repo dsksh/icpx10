@@ -16,6 +16,8 @@ public final class Logger {
 
     public val listNodesCount = new ArrayList[Long]();
     public val listNodesGiven = new ArrayList[Long]();
+
+    public val listQueueSize = new ArrayList[Long]();
     
     /* (random)stealing requests stat*/
     public var stealsAttempted:Long = 0;
@@ -198,7 +200,15 @@ public final class Logger {
 
             sb.add("\"list nodes recv\": [");
             f = true;
-            for (d in listNodesReceived) {
+            for (d in listNodesGiven) {
+                if (f) f = false; else sb.add(",");
+                sb.add(d);
+            }
+            sb.add("], ");
+
+            sb.add("\"list queue size\": [");
+            f = true;
+            for (d in listQueueSize) {
                 if (f) f = false; else sb.add(",");
                 sb.add(d);
             }
