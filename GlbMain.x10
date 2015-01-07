@@ -47,7 +47,8 @@ public class GlbMain[K] extends RPX10[K] {
             Option("v", "", "Verbose. Default 0 (no)."),
             
             Option("e", "", "Precision (epsilon)."),
-            Option("p", "", "Problem ID.")]);
+            Option("f", "", "Filename of the model."),
+            Option("p", "", "Problem ID.") ]);
 
         val n = opts("-n", 100n);
         val i = opts("-i", 0.1);
@@ -57,6 +58,7 @@ public class GlbMain[K] extends RPX10[K] {
         val verbose = opts("-v", GLBParameters.SHOW_RESULT_FLAG);
 
         val prec = opts("-e", 0.1);
+        val filename = opts("-f", "hoge");
         val prob = opts("-p", 2n);
 
         val P = Place.numPlaces();
@@ -72,12 +74,16 @@ public class GlbMain[K] extends RPX10[K] {
         val w = opts("-w", z);
 
         Console.OUT.println("{");
+        Console.OUT.println("\"problem\":");
+        Console.OUT.println("  {\"filename\":\"" + filename +
+            "\", \"p\":" + prob + ", \"e\":" + prec + "},");
+        Console.OUT.println();
         Console.OUT.println("\"params\":");
         Console.OUT.println("  {\"places\":" + P +
             ", \"w\":" + w + ", \"n\":" + n + ", \"i\":" + i + ", \"li\":" + li + ", \"l\":" + l + ", \"m\":" + m + ", \"z\":" + z + "},");
         Console.OUT.println();
         val init = ()=>{ 
-            val core = new CoreIArray("hoge", prob);
+            val core = new CoreIArray(filename, prob);
             return GlbMain.init(core, prec); 
         };
         val glb = 
