@@ -3,7 +3,7 @@
 
 #include "propagator.h"
 
-const static int MaxDim(6);
+const static int MaxDim(16);
 
 using namespace std;
 using namespace rp;
@@ -40,10 +40,24 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
                  sp<Scope> cyclic_sc,
                  sp<IntervalFunctionVector> constr_if)
 {
+    for (int i(0); i < MaxDim; ++i) {
+        yl[i] = "0"; yu[i] = "0";
+    }
+
+    xl[0] = "-1"; xu[0] = "1";
+    xl[1] = "-1"; xu[1] = "1";
+    xl[2] = "-10"; xu[2] = "10";
+    xl[3] = "-10"; xu[3] = "10";
+    yl[0] = "-1"; yu[0] = "1";
+    yl[1] = "-1"; yu[1] = "1";
+    yl[2] = "0"; yu[2] = "0";
+    yl[3] = "0"; yu[3] = "0";
+
     switch (prob_id) {
     case 3: 
     case 4: 
         yl[2] = "-1"; yu[2] = "1";
+        yl[3] = "-1"; yu[3] = "1";
 		break;
     case 5: 
         xl[0] = "0"; xu[0] = "10";
@@ -64,6 +78,36 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
         yl[0] = "-pi"; yu[0] = "pi"; yc[0] = true;
         yl[1] = "-pi"; yu[1] = "pi"; yc[1] = true;
         break;
+    case 11: 
+        yl[2] = "-1"; yu[2] = "1";
+        yl[3] = "-1"; yu[2] = "1";
+        yl[4] = "-1"; yu[2] = "1";
+        yl[5] = "-1"; yu[5] = "1";
+		break;
+    case 12: 
+        yl[2] = "-1"; yu[2] = "1";
+        yl[3] = "-1"; yu[2] = "1";
+        yl[4] = "-1"; yu[2] = "1";
+        yl[5] = "-1"; yu[5] = "1";
+        yl[6] = "-1"; yu[6] = "1";
+        yl[7] = "-1"; yu[7] = "1";
+		break;
+    case 13: 
+        yl[2] = "-1"; yu[2] = "1";
+        yl[3] = "-1"; yu[2] = "1";
+        yl[4] = "-1"; yu[2] = "1";
+        yl[5] = "-1"; yu[5] = "1";
+        yl[6] = "-1"; yu[6] = "1";
+        yl[7] = "-1"; yu[7] = "1";
+        yl[8] = "-1"; yu[8] = "1";
+        yl[9] = "-1"; yu[9] = "1";
+        yl[10] = "-1"; yu[10] = "1";
+        yl[11] = "-1"; yu[11] = "1";
+        yl[12] = "-1"; yu[12] = "1";
+        yl[13] = "-1"; yu[13] = "1";
+        yl[14] = "-1"; yu[14] = "1";
+        yl[15] = "-1"; yu[15] = "1";
+		break;
     case 15: 
         xl[0] = "-50"; xu[0] = "50";
         xl[1] = "-50"; xu[1] = "50";
@@ -80,31 +124,37 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
         yl[1] = "-pi"; yu[1] = "pi"; yc[1] = true;
         yl[2] = "-pi"; yu[2] = "pi"; yc[2] = true;
         break;
+    case 17: 
+        xl[0] = "-50"; xu[0] = "50";
+        xl[1] = "-50"; xu[1] = "50";
+        xl[2] = "-50"; xu[2] = "50";
+        yl[0] = "0"; yu[0] = "32";
+        yl[1] = "0"; yu[1] = "32";
+        yl[2] = "0"; yu[2] = "32";
+        break;
     }
 
     // variable declarations:
     sp<Variable> x[MaxDim], y[MaxDim], su[MaxDim];
 
-    x[0] = sp<Variable>(new RealVariable("x1", Interval('['+xl[0]+','+xu[0]+']'),
-                                         prec, false, true));
-    x[1] = sp<Variable>(new RealVariable("x2", Interval('['+xl[1]+','+xu[1]+']'),
-                                         prec, false, true));
-    x[2] = sp<Variable>(new RealVariable("x3", Interval('['+xl[2]+','+xu[2]+']'),
-                                         prec, false, true));
+    for (int i(0); i < 3; ++i) {
+        ostringstream os;
+        os << 'x' << (i+1);
+        x[i] = sp<Variable>(new RealVariable(os.str(), Interval('['+xl[i]+','+xu[i]+']'),
+                                             prec, false, true ));
+    }
 
-    y[0] = sp<Variable>(new RealVariable("y1", Interval('['+yl[0]+','+yu[0]+']'),
-                                         prec*1, false, true));
-    y[1] = sp<Variable>(new RealVariable("y2", Interval('['+yl[1]+','+yu[1]+']'),
-                                         prec*1, false, true));
-    y[2] = sp<Variable>(new RealVariable("y3", Interval('['+yl[2]+','+yu[2]+']'),
-                                         prec, false, true));
-    y[3] = sp<Variable>(new RealVariable("y4", Interval("[-1,1]"), 
-                                         prec, false, true));
-    //y[3] = sp<Variable>(new RealVariable("y4", Interval('['+yl[3]+','+yu[3]+']'),
+    for (int i(0); i < MaxDim; ++i) {
+        ostringstream os;
+        os << 'y' << (i+1);
+        y[i] = sp<Variable>(new RealVariable("y1", Interval('['+yl[i]+','+yu[i]+']'),
+                                             prec*1, false, true ));
+    }
+    //y[1] = sp<Variable>(new RealVariable("y2", Interval('['+yl[1]+','+yu[1]+']'),
+    //                                     prec*1, false, true));
+    //y[2] = sp<Variable>(new RealVariable("y3", Interval('['+yl[2]+','+yu[2]+']'),
     //                                     prec, false, true));
-    //y[4] = sp<Variable>(new RealVariable("y5", Interval('['+yl[3]+','+yu[3]+']'),
-    //                                     prec, false, true));
-    //y[5] = sp<Variable>(new RealVariable("y6", Interval('['+yl[3]+','+yu[3]+']'),
+    //y[3] = sp<Variable>(new RealVariable("y4", Interval("[-1,1]"), 
     //                                     prec, false, true));
 
     // constraint:
@@ -260,36 +310,53 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
         break;
     }
 
-    case 10: { // Sphere (2x2x1)
-        dim = 2; dim_f = 1;
-        f[0] = new Term(sqr(x[0]) + sqr(x[1]) + sqr(y[0]) + sqr(y[1]) - 1);
-        //f[1] = new Term(x[0] + x[1] + y[0] + y[1]);
-        break;
-    }
-
-    case 11: { // Sphere (2x3x2, CP'06)
+    case 10: { // Sphere (2x3x2, CP'06)
         dim = 3; dim_f = 2;
         f[0] = new Term(sqr(x[0]) + sqr(x[1]) + sqr(y[0]) + sqr(y[1]) + sqr(y[2]) - 1);
         f[1] = new Term(x[0] + x[1] + y[0] + y[1] + y[2]);
         break;
     }
 
-    case 12: { // Sphere (2x3x2)
-        dim = 3; dim_f = 2;
-        f[0] = new Term(sqr(x[0]) + sqr(x[1]) + sqr(y[0]) + sqr(y[1]) + sqr(y[2]) - 1);
+    case 11: { // Sphere (2x6)
+        dim = dim_f = 6;
+        f[0] = new Term(sqr(x[0]) + sqr(x[1]) + sqr(y[0]) + sqr(y[1]) + sqr(y[2]) + sqr(y[3]) + sqr(y[4]) + sqr(y[5]) - 1);
         f[1] = new Term(x[0] + x[1] + y[0] + y[1]);
-        //f[2] = new Term(x[0] + x[1] + y[1] + y[2]);
-        break;
+        f[2] = new Term(x[0] + x[1] + y[1] + y[2]);
+        f[3] = new Term(x[0] + x[1] + y[2] + y[3]);
+        f[4] = new Term(x[0] + x[1] + y[3] + y[4]);
+        f[5] = new Term(x[0] + x[1] + y[4] + y[5]);
     }
 
-    case 13: { // Sphere (2x4x3)
-        dim = 4; dim_f = 2;
-        f[0] = new Term(sqr(x[0]) + sqr(x[1]) + sqr(y[0]) + sqr(y[1]) + sqr(y[2]) + sqr(y[3]) - 1);
-        //f[1] = new Term(x[0] + x[1] + y[0] + y[1]);
-        f[1] = new Term(x[0] + x[1] + y[0] + y[1] + y[2] + y[3]);
-        //f[2] = new Term(x[0] + x[1] + y[1] + y[2]);
-        //f[3] = new Term(x[0] + x[1] + y[2] + y[3]);
-        break;
+    case 12: { // Sphere (2x8)
+        dim = dim_f = 8;
+        f[0] = new Term(sqr(x[0]) + sqr(x[1]) + sqr(y[0]) + sqr(y[1]) + sqr(y[2]) + sqr(y[3]) + sqr(y[4]) + sqr(y[5]) + sqr(y[6]) + sqr(y[7]) - 1);
+        f[1] = new Term(x[0] + x[1] + y[0] + y[1]);
+        f[2] = new Term(x[0] + x[1] + y[1] + y[2]);
+        f[3] = new Term(x[0] + x[1] + y[2] + y[3]);
+        f[4] = new Term(x[0] + x[1] + y[3] + y[4]);
+        f[5] = new Term(x[0] + x[1] + y[4] + y[5]);
+        f[6] = new Term(x[0] + x[1] + y[5] + y[6]);
+        f[7] = new Term(x[0] + x[1] + y[6] + y[7]);
+    }
+
+    case 13: { // Sphere (2x16)
+        dim = dim_f = 16;
+        f[0] = new Term(sqr(x[0]) + sqr(x[1]) + sqr(y[0]) + sqr(y[1]) + sqr(y[2]) + sqr(y[3]) + sqr(y[4]) + sqr(y[5]) + sqr(y[6]) + sqr(y[7]) + sqr(y[8]) + sqr(y[9]) + sqr(y[10]) + sqr(y[11]) + sqr(y[12]) + sqr(y[13]) + sqr(y[14]) + sqr(y[15]) - 1);
+        f[1] = new Term(x[0] + x[1] + y[0] + y[1]);
+        f[2] = new Term(x[0] + x[1] + y[1] + y[2]);
+        f[3] = new Term(x[0] + x[1] + y[2] + y[3]);
+        f[4] = new Term(x[0] + x[1] + y[3] + y[4]);
+        f[5] = new Term(x[0] + x[1] + y[4] + y[5]);
+        f[6] = new Term(x[0] + x[1] + y[5] + y[6]);
+        f[7] = new Term(x[0] + x[1] + y[6] + y[7]);
+        f[8] = new Term(x[0] + x[1] + y[7] + y[8]);
+        f[9] = new Term(x[0] + x[1] + y[8] + y[9]);
+        f[10] = new Term(x[0] + x[1] + y[9] + y[10]);
+        f[11] = new Term(x[0] + x[1] + y[10] + y[11]);
+        f[12] = new Term(x[0] + x[1] + y[11] + y[12]);
+        f[13] = new Term(x[0] + x[1] + y[12] + y[13]);
+        f[14] = new Term(x[0] + x[1] + y[13] + y[14]);
+        f[15] = new Term(x[0] + x[1] + y[14] + y[15]);
     }
 
     case 14: { // Robot (2x3x2, under-constrained)
@@ -360,6 +427,24 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
         f[2] = new Term(  sqr(x[0] + CX3*cos(x[2]) - CY3*sin(x[2]) - AX3 - L3*cos(y[2]))
                         + sqr(x[1] + CX3*sin(x[2]) + CY3*cos(x[2]) - AY3 - L3*sin(y[2]))
                                                                  - sqr(M3));
+        break;
+    }
+
+    case 17: { // Delta (3x3)
+        dim = dim_x = dim_f = 3;
+        static const Constant CX1(  0.0);
+        static const Constant CY1(  0.0);
+        static const Constant CZ1(  0.0);
+        static const Constant CX2( 10.0);
+        static const Constant CY2(  0.0);
+        static const Constant CZ2(  0.0);
+        static const Constant CX3(  0.0);
+        static const Constant CY3( 20.0);
+        static const Constant CZ3(  0.0);
+         
+        f[0] = new Term( sqr(x[0]-CX1) + sqr(x[1]-CY1) + sqr(x[2]-CZ1) - sqr(y[0]) );
+        f[1] = new Term( sqr(x[0]-CX2) + sqr(x[1]-CY2) + sqr(x[2]-CZ2) - sqr(y[1]) );
+        f[2] = new Term( sqr(x[0]-CX3) + sqr(x[1]-CY3) + sqr(x[2]-CZ3) - sqr(y[2]) );
         break;
     }
 
@@ -437,28 +522,10 @@ void RPX10__CoreProj::initialize(x10::lang::String *filename, x10_int n) {
     /*prob_id = 0;
     prec = 1E-1;
     op_id = 4;
-
-    xl[0] = "-10"; xu[0] = "10";
-    xl[1] = "0"; xu[1] = "0";
-    xl[2] = "0"; xu[2] = "0";
-    xl[3] = "0"; xu[3] = "0";
-    yl[0] = "-10"; yu[0] = "10";
-    yl[1] = "0"; yu[1] = "0";
-    yl[2] = "0"; yu[2] = "0";
-    yl[3] = "0"; yu[3] = "0";
     */
     prob_id = n;
     prec = 1E-1;
     op_id = 4;
-
-    xl[0] = "-1"; xu[0] = "1";
-    xl[1] = "-1"; xu[1] = "1";
-    xl[2] = "-10"; xu[2] = "10";
-    xl[3] = "-10"; xu[3] = "10";
-    yl[0] = "-1"; yu[0] = "1";
-    yl[1] = "-1"; yu[1] = "1";
-    yl[2] = "0"; yu[2] = "0";
-    yl[3] = "0"; yu[3] = "0";
 
 
     def_problem(problem, proj_sc, param_sc, if_vec, cyclic_sc, constr_if);
