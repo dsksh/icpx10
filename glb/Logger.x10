@@ -42,6 +42,12 @@ public final class Logger {
     public var startTime:Long = 0;
     public val timeReference:Long;
 
+    /* etc */
+    public var timeProc:Long = 0;
+    public var timeStampProc:Long = 0;
+    public var timeComm:Long = 0;
+    public var timeStampComm:Long = 0;
+
     public val tInterval:Double = 0.1;
     
     public var strBuffer:String = "";
@@ -82,6 +88,28 @@ public final class Logger {
         timeAlive += time - lastStartStopLiveTimeStamp;
         lastStartStopLiveTimeStamp = time;
     }
+
+
+    public def startProc() {
+        val time = System.nanoTime();
+        timeStampProc = time;
+    }
+    public def stopProc() {
+        val time = System.nanoTime();
+        timeProc += time - timeStampProc;
+        timeStampProc = time;
+    }
+
+    public def startComm() {
+        val time = System.nanoTime();
+        timeStampComm = time;
+    }
+    public def stopComm() {
+        val time = System.nanoTime();
+        timeComm += time - timeStampComm;
+        timeStampComm = time;
+    }
+
 
     /**
      * Aggregate stats for all places
@@ -169,6 +197,8 @@ public final class Logger {
             sb.add("\"ta ratio (%)\":" + sub("" + (100.0*timeAlive/(timeAlive+timeDead)), 0n, 6n) + ", ");
             sb.add("\"t rel\":"        + sub("" + ((startTime-timeReference)/1E9), 0n, 6n) + ", ");
             sb.add("\"t lssl\":"       + sub("" + ((lastStartStopLiveTimeStamp-timeReference)/1E9), 0n, 6n)  + ", ");
+            sb.add("\"t proc\":"       + sub("" + (timeProc/1E9), 0n, 6n)  + ", ");
+            //sb.add("\"t comm\":"       + sub("" + (timeComm/1E9), 0n, 6n)  + ", ");
             sb.add("\"nodes count\":"  + nodesCount + ", ");
             sb.add("\"nodes given\":"  + nodesGiven + ", ");
             sb.add("\"nodes recv\":"   + nodesReceived + ", ");

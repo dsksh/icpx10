@@ -132,12 +132,16 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
     final def processStack(st:PlaceLocalHandle[Worker[Queue, R]]){Queue<:TaskQueue[Queue, R]} {
         //Console.OUT.println(here.id()+": Worker.processStack");
         do {
+logger.startProc();
             //while (queue.process(n, context)) {
             while (queue.process(interval, context, logger)) {
+logger.stopProc();
                 Runtime.probe();
                 distribute(st);
                 reject(st);
+logger.startProc();
             }
+logger.stopProc();
             reject(st);
         } while (steal(st));
     }
