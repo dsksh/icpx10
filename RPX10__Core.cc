@@ -18,6 +18,12 @@
 
 #include "RPX10__Core.h"
 
+#include "config.h"
+
+#if USE_PAPI
+#include <papi.h>
+#endif
+
 using namespace std;
 //using namespace rp;
 
@@ -99,6 +105,18 @@ void RPX10__Core::initialize(const char *filename, const int n) {
     list_ = new rp::SearchStrategyDFS();
     list_->insert(new rp::Box(parser.problem()->scope()),selector_,0);
     list_->init();
+
+    // ----------------------------------------------------------------------
+
+#if USE_PAPI
+if (PAPI_library_init(PAPI_VER_CURRENT) != PAPI_VER_CURRENT) {
+	exit(1);
+}
+if (PAPI_thread_init(pthread_self) != PAPI_OK) {
+	exit(1);
+}
+for (int i(0); i < PAPI_EN; ++i) papi_result[i] = 0;
+#endif
 }
 
 /*

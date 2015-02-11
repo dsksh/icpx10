@@ -9,7 +9,7 @@ all: $(TARGET)
 CC          = g++
 BUILD       = ar rs    # for static libraries
 INCLUDES	+= -I$(RP_HOME)/src
-CFLAGS      += -O0 -g $(INCLUDES)
+CFLAGS      += -O3 -g $(INCLUDES)
 #CFLAGS      += -O3 -arch i386 -arch x86_64
 #CFLAGS      += -g -O3 -Wall
 #CFLAGS      += -pg -O0
@@ -28,10 +28,11 @@ X10_CPP_SOURCES = RPX10__Core.cc RPX10__CoreProj.cc RPX10__CoreIArray.cc RPX10__
 
 ## X10 STUFF ##
 X10CXX          = x10c++
+#X10CXX		   += -VERBOSE_CHECKS
 X10CXX		   += -STATIC_CHECKS
 X10CXX         += -x10rt mpi
-#X10CXX		   += -O
-#X10CXX         += -NO_CHECKS
+X10CXX		   += -O
+X10CXX         += -NO_CHECKS
 X10CXX         += -report postcompile=1
 OUTDIR          = out_dir
 OUTDIR_REVERSE  = ..
@@ -46,12 +47,6 @@ GlbMain: $(X10_HEADERS) $(X10_SOURCES) $(X10_CPP_SOURCES)
 
 Test: $(X10_HEADERS) $(X10_SOURCES) $(X10_CPP_SOURCES)
 	$(X10CXX) Test.x10 -d $(OUTDIR) -post '$(X10_POST_CMD)' -o Test
-
-#SatX10.standalone: $(X10_HEADERS) $(X10_SOURCES) $(X10_CPP_SOURCES) $(SAT_HEADERS) $(SAT_LIBS) .makedirs
-#	$(X10CXX) SatX10.x10 -d $(OUTDIR) -x10rt standalone -post '$(X10_POST_CMD)' -o SatX10.standalone
-#
-#SatX10.pami: $(X10_HEADERS) $(X10_SOURCES) $(X10_CPP_SOURCES) $(SAT_HEADERS) $(SAT_LIBS) .makedirs
-#	$(X10CXX) SatX10.x10 -d $(OUTDIR) -x10rt pami -post '$(X10_POST_CMD)' -o SatX10.pami
 
 .makedirs: $(X10_HEADERS) $(X10_SOURCES) $(X10_CPP_SOURCES) $(SAT_HEADERS)
 	touch .makedirs

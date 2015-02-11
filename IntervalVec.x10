@@ -22,6 +22,9 @@ public interface IntervalVec[K] {
 
     public def volume() : Double;
 
+    public def depth() : Long;
+    public def deepen() : void;
+
     public def count() : Long;
 
     public def get(key:K) : Box[Interval];

@@ -1,4 +1,10 @@
 
+#include "config.h"
+
+#if USE_PAPI
+#include <papi.h>
+#endif
+
 #include "RPX10__CoreProj.h"
 
 #include "propagator.h"
@@ -481,6 +487,7 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
 
 
 void RPX10__CoreProj::initialize(x10::lang::String *filename, x10_int n) {
+
     /*rp::Parser parser(filename);
 	//Timer tim;
 	bool result;
@@ -584,6 +591,19 @@ void RPX10__CoreProj::initialize(x10::lang::String *filename, x10_int n) {
     list_ = new rp::SearchStrategyDFS();
     list_->insert(new rp::Box(problem->scope()), selector_, 0);
     list_->init();
+
+
+#if USE_PAPI
+if (PAPI_library_init(PAPI_VER_CURRENT) != PAPI_VER_CURRENT) {
+	printf("exit at init.");
+	exit(1);
+}
+if (PAPI_thread_init(pthread_self) != PAPI_OK) {
+	printf("exit at thread init.");
+	exit(1);
+}
+for (int i(0); i < PAPI_EN; ++i) papi_result[i] = 0;
+#endif
 }
 
 // vim: shiftwidth=4:tabstop=4:softtabstop=0:expandtab

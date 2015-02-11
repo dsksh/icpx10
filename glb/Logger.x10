@@ -1,6 +1,7 @@
 package glb;
 
 import x10.util.ArrayList;
+import x10.util.HashMap;
 import x10.util.StringBuilder;
 
 /**
@@ -51,6 +52,9 @@ public final class Logger {
     public val tInterval:Double = 0.1;
     
     public var strBuffer:String = "";
+
+    //public val listDepthOfPaths = new ArrayList[Long]();
+    public val mapDepthCount = new HashMap[Long,Long]();
     
     
     /**
@@ -91,23 +95,27 @@ public final class Logger {
 
 
     public def startProc() {
-        val time = System.nanoTime();
-        timeStampProc = time;
+        timeStampProc = System.nanoTime();
     }
     public def stopProc() {
         val time = System.nanoTime();
-        timeProc += time - timeStampProc;
+        val diff = time - timeStampProc;
+        timeProc += diff;
         timeStampProc = time;
     }
 
     public def startComm() {
-        val time = System.nanoTime();
-        timeStampComm = time;
+        timeStampComm = System.nanoTime();
     }
     public def stopComm() {
         val time = System.nanoTime();
         timeComm += time - timeStampComm;
         timeStampComm = time;
+    }
+
+    public def incrDepthCount(depth:Long) {
+        val c = mapDepthCount.getOrElse(depth, 0);
+        mapDepthCount.put(depth, c+1);
     }
 
 
@@ -242,7 +250,19 @@ public final class Logger {
                 if (f) f = false; else sb.add(",");
                 sb.add(d);
             }
-            sb.add("] }");
+            sb.add("],");
+
+            sb.add("\"depth counts\": {");
+            f = true;
+            //for (d in listDepthOfPaths) {
+            //    if (f) f = false; else sb.add(",");
+            //    sb.add(d);
+            //}
+            for (e in mapDepthCount.entries()) {
+                if (f) f = false; else sb.add(",");
+                sb.add("\""); sb.add(e.getKey()); sb.add("\":"); sb.add(e.getValue());
+            }
+            sb.add("} }");
             strBuffer = sb.result();
         }
         return this;

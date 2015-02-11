@@ -20,6 +20,12 @@
 #include "rp_split.h"
 #include "rp_split_select.h"
 
+#include "config.h"
+
+#if USE_PAPI
+#include <papi.h>
+#endif
+
 class RPX10__Core 
 //: public x10::lang::X10Class 
 {
@@ -30,6 +36,19 @@ public:
 	virtual void initialize(const char *, const int n);
 	void initialize(x10::lang::String *filename, x10_int n) {
    		initialize(filename->c_str(), n);
+	}
+
+	void finalize() {
+#if USE_PAPI
+PAPI_shutdown();
+std::cout << "\"papi(" << papi_es << ")\": [";
+bool f(true);
+for (int i(0); i < PAPI_EN; ++i) {
+	if (f) f = false; else std::cout << ",";
+	std::cout << papi_result[i];
+}
+std::cout << "]," << std::endl;
+#endif
 	}
 
 	x10_int solve();
@@ -82,6 +101,12 @@ protected:
 
 	rp::sp<rp::Operator> contractor_;
     rp::sp<rp::SearchStrategy> list_;
+
+#if USE_PAPI
+int papi_es;
+long long papi_result[PAPI_EN];
+#endif
+
 protected:
     rp::sp<rp::Split> split_;
     rp::sp<rp::SplitSelect> selector_;

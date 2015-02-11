@@ -72,6 +72,7 @@ BAPSolver__Core<x10::lang::String*>::itable<RPX10__CoreIMap>  RPX10__CoreIMap::_
         &RPX10__CoreIMap::contract, 
         &RPX10__CoreIMap::dummyBox, 
         &RPX10__CoreIMap::equals, 
+        &RPX10__Core::finalize, 
         &RPX10__CoreIMap::getInitialDomain, 
         &RPX10__CoreIMap::hashCode, 
         //&RPX10__Core::initialize, 

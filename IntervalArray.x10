@@ -12,6 +12,8 @@ public class IntervalArray implements IntervalVec[Long] {
 
     var volume : Double;
 
+    var depth:Long;
+
     public var vit:Iterator[Long] = null;
     public def vit() : Iterator[Long] { return vit; }
     //public var vit:MyHashMap.KeyIterator[String,Interval] = null;
@@ -24,11 +26,13 @@ public class IntervalArray implements IntervalVec[Long] {
     public def this(size:Long) : IntervalArray { 
         theArray = new Rail[Interval](size);
         volume = -1;
+        depth = 0;
     } 
     public def this(rhs:IntervalArray) : IntervalArray { 
         theArray = new Rail[Interval](rhs.theArray);
         this.prevVar = rhs.prevVar;
         this.volume = rhs.volume;
+        this.depth = rhs.depth;
     } 
 
     public operator this(k:Long) : Box[Interval] = get(k);
@@ -65,6 +69,7 @@ atomic {
         val ip = get(variable)().split();
         b1.put(variable, ip.first);
         b2.put(variable, ip.second);
+        b1.deepen(); b2.deepen();
         return new Pair[IntervalVec[Long],IntervalVec[Long]](b1,b2);
 }
     }
@@ -106,6 +111,13 @@ atomic {
         }
 
         return volume;
+    }
+
+    public def depth() : Long {
+        return depth;
+    }
+    public def deepen() {
+        depth++;
     }
 
     var count:Long = 0;

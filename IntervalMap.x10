@@ -87,6 +87,11 @@ implements IntervalVec[String] {
         return -1.;
     }
 
+    public def depth() : Long {
+        return 0;
+    }
+    public def deepen() { }
+
     var count:Long = 0;
 
     public def count() : Long {

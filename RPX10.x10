@@ -17,6 +17,7 @@ public class RPX10[K] {
     static class CoreIMap0 implements BAPSolver.Core[String] {
         public def this() : CoreIMap0 {}
         public def initialize(filename:String, n:Int) : void {};
+        public def finalize() : void {};
         public def getInitialDomain() : IntervalVec[String] { 
             return new IntervalMap(); 
         };
@@ -40,6 +41,8 @@ public class RPX10[K] {
         public def this(filename:String, n:Int) : CoreIArray {}
         @Native("c++", "(#0)->initialize((#1))")
         public def initialize(filename:String, n:Int) : void {};
+        @Native("c++", "(#0)->finalize()")
+        public def finalize() : void {};
         @Native("c++", "(#0)->getInitialDomain()")
         public def getInitialDomain() : IntervalVec[Long] { 
             return new IntervalArray(1); 
@@ -57,6 +60,8 @@ public class RPX10[K] {
         public def this(filename:String, n:Int) : CoreIMap {}
         @Native("c++", "(#0)->initialize((#1))")
         public def initialize(filename:String, n:Int) : void {};
+        @Native("c++", "(#0)->finalize()")
+        public def finalize() : void {};
         @Native("c++", "(#0)->getInitialDomain()")
         public def getInitialDomain() : IntervalVec[String] { 
             return new IntervalMap(); 

@@ -55,6 +55,7 @@ BAPSolver__Core<x10_long>::itable<RPX10__CoreIArray>  RPX10__CoreIArray::_itable
         &RPX10__CoreIArray::contract, 
         &RPX10__CoreIArray::dummyBox, 
         &RPX10__CoreIArray::equals, 
+        &RPX10__Core::finalize, 
         &RPX10__CoreIArray::getInitialDomain, 
         &RPX10__CoreIArray::hashCode, 
         //&RPX10__Core::initialize, 

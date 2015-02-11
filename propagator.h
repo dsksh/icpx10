@@ -1,5 +1,9 @@
 #include <cassert>
 
+#include <stdio.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+
 #include "prover.h"
 
 const double ContrURate = 0.2;
@@ -38,6 +42,8 @@ namespace rp
 		 */
 		Solution contract(Box& bx)
 		{
+//struct timeval s, e;
+//gettimeofday(&s, NULL);
 //std::cout << std::endl << bx << std::endl;
 
 			//IntervalVector bx_bak (get_interval_vector(bx, *bx.scope()));
@@ -48,6 +54,9 @@ namespace rp
 			//Solution sol( Solution::maybe() );
 
 			if (sol == Solution::no() || bx.is_empty()) {
+//gettimeofday(&e, NULL);
+//printf("time = %lf\n", (e.tv_sec - s.tv_sec) + (e.tv_usec - s.tv_usec)*1.0E-6);
+
 				bx.set_empty();
 				return Solution::no();
 			}
@@ -56,6 +65,9 @@ namespace rp
 			if (sol != Solution::only()) {
 				inner_result res( inner(bx, *proj_sc_, *param_sc_, *cyclic_sc_, *fun_, 
 								  take_infl_box_, infl_trial_) );
+
+//gettimeofday(&e, NULL);
+//printf("time = %lf\n", (e.tv_sec - s.tv_sec) + (e.tv_usec - s.tv_usec)*1.0E-6);
 
 				// TODO
 				if (bx.is_empty())

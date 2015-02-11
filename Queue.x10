@@ -96,7 +96,9 @@ public class Queue[K] extends BAPSolver[K]
 //Console.OUT.println(here + ": search:\n" + box + '\n');
 
             var res:Result = Result.unknown();
+logger.startProc();
             res = core.contract(box); 
+logger.stopProc();
             ++cntPrune;
  
             if (!res.hasNoSolution()) {
@@ -108,9 +110,13 @@ public class Queue[K] extends BAPSolver[K]
                     list.add(bp.first);
                     list.add(bp.second);
                 }
-                else 
+                else {
+//Console.OUT.println("depth: " + box.depth());
+//logger.listDepthOfPaths.add(box.depth());
+logger.incrDepthCount(box.depth());
 		            //solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
 		            solutions.add(box);
+                }
 
 val t = format(System.nanoTime());
 while (t >= tLogNext) {
@@ -127,6 +133,11 @@ while (t >= tLogNext) {
     nrBak = nr;
 } 
             }        
+            else { // hasNoSolution()
+//Console.OUT.println("depth: " + box.depth());
+//logger.listDepthOfPaths.add(box.depth());
+logger.incrDepthCount(box.depth());
+            }
         }
 //Console.OUT.println(here + ": processed: " + cntPrune);
         return !list.isEmpty();
@@ -168,6 +179,8 @@ while (t >= tLogNext) {
         sb.add("{\"# prunes\":" + cntPrune + 
             ", \"# branches\":" + cntBranch + 
             ", \"# solutions\":" + solutions.size() + "}");
+
+		core.finalize();
     }
 
     @Inline public def count() = cntPrune;
