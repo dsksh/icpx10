@@ -12,7 +12,7 @@ public class IntervalArray implements IntervalVec[Long] {
 
     var volume : Double;
 
-    var depth:Long;
+//var depth:Long;
 
     public var vit:Iterator[Long] = null;
     public def vit() : Iterator[Long] { return vit; }
@@ -26,13 +26,13 @@ public class IntervalArray implements IntervalVec[Long] {
     public def this(size:Long) : IntervalArray { 
         theArray = new Rail[Interval](size);
         volume = -1;
-        depth = 0;
+//depth = 0;
     } 
     public def this(rhs:IntervalArray) : IntervalArray { 
         theArray = new Rail[Interval](rhs.theArray);
         this.prevVar = rhs.prevVar;
         this.volume = rhs.volume;
-        this.depth = rhs.depth;
+//this.depth = rhs.depth;
     } 
 
     public operator this(k:Long) : Box[Interval] = get(k);
@@ -114,10 +114,11 @@ atomic {
     }
 
     public def depth() : Long {
-        return depth;
+//return depth;
+        return 0;
     }
     public def deepen() {
-        depth++;
+//depth++;
     }
 
     var count:Long = 0;

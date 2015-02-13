@@ -111,9 +111,7 @@ logger.stopProc();
                     list.add(bp.second);
                 }
                 else {
-//Console.OUT.println("depth: " + box.depth());
-//logger.listDepthOfPaths.add(box.depth());
-logger.incrDepthCount(box.depth());
+//logger.incrDepthCount(box.depth());
 		            //solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
 		            solutions.add(box);
                 }
@@ -134,9 +132,7 @@ while (t >= tLogNext) {
 } 
             }        
             else { // hasNoSolution()
-//Console.OUT.println("depth: " + box.depth());
-//logger.listDepthOfPaths.add(box.depth());
-logger.incrDepthCount(box.depth());
+//logger.incrDepthCount(box.depth());
             }
         }
 //Console.OUT.println(here + ": processed: " + cntPrune);
