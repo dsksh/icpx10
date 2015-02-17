@@ -191,6 +191,7 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
      * @return {@code true} (as specified by {@link Collection#add})
      */
     public def add(e:E): Boolean {
+if (e == null) Console.ERR.println("adding null!");
         linkLast(e);
         return true;
     }
@@ -201,6 +202,7 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
      * @param e the element to add
      */
     public def addFirst(e:E): void {
+if (e == null) Console.ERR.println("adding null!");
         linkFirst(e);
     }
 
@@ -212,6 +214,7 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
      * @param e the element to add
      */
     public def addLast(e:E): void {
+if (e == null) Console.ERR.println("adding null!");
         linkLast(e);
     }
 
@@ -226,6 +229,7 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
      */
     public def addBefore(index:Long, element:E): void {
         checkPositionIndex(index);
+if (element == null) Console.ERR.println("adding null!");
 
         if (index == size)
             linkLast(element);
@@ -246,44 +250,45 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
      */
     public def set(element:E, index:Long): E {
         checkElementIndex(index);
+if (element == null) Console.ERR.println("adding null!");
         val x:Node[E] = node(index);
         val oldVal:E = x.item();
         x.item = new Box[E](element);
         return oldVal;
     }
 
-//    /**
-//     * Appends all of the elements in the specified collection to the end of
-//     * this list, in the order that they are returned by the specified
-//     * collection's iterator.  The behavior of this operation is undefined if
-//     * the specified collection is modified while the operation is in
-//     * progress.  (Note that this will occur if the specified collection is
-//     * this list, and it's nonempty.)
-//     *
-//     * @param c collection containing elements to be added to this list
-//     * @return {@code true} if this list changed as a result of the call
-//     * @throws NullPointerException if the specified collection is null
-//     */
-//    public def addAll(c:Collection[E]): Boolean {
-//        return addAll(size, c);
-//    }
-//
-//    /**
-//     * Inserts all of the elements in the specified collection into this
-//     * list, starting at the specified position.  Shifts the element
-//     * currently at that position (if any) and any subsequent elements to
-//     * the right (increases their indices).  The new elements will appear
-//     * in the list in the order that they are returned by the
-//     * specified collection's iterator.
-//     *
-//     * @param index index at which to insert the first element
-//     *              from the specified collection
-//     * @param c collection containing elements to be added to this list
-//     * @return {@code true} if this list changed as a result of the call
-//     * @throws IndexOutOfBoundsException {@inheritDoc}
-//     * @throws NullPointerException if the specified collection is null
-//     */
-//    public def addAll(index:Long, c:Collection[E]): Boolean {
+    /**
+     * Appends all of the elements in the specified collection to the end of
+     * this list, in the order that they are returned by the specified
+     * collection's iterator.  The behavior of this operation is undefined if
+     * the specified collection is modified while the operation is in
+     * progress.  (Note that this will occur if the specified collection is
+     * this list, and it's nonempty.)
+     *
+     * @param c collection containing elements to be added to this list
+     * @return {@code true} if this list changed as a result of the call
+     * @throws NullPointerException if the specified collection is null
+     */
+    public def addAll(c:Collection[E]): Boolean {
+        return addAll(size, c);
+    }
+
+    /**
+     * Inserts all of the elements in the specified collection into this
+     * list, starting at the specified position.  Shifts the element
+     * currently at that position (if any) and any subsequent elements to
+     * the right (increases their indices).  The new elements will appear
+     * in the list in the order that they are returned by the
+     * specified collection's iterator.
+     *
+     * @param index index at which to insert the first element
+     *              from the specified collection
+     * @param c collection containing elements to be added to this list
+     * @return {@code true} if this list changed as a result of the call
+     * @throws IndexOutOfBoundsException {@inheritDoc}
+     * @throws NullPointerException if the specified collection is null
+     */
+    public def addAll(index:Long, c:Collection[E]): Boolean {
 //        checkPositionIndex(index);
 //
 //        Object[] a = c.toArray();
@@ -320,7 +325,48 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
 //        size += numNew;
 //        modCount++;
 //        return true;
-//    }
+
+        checkPositionIndex(index);
+
+		var pred:Node[E], succ:Node[E];
+        if (index == size) {
+            succ = null;
+            pred = last;
+        } else {
+            succ = node(index);
+            pred = succ.prev;
+        }
+
+        //val a = c.toArray();
+        //val numNew = a.length;
+
+		var numNew:Long = 0;
+        for (e in c) {
+            //@SuppressWarnings("unchecked") E e = (E) o;
+            val newNode = new Node[E](pred, e, null);
+            if (pred == null)
+                first = newNode;
+            else
+                pred.next = newNode;
+            pred = newNode;
+
+			numNew++;
+        }
+
+        if (numNew == 0)
+            return false;
+
+        if (succ == null) {
+            last = pred;
+        } else {
+            pred.next = succ;
+            succ.prev = pred;
+        }
+
+        size += numNew;
+        modCount++;
+        return true;
+    }
 
     /**
      * Removes the first occurrence of the specified element from this list,
@@ -972,6 +1018,7 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
         def this(index:Long) {
             // assert isPositionIndex(index);
             next = (index == size) ? null : node(index);
+if (index >= size && next == null) Console.ERR.println("next is null but should not be0");
             nextIndex = index;
         }
 
@@ -988,9 +1035,13 @@ public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
             if (!hasNext())
                 throw new NoSuchElementException();
 
+assert(next != null);
+//Console.ERR.println("next is null!");
+
             lastReturned = next;
             next = next.next;
             nextIndex++;
+if (hasNext() && next == null) Console.ERR.println("next is null but should not be!");
             return lastReturned.item();
         }
 

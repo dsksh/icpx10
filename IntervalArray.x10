@@ -63,7 +63,7 @@ public class IntervalArray implements IntervalVec[Long] {
     }
 
     public def split(variable:Long) : Pair[IntervalVec[Long],IntervalVec[Long]] {
-atomic {
+//atomic {
         val b1 = new IntervalArray(this); 
         val b2 = new IntervalArray(this); 
         val ip = get(variable)().split();
@@ -71,7 +71,7 @@ atomic {
         b2.put(variable, ip.second);
         b1.deepen(); b2.deepen();
         return new Pair[IntervalVec[Long],IntervalVec[Long]](b1,b2);
-}
+//}
     }
 
     public def width() : Double {
