@@ -199,14 +199,14 @@ public final class Logger {
             val sb = new StringBuilder();
 
             sb.add("{\"pid\":" + Runtime.hereLong() + ", ");
-            sb.add("\"t alive\":"      + sub("" + (timeAlive/1E9), 0n, 6n) + ", ");
-            sb.add("\"t dead\":"       + sub("" + (timeDead/1E9), 0n, 6n) + ", ");
-            sb.add("\"t total\":"      + sub("" + ((timeAlive + timeDead)/1E9), 0n, 6n) + ", ");
-            sb.add("\"ta ratio (%)\":" + sub("" + (100.0*timeAlive/(timeAlive+timeDead)), 0n, 6n) + ", ");
-            sb.add("\"t rel\":"        + sub("" + ((startTime-timeReference)/1E9), 0n, 6n) + ", ");
-            sb.add("\"t lssl\":"       + sub("" + ((lastStartStopLiveTimeStamp-timeReference)/1E9), 0n, 6n)  + ", ");
-            sb.add("\"t proc\":"       + sub("" + (timeProc/1E9), 0n, 6n)  + ", ");
-            //sb.add("\"t comm\":"       + sub("" + (timeComm/1E9), 0n, 6n)  + ", ");
+            sb.add("\"t alive\":"      + "" + (timeAlive/1E9) + ", ");
+            sb.add("\"t dead\":"       + "" + (timeDead/1E9) + ", ");
+            sb.add("\"t total\":"      + "" + ((timeAlive + timeDead)/1E9) + ", ");
+            sb.add("\"ta ratio (%)\":" + "" + (100.0*timeAlive/(timeAlive+timeDead)) + ", ");
+            sb.add("\"t rel\":"        + "" + ((startTime-timeReference)/1E9) + ", ");
+            sb.add("\"t lssl\":"       + "" + ((lastStartStopLiveTimeStamp-timeReference)/1E9)  + ", ");
+            sb.add("\"t proc\":"       + "" + (timeProc/1E9) + ", ");
+            //sb.add("\"t comm\":"       + "" + (timeComm/1E9) + ", ");
             sb.add("\"nodes count\":"  + nodesCount + ", ");
             sb.add("\"nodes given\":"  + nodesGiven + ", ");
             sb.add("\"nodes recv\":"   + nodesReceived + ", ");

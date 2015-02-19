@@ -470,7 +470,7 @@ if (element == null) Console.ERR.println("adding null!");
     public def getFirst(): E {
         val f:Node[E] = first;
         if (f == null)
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("NSEE1");
         return f.item();
     }
 
@@ -483,7 +483,7 @@ if (element == null) Console.ERR.println("adding null!");
     public def getLast(): E {
         val l:Node[E] = last;
         if (l == null)
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("NSEE2");
         return l.item();
     }
 
@@ -496,7 +496,7 @@ if (element == null) Console.ERR.println("adding null!");
     public def removeFirst(): E {
         val f:Node[E] = first;
         if (f == null)
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("NSEE3: " + size);
         return unlinkFirst(f);
     }
 
@@ -509,7 +509,7 @@ if (element == null) Console.ERR.println("adding null!");
     public def removeLast(): E {
         val l:Node[E] = last;
         if (l == null)
-            throw new NoSuchElementException();
+            throw new NoSuchElementException("NSEE4");
         return unlinkLast(l);
     }
 
@@ -526,7 +526,7 @@ if (element == null) Console.ERR.println("adding null!");
     	var n:Node[E] = node(begin);
         for (var i: Long = begin; i < size() && i < end; i++) {
 			if (n == null)
-            	throw new NoSuchElementException();
+            	throw new NoSuchElementException("NSEE5");
            	l.add(n.item());
 			n = n.next;
         }
@@ -1033,15 +1033,14 @@ if (index >= size && next == null) Console.ERR.println("next is null but should 
         public def next(): E {
             checkForComodification();
             if (!hasNext())
-                throw new NoSuchElementException();
+                throw new NoSuchElementException("NSEE6");
 
-assert(next != null);
-//Console.ERR.println("next is null!");
+if (next == null) Console.ERR.println("next is null!");
 
             lastReturned = next;
             next = next.next;
             nextIndex++;
-if (hasNext() && next == null) Console.ERR.println("next is null but should not be!");
+if (hasNext() && next == null) Console.ERR.println("next is null but should not be! " + nextIndex + ", " + size);
             return lastReturned.item();
         }
 
@@ -1056,7 +1055,7 @@ if (hasNext() && next == null) Console.ERR.println("next is null but should not 
         public def previous(): E {
             checkForComodification();
             if (!hasPrevious())
-                throw new NoSuchElementException();
+                throw new NoSuchElementException("NSEE7");
 
             lastReturned = next = (next == null) ? last : next.prev;
             nextIndex--;

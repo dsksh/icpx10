@@ -26,14 +26,46 @@ public class Queue[K] extends BAPSolver[K]
     //val solutions:ArrayList[Pair[BAPSolver.Result,IntervalVec[K]]];
     val solutions:ArrayList[IntervalVec[K]];
 
+    private val listLock = new Lock();
+    protected def tryLockList() : Boolean {
+        return listLock.tryLock();
+    }
+    protected def lockList() {
+        if (!listLock.tryLock()) {
+            Runtime.increaseParallelism();
+            listLock.lock();
+            Runtime.decreaseParallelism(1n);
+        }
+    }
+    protected def unlockList() {
+        listLock.unlock();
+    }
+
+    private val solutionsLock = new Lock();
+    protected def tryLockSolutions() : Boolean {
+        return solutionsLock.tryLock();
+    }
+    protected def lockSolutions() {
+        if (!solutionsLock.tryLock()) {
+            Runtime.increaseParallelism();
+            solutionsLock.lock();
+            Runtime.decreaseParallelism(1n);
+        }
+    }
+    protected def unlockSolutions() {
+        solutionsLock.unlock();
+    }
+
     public def this(core:Core[K], selector:(Result, IntervalVec[K])=>Box[K]) {
         super(core, selector);
 
+//lockList();
         list = new LinkedList[IntervalVec[K]]();
         if (here.id() == 0) {
 		    val box = core.getInitialDomain();
             list.add(box);
         }
+//unlockList();
 
         //solutions = new ArrayList[Pair[BAPSolver.Result, IntervalVec[K]]]();
         solutions = new ArrayList[IntervalVec[K]]();
@@ -44,6 +76,9 @@ public class Queue[K] extends BAPSolver[K]
       //Context[Queue[K], SolutionSet[K]]) 
     {
         var box:IntervalVec[K] = null;
+
+try {
+lockList();
 
         var i:Long = 0;
         for (; i < n && !list.isEmpty(); ++i) {
@@ -68,12 +103,19 @@ public class Queue[K] extends BAPSolver[K]
                     list.add(bp.second);
                 }
                 else 
+lockSolutions();
 		            //solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
 		            solutions.add(box);
+unlockSolutions();
             }        
         }
 //Console.OUT.println(here + ": processed: " + cntPrune);
+
         return i == n;
+}
+finally {
+	unlockList();
+}
     }
 
     @Inline static def format(t:Long) = (t as Double) * 1.0e-9;
@@ -87,6 +129,9 @@ public class Queue[K] extends BAPSolver[K]
         var box:IntervalVec[K] = null;
 
         val tStart = System.nanoTime();
+
+try {
+lockList();
 
     	while (format(System.nanoTime()-tStart) < interval && !list.isEmpty()) {
 
@@ -111,9 +156,12 @@ logger.stopProc();
                     list.add(bp.second);
                 }
                 else {
+// count depth
 //logger.incrDepthCount(box.depth());
+lockSolutions();
 		            //solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
 		            solutions.add(box);
+unlockSolutions();
                 }
 
 val t = format(System.nanoTime());
@@ -132,14 +180,23 @@ while (t >= tLogNext) {
 } 
             }        
             else { // hasNoSolution()
+// count depth
 //logger.incrDepthCount(box.depth());
             }
         }
 //Console.OUT.println(here + ": processed: " + cntPrune);
+
         return !list.isEmpty();
+}
+finally {
+	unlockList();
+}
     }
 
     public def split() {
+try {
+lockList();
+
         val sz = list.size();
         if (sz <= 1)
             return null;
@@ -156,11 +213,17 @@ while (t >= tLogNext) {
         list = list1;
 
         return bag;
+}
+finally {
+	unlockList();
+}
     }
 
     public def merge(bag:Bag[K]) {
+lockList();
         for (b in bag.data) if (b != null)
             list.add(b);
+unlockList();
     }
 
     public def merge(bag:TaskBag) {
@@ -169,12 +232,11 @@ while (t >= tLogNext) {
 
     // override
     public def printLog(sb:StringBuilder){
-        //Console.OUT.println("{\"# prunes\":" + cntPrune + 
-        //    ", \"# branches\":" + cntBranch + 
-        //    ", \"# solutions\":" + solutions.size() + "}");
+lockSolutions();
         sb.add("{\"# prunes\":" + cntPrune + 
             ", \"# branches\":" + cntBranch + 
             ", \"# solutions\":" + solutions.size() + "}");
+unlockSolutions();
 
 		core.finalize();
     }
@@ -182,29 +244,17 @@ while (t >= tLogNext) {
     @Inline public def count() = cntPrune;
 
 
-    var result:RPX10Result = null;
+    //var result:RPX10Result = null;
     public def getResult(): RPX10Result {
         return new RPX10Result();
     }
 
-    /*public class RPX10Result extends GLBResult[SolutionSet[K]]{
-        r:Rail[SolutionSet[K]] = new Rail[SolutionSet[K]](1);
-        public def getResult() : Rail[SolutionSet[K]] {
-            r(0) = SolutionSet[K](solutions.toRail());
-            return r;
-        }
-        public def getReduceOperator() : Int {
-            return Team.AND;
-        }
-        public def display(r:Rail[SolutionSet[K]]) : void {
-            Console.OUT.println("# results: " + r(0).data.size);
-        }
-    }
-    */
     public class RPX10Result extends GLBResult[Long] {
         r:Rail[Long] = new Rail[Long](1);
         public def getResult() : Rail[Long] {
+lockSolutions();
             r(0) = solutions.size();
+unlockSolutions();
             return r;
         }
         public def getReduceOperator() : Int {
