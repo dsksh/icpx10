@@ -30,14 +30,6 @@ public interface IntervalVec[K] {
     public def get(key:K) : Box[Interval];
     public def getOrThrow(key:K) : Interval; //throws NoSuchElementException
     public def put(key:K, value:Interval) : Box[Interval];
-
-    /*public operator this*(that:IntervalVec[K]) : IntervalVec[K];
-    public operator +this : IntervalVec[K];
-    public operator this+(that:IntervalVec[K]) : IntervalVec[K];
-    public operator -this : IntervalVec[K];
-    public operator this-(that:IntervalVec[K]) : IntervalVec[K];
-    public operator this/(that:IntervalVec[K]) : IntervalVec[K];
-    */
 }
 
 // vim: shiftwidth=4:tabstop=4:expandtab

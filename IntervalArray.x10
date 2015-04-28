@@ -17,7 +17,6 @@ public class IntervalArray implements IntervalVec[Long] {
 
     public var vit:Iterator[Long] = null;
     public def vit() : Iterator[Long] { return vit; }
-    //public var vit:MyHashMap.KeyIterator[String,Interval] = null;
     //public var prevVar:Long = -1;
     public var prevVar:Long = 0; // cf: rp::SplitSelectRoundRobin
     public def prevVar() : Box[Long] { return (prevVar >= 0) ? new Box(prevVar) : null; }

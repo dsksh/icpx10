@@ -12,7 +12,7 @@ public class PlaceAgentSeq[K] extends PlaceAgent[K] {
 
     var preprocessor:PreprocessorSeq[K] = null;
 
-    public def this(solver:BAPSolver[K]) {
+    public def this(solver:BAPSolverImpl[K]) {
         super(solver);
 
 		val gNSS = new GlobalRef(new Cell[Long](0));

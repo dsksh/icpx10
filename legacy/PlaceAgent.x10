@@ -18,7 +18,7 @@ public class PlaceAgent[K] {
 
     //var loc:AtomicInteger = new AtomicInteger(0);
 
-    val solver:BAPSolver[K];
+    val solver:BAPSolverImpl[K];
     val list:List[IntervalVec[K]];
     //val list:CircularQueue[IntervalVec[K]];
     val solutions:List[Pair[BAPSolver.Result,IntervalVec[K]]];
@@ -53,7 +53,7 @@ public class PlaceAgent[K] {
     val dummy:Double;
     val dummyI:Interval;
 
-    public def this(solver:BAPSolver[K]) {
+    public def this(solver:BAPSolverImpl[K]) {
         this.solver = solver;
 
 /*        val debug = System.getenv("RPX10_DEBUG");

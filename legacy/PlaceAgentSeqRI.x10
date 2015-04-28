@@ -10,7 +10,7 @@ public class PlaceAgentSeqRI[K] extends PlaceAgentSeq[K] {
     // max number of requests
     val maxNRequests:Long;
 
-    public def this(solver:BAPSolver[K]) {
+    public def this(solver:BAPSolverImpl[K]) {
         super(solver);
 
 		var rth:Double = 0;

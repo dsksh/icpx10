@@ -86,22 +86,22 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
         break;
     case 11: 
         yl[2] = "-1"; yu[2] = "1";
-        yl[3] = "-1"; yu[2] = "1";
-        yl[4] = "-1"; yu[2] = "1";
+        yl[3] = "-1"; yu[3] = "1";
+        yl[4] = "-1"; yu[4] = "1";
         yl[5] = "-1"; yu[5] = "1";
 		break;
     case 12: 
         yl[2] = "-1"; yu[2] = "1";
-        yl[3] = "-1"; yu[2] = "1";
-        yl[4] = "-1"; yu[2] = "1";
+        yl[3] = "-1"; yu[3] = "1";
+        yl[4] = "-1"; yu[4] = "1";
         yl[5] = "-1"; yu[5] = "1";
         yl[6] = "-1"; yu[6] = "1";
         yl[7] = "-1"; yu[7] = "1";
 		break;
     case 13: 
         yl[2] = "-1"; yu[2] = "1";
-        yl[3] = "-1"; yu[2] = "1";
-        yl[4] = "-1"; yu[2] = "1";
+        yl[3] = "-1"; yu[3] = "1";
+        yl[4] = "-1"; yu[4] = "1";
         yl[5] = "-1"; yu[5] = "1";
         yl[6] = "-1"; yu[6] = "1";
         yl[7] = "-1"; yu[7] = "1";
@@ -137,6 +137,20 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
         yl[0] = "0"; yu[0] = "32";
         yl[1] = "0"; yu[1] = "32";
         yl[2] = "0"; yu[2] = "32";
+        break;
+    case 18: 
+        xl[0] = "-50"; xu[0] = "50";
+        xl[1] = "-50"; xu[1] = "50";
+        xl[2] = "-50"; xu[2] = "50";
+        xl[3] = "-50"; xu[3] = "50";
+        xl[4] = "-50"; xu[4] = "50";
+        xl[5] = "-50"; xu[5] = "50";
+        yl[0] = "0"; yu[0] = "32";
+        yl[1] = "0"; yu[1] = "32";
+        yl[2] = "0"; yu[2] = "32";
+        yl[3] = "0"; yu[3] = "32";
+        yl[4] = "0"; yu[4] = "32";
+        yl[5] = "0"; yu[5] = "32";
         break;
     }
 
@@ -331,6 +345,7 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
         f[3] = new Term(x[0] + x[1] + y[2] + y[3]);
         f[4] = new Term(x[0] + x[1] + y[3] + y[4]);
         f[5] = new Term(x[0] + x[1] + y[4] + y[5]);
+        break;
     }
 
     case 12: { // Sphere (2x8)
@@ -343,6 +358,7 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
         f[5] = new Term(x[0] + x[1] + y[4] + y[5]);
         f[6] = new Term(x[0] + x[1] + y[5] + y[6]);
         f[7] = new Term(x[0] + x[1] + y[6] + y[7]);
+        break;
     }
 
     case 13: { // Sphere (2x16)
@@ -363,6 +379,7 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
         f[13] = new Term(x[0] + x[1] + y[12] + y[13]);
         f[14] = new Term(x[0] + x[1] + y[13] + y[14]);
         f[15] = new Term(x[0] + x[1] + y[14] + y[15]);
+        break;
     }
 
     case 14: { // Robot (2x3x2, under-constrained)
@@ -451,6 +468,40 @@ void def_problem(sp<Problem> problem, sp<Scope> proj_sc, sp<Scope> param_sc,
         f[0] = new Term( sqr(x[0]-CX1) + sqr(x[1]-CY1) + sqr(x[2]-CZ1) - sqr(y[0]) );
         f[1] = new Term( sqr(x[0]-CX2) + sqr(x[1]-CY2) + sqr(x[2]-CZ2) - sqr(y[1]) );
         f[2] = new Term( sqr(x[0]-CX3) + sqr(x[1]-CY3) + sqr(x[2]-CZ3) - sqr(y[2]) );
+        break;
+    }
+
+    case 18: { // Stewart (6x6)
+        dim = dim_x = dim_f = 6;
+        static const Constant RB(1.0);
+        static const Constant RP(1.0);
+        static const Constant PB(0.5);
+        static const Constant PP(0.5);
+
+        Term R11( cos(x[3])*cos(x[4]) );
+        Term R12( cos(x[3])*sin(x[4])*sin(x[5]) - sin(x[3])*cos(x[5]) );
+        Term R21( sin(x[3])*cos(x[4]) );
+        Term R22( sin(x[3])*sin(x[4])*sin(x[5]) - cos(x[3])*cos(x[5]) );
+        Term R31( 0.-sin(x[4]) );
+        Term R32( cos(x[4])*sin(x[5]) );
+
+        bool s(0);
+        for (int i(0); i < 6; ++i) {
+            Term Bx( RB*cos(gaol::pi*(i/2+1)/3+(s?-1:1)*PB) );
+            Term By( RB*sin(gaol::pi*(i/2+1)/3+(s?-1:1)*PB) );
+            Term Px( RP*cos(gaol::pi*(i/2+1)/3+(s?-1:1)*PP) );
+            Term Py( RP*sin(gaol::pi*(i/2+1)/3+(s?-1:1)*PP) );
+            s = !s;
+
+            f[i] = new Term (
+            sqr(x[0]) + sqr(x[1]) + sqr(x[2]) + sqr(RP) + sqr(RB)
+            + 2* (R11*Px + R12*Py) * (x[0]-Bx)
+            + 2* (R21*Px + R21*Py) * (x[1]-By)
+            + 2* (R31*Px + R32*Py) * x[2]
+            - 2* (x[0]*Bx + x[1]*By)
+            - sqr(y[i])
+            );
+        }
         break;
     }
 

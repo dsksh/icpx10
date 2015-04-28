@@ -6,7 +6,7 @@ import x10.io.Console;
 
 public class PlaceAgentSeqSID[K] extends PlaceAgentSeqSI[K] {
 
-    public def this(solver:BAPSolver[K]) {
+    public def this(solver:BAPSolverImpl[K]) {
         super(solver);
 
         for (0..4) loadsBak.add(0);

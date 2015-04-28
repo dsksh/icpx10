@@ -81,7 +81,7 @@ public class PlaceAgentSeqSI[K] extends PlaceAgentSeq[K] {
     }
 
 
-    public def this(solver:BAPSolver[K]) {
+    public def this(solver:BAPSolverImpl[K]) {
         super(solver);
 
         // read env variables.

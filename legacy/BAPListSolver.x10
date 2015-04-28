@@ -2,7 +2,7 @@
 import x10.util.*;
 import x10.io.Console; 
 
-public class BAPListSolver[K] extends BAPSolver[K] {
+public class BAPListSolver[K] extends BAPSolverImpl[K] {
 
     public def this(core:Core[K], selector:(Result, IntervalVec[K])=>Box[K]) {
         super(core, selector);

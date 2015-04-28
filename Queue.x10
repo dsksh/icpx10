@@ -41,21 +41,6 @@ public class Queue[K] extends BAPSolver[K]
         listLock.unlock();
     }
 
-    private val solutionsLock = new Lock();
-    protected def tryLockSolutions() : Boolean {
-        return solutionsLock.tryLock();
-    }
-    protected def lockSolutions() {
-        if (!solutionsLock.tryLock()) {
-            Runtime.increaseParallelism();
-            solutionsLock.lock();
-            Runtime.decreaseParallelism(1n);
-        }
-    }
-    protected def unlockSolutions() {
-        solutionsLock.unlock();
-    }
-
     public def this(core:Core[K], selector:(Result, IntervalVec[K])=>Box[K]) {
         super(core, selector);
 
@@ -103,10 +88,8 @@ lockList();
                     list.add(bp.second);
                 }
                 else 
-lockSolutions();
 		            //solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
 		            solutions.add(box);
-unlockSolutions();
             }        
         }
 //Console.OUT.println(here + ": processed: " + cntPrune);
@@ -157,11 +140,9 @@ logger.stopProc();
                 }
                 else {
 // count depth
-//logger.incrDepthCount(box.depth());
-lockSolutions();
+logger.incrDepthCount(box.depth());
 		            //solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
 		            solutions.add(box);
-unlockSolutions();
                 }
 
 val t = format(System.nanoTime());
@@ -181,7 +162,7 @@ while (t >= tLogNext) {
             }        
             else { // hasNoSolution()
 // count depth
-//logger.incrDepthCount(box.depth());
+logger.incrDepthCount(box.depth());
             }
         }
 //Console.OUT.println(here + ": processed: " + cntPrune);
@@ -232,11 +213,9 @@ unlockList();
 
     // override
     public def printLog(sb:StringBuilder){
-lockSolutions();
         sb.add("{\"# prunes\":" + cntPrune + 
             ", \"# branches\":" + cntBranch + 
             ", \"# solutions\":" + solutions.size() + "}");
-unlockSolutions();
 
 		core.finalize();
     }
@@ -252,9 +231,7 @@ unlockSolutions();
     public class RPX10Result extends GLBResult[Long] {
         r:Rail[Long] = new Rail[Long](1);
         public def getResult() : Rail[Long] {
-lockSolutions();
             r(0) = solutions.size();
-unlockSolutions();
             return r;
         }
         public def getReduceOperator() : Int {

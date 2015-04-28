@@ -7,13 +7,11 @@ class Dummy_IntervalMap {
     val dummy : Interval = new Interval(0.,0.);
 }
 
-//public class IntervalMap extends MyHashMap[String,Interval]
 public class IntervalMap extends HashMap[String,Interval] 
 implements IntervalVec[String] { 
 
     public var vit:Iterator[String] = null;
     public def vit() : Iterator[String] { return vit; }
-    //public var vit:MyHashMap.KeyIterator[String,Interval] = null;
 
     public var prevVar:String = null;
     public def prevVar() : Box[String] { return (prevVar != null) ? new Box(prevVar) : null; }
