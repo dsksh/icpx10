@@ -1018,7 +1018,7 @@ if (element == null) Console.ERR.println("adding null!");
         def this(index:Long) {
             // assert isPositionIndex(index);
             next = (index == size) ? null : node(index);
-if (index >= size && next == null) Console.ERR.println("next is null but should not be0");
+if (index > size && next == null) Console.ERR.println("next is null but should not be!");
             nextIndex = index;
         }
 
@@ -1040,7 +1040,7 @@ if (next == null) Console.ERR.println("next is null!");
             lastReturned = next;
             next = next.next;
             nextIndex++;
-if (hasNext() && next == null) Console.ERR.println("next is null but should not be! " + nextIndex + ", " + size);
+if (hasNext() && next == null) Console.ERR.println("next is null but should not be!! " + nextIndex + ", " + size);
             return lastReturned.item();
         }
 

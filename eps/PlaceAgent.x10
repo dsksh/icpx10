@@ -6,14 +6,10 @@ import x10.io.Console;
 
 public class PlaceAgent[K] {
 
-    //val sizeNbors:Long = 5; // FIXME
     val solver:BAPSolverImpl[K];
     val list:List[IntervalVec[K]];
-    //val list:CircularQueue[IntervalVec[K]];
     val solutions:List[Pair[BAPSolver.Result,IntervalVec[K]]];
 
-    //val reqQueue:CircularQueue[Long];
-    //var terminate:Int = TokActive;
     var nSentRequests:AtomicInteger = new AtomicInteger(0n);
     var sentBw:AtomicBoolean = new AtomicBoolean(false);
     var active:Boolean = false;
@@ -49,15 +45,13 @@ public class PlaceAgent[K] {
 
     var preprocessor:Preprocessor[K] = null;
 
-    val deltaBox:Long;
-    val deltaRelBox1:Double;
-    val deltaRelBox2:Double;
-    val deltaLoad:Long;
-    val deltaRelLoad:Double;
+    //val deltaBox:Long;
+    //val deltaRelBox1:Double;
+    //val deltaRelBox2:Double;
+    //val deltaLoad:Long;
+    //val deltaRelLoad:Double;
     val accelThres:Long;
-    //var nSendsBox:Double;
     var nSendsLoad:Long;
-    //val minNSendsBox:Double;
 
     val tSearchInterval:Double;
 
@@ -163,55 +157,53 @@ public class PlaceAgent[K] {
         listShared = new LinkedList[IntervalVec[K]]();
 
         // read env variables.
-		val gDB = new GlobalRef(new Cell[Long](0));
-		val gDRB1 = new GlobalRef(new Cell[Double](0.));
-		val gDRB2 = new GlobalRef(new Cell[Double](0.));
-		val gDL = new GlobalRef(new Cell[Long](0));
-		val gDRL = new GlobalRef(new Cell[Double](0.));
+		//val gDB = new GlobalRef(new Cell[Long](0));
+		//val gDRB1 = new GlobalRef(new Cell[Double](0.));
+		//val gDRB2 = new GlobalRef(new Cell[Double](0.));
+		//val gDL = new GlobalRef(new Cell[Long](0));
+		//val gDRL = new GlobalRef(new Cell[Double](0.));
 		val gAT = new GlobalRef(new Cell[Long](0));
 		val gNSB = new GlobalRef(new Cell[Double](0.));
 		val gNSL = new GlobalRef(new Cell[Long](0));
 		val gSI = new GlobalRef(new Cell[Double](0.));
         //val p0 = Place(0);
 		at (p0) {
-   			val sDB = System.getenv("RPX10_DELTA_BOX");
-   			val sDRB1 = System.getenv("RPX10_DELTA_REL_BOX1");
-   			val sDRB2 = System.getenv("RPX10_DELTA_REL_BOX2");
-   			val sDL = System.getenv("RPX10_DELTA_LOAD");
-   			val sDRL = System.getenv("RPX10_DELTA_REL_LOAD");
+   			//val sDB = System.getenv("RPX10_DELTA_BOX");
+   			//val sDRB1 = System.getenv("RPX10_DELTA_REL_BOX1");
+   			//val sDRB2 = System.getenv("RPX10_DELTA_REL_BOX2");
+   			//val sDL = System.getenv("RPX10_DELTA_LOAD");
+   			//val sDRL = System.getenv("RPX10_DELTA_REL_LOAD");
    			val sAT = System.getenv("RPX10_ACCEL_THRES");
    			val sNSB = System.getenv("RPX10_N_SENDS_BOX");
    			val sNSL = System.getenv("RPX10_N_SENDS_LOAD");
    			val sSI = System.getenv("RPX10_SEARCH_INTERVAL");
-			val nDB:Long = sDB != null ? Long.parse(sDB) : 10;
-			val nDRB1:Double = sDRB1 != null ? Double.parse(sDRB1) : 0.;
-			val nDRB2:Double = sDRB2 != null ? Double.parse(sDRB2) : 0.;
-			val nDL:Long = sDL != null ? Long.parse(sDL) : 0;
-			val nDRL:Double = sDRL != null ? Double.parse(sDRL) : 0.;
+			//val nDB:Long = sDB != null ? Long.parse(sDB) : 10;
+			//val nDRB1:Double = sDRB1 != null ? Double.parse(sDRB1) : 0.;
+			//val nDRB2:Double = sDRB2 != null ? Double.parse(sDRB2) : 0.;
+			//val nDL:Long = sDL != null ? Long.parse(sDL) : 0;
+			//val nDRL:Double = sDRL != null ? Double.parse(sDRL) : 0.;
 			val nAT:Long = sAT != null ? Long.parse(sAT) : -1;
 			val nNSB:Double = sNSB != null ? Double.parse(sNSB) : 2.;
 			val nNSL:Long = sNSL != null ? Long.parse(sNSL) : 2;
 			val nSI:Double  = sSI != null ? Double.parse(sSI) : 1.;
-			at (gDB.home) {
-				gDB().set(nDB);
-				gDRB1().set(nDRB1);
-				gDRB2().set(nDRB2);
-				gDL().set(nDL);
+			at (gAT.home) {
+				//gDB().set(nDB);
+				//gDRB1().set(nDRB1);
+				//gDRB2().set(nDRB2);
+				//gDL().set(nDL);
+				//gDRL().set(nDRL);
 				gAT().set(nAT);
-				gDRL().set(nDRL);
 				gNSB().set(nNSB);
 				gNSL().set(nNSL);
 				gSI().set(nSI);
             }
 		}
-    	deltaBox = gDB().value;
-    	deltaRelBox1 = gDRB1().value;
-    	deltaRelBox2 = gDRB2().value;
-    	deltaLoad = gDL().value;
-    	deltaRelLoad = gDRL().value;
+    	//deltaBox = gDB().value;
+    	//deltaRelBox1 = gDRB1().value;
+    	//deltaRelBox2 = gDRB2().value;
+    	//deltaLoad = gDL().value;
+    	//deltaRelLoad = gDRL().value;
     	accelThres = gAT().value;
-    	//nSendsBox = gNSB().value;
-    	//minNSendsBox = gNSB().value;
     	nSendsLoad = gNSL().value;
     	tSearchInterval = gSI().value;
 
@@ -368,62 +360,38 @@ tEndPP = -System.nanoTime();
         finish while (preprocessor.process(sHandle)) {}
 
         //finish
-        while (//getTerminate() != TokDead || 
-               (list.size()+listShared.size()) > 0) {
-//finish {
-            //if (!preprocessor.process(sHandle)) {
-
-			    //balance(sHandle);
-
-//                if (here.id() == 0 &&
-//                    (list.size()+listShared.size()) == 0 //&& getTerminate() == TokActive 
-//                ) {
-//                    // force search to activate termination
-//                    //addDomShared(sHandle().solver.core.dummyBox());
-//				    atomic active = true;
-//                }
-    
-   			    search(sHandle);
-            //}
-
-//            if (here.id() == 0) {
-//                lockTerminate();
-//                if ((list.size()+listShared.size()) == 0 && terminate == TokActive) {
-//debugPrint(here + ": start termination");
-//                    terminate = TokInvoke;
-//    		    }
-//                unlockTerminate();
-//            }
-//tWaitComm -= System.nanoTime();
-//}
-//tWaitComm += System.nanoTime();
-			
-			//terminate(sHandle);
-
+        while ( (list.size()+listShared.size()) > 0 ) {
+			search(sHandle);
             ++nIters;
         }
-debugPrint(here + ": solving done");
-	}
 
-    var loadBak:Long = -1;
+        debugPrint(here + ": solving done");
+	}
 
     def search(sHandle:PlaceLocalHandle[PlaceAgent[K]]) {
 
 if (tEndPP < 0l) tEndPP += System.nanoTime();
 
-debugPrint(here + ": wait");
-        when (active || list.size()+listShared.size() > 0) {
-debugPrint(here + ": activated: " + active + ", " + list.size()+","+listShared.size());
-            active = false;
-        }
+//debugPrint(here + ": wait");
+//        when (active || list.size()+listShared.size() > 0) {
+//debugPrint(here + ": activated: " + active + ", " + list.size()+","+listShared.size());
+//            active = false;
+//        }
 
         joinTwoLists();
 
-    	finish 
-    	for (1..(nSearchSteps.get() as Int)) {
+var time:Long = -System.nanoTime();
+        while (!list.isEmpty()) {
+            val box = list.removeFirst();
+            solver.search(sHandle, box);
+        }
+time += System.nanoTime();
+sHandle().tSearch += time;
+
+    	/*for (1..(nSearchSteps.get() as Int)) {
     		if (!searchBody(sHandle))
     			break;
-        }
+        }*/
 debugPrint(here + ": done search");
     }
 
@@ -435,16 +403,7 @@ debugPrint(here + ": done search");
 var time:Long = -System.nanoTime();
 
             box = list.removeFirst();
-
-//debugPrint(here + ": got box:\n" + box);
-
-//debugPrint(here + ": load in search: " + (list.size() + nSearchPs.get()));
-//debugPrint(here + ": load in search: " + totalVolume.get());
-
-            //finish
             solver.search(sHandle, box);
-
-//debugPrint(here + ": #sp: " + nSearchPs.get() + ", #r: " + nSentRequests.get() + ", " + terminate);
 
 time += System.nanoTime();
 sHandle().tSearch += time;
