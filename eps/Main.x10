@@ -25,18 +25,22 @@ public class Main[K] extends RPX10[K] {
 
         val tester = new VariableSelector.Tester[K]();
         val test = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => 
-            tester.testPrec(prec, res, box, v);
+                    tester.testPrec(prec, res, box, v);
 
         val selector = new VariableSelector[K](test);
-        var select:(BAPSolver.Result,IntervalVec[K])=>Box[K];
-        val selectBnd = (select0:(BAPSolver.Result,IntervalVec[K])=>Box[K]) =>
-            ((res:BAPSolver.Result, box:IntervalVec[K]) =>
-                selector.selectBoundary(select0, res, box) );
-        select = selectBnd(
-            (res:BAPSolver.Result, box:IntervalVec[K]) => selector.selectLRR(res, box) );
-        
 
-        var solver:BAPSolverImpl[K] = new BAPSolverImpl[K](core, select);
+        //var select:(BAPSolver.Result,IntervalVec[K])=>Box[K];
+        //val selectBnd = (select0:(BAPSolver.Result,IntervalVec[K])=>Box[K]) =>
+        //    ((res:BAPSolver.Result, box:IntervalVec[K]) =>
+        //        selector.selectBoundary(select0, res, box) );
+        //select = selectBnd(
+        //    (res:BAPSolver.Result, box:IntervalVec[K]) => selector.selectLRR(res, box) );
+
+        //var solver:BAPSolverImpl[K] = new BAPSolverImpl[K](core, select);
+
+        val select = (res:BAPSolver.Result, box:IntervalVec[K])=>selector.selectLRR(res, box);
+        val select1 = (res:BAPSolver.Result, box:IntervalVec[K])=>selector.selectBoundary(select, res, box);
+        val solver = new BAPSolverImpl[K](core, select1);
 
         val pa = new PlaceAgent[K](solver);
         val pp = new Preprocessor[K](core, prec, pa);

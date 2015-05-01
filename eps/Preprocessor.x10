@@ -66,7 +66,11 @@ public class Preprocessor[K] {
     }
 
 
+	var activated:Boolean = false;
+
     public def process(sHandle:PlaceLocalHandle[PlaceAgent[K]]) : Boolean {
+		if (!activated) when (sHandle().active) activated = true;
+
         if (selectCoeff >= Place.numPlaces()) {
             return false;
         }
@@ -90,14 +94,17 @@ sHandle().debugPrint(here + ": wait");
 
 sHandle().debugPrint(here + ": search done, " + sHandle().list.size());
 
+        //val sets = new ArrayList[List[ Pair[IntervalVec[K],Box[K]] ]](nDestinations);
         val sets = new ArrayList[List[IntervalVec[K]]](nDestinations);
         for (1..nDestinations) {
+            //val l = new ArrayList[ Pair[IntervalVec[K],Box[K]] ]();
             val l = new ArrayList[IntervalVec[K]]();
             sets.add(l);
         }
 
         for (i in 1..sHandle().list.size()) {
             val box = sHandle().removeDom();
+            //sets((i-1) % nDestinations).add(new Pair[IntervalVec[K],Box[K]](box,box.prevVar()));
             sets((i-1) % nDestinations).add(box);
         }
 

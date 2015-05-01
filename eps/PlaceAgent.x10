@@ -338,6 +338,7 @@ atomic {
         unlockSList();
     }
 
+    //public def joinWithListShared(boxList:List[ Pair[IntervalVec[K],Box[K]] ]) {
     public def joinWithListShared(boxList:List[IntervalVec[K]]) {
         lockSList();
 
@@ -345,6 +346,12 @@ atomic {
         for (box in listShared) boxList.add(box);
         listShared = null;
         listShared = boxList;
+
+        //for (pair in boxList) {
+        //    val b = pair.first;
+        //    b.setPrevVar(pair.second);
+        //    listShared.add(b);
+        //}
 }
 
         unlockSList();
