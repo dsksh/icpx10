@@ -14,7 +14,8 @@ class Dummy_GlbMain {
     val dummy_result : BAPSolver.Result = BAPSolver.Result.unknown();
 }
 
-public class GlbMain[K] extends RPX10[K] {
+//public class GlbMain[K] extends RPX10[K] {
+public class GlbMain[K] {
     val dummy : Interval = new Interval(0.,0.);
     val dummy_result : BAPSolver.Result = BAPSolver.Result.unknown();
 
@@ -83,7 +84,7 @@ public class GlbMain[K] extends RPX10[K] {
             ", \"w\":" + w + ", \"n\":" + n + ", \"i\":" + i + ", \"li\":" + li + ", \"l\":" + l + ", \"m\":" + m + ", \"z\":" + z + "},");
         Console.OUT.println();
         val init = ()=>{ 
-            val core = new CoreIArray(filename, prob);
+            val core = new IBEX10.CoreIArray(filename, prob);
             return GlbMain.init(core, prec); 
         };
         val glb = 
