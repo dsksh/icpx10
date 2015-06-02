@@ -1,6 +1,5 @@
-import x10.util.*;
-import x10.io.Deserializer;
-import x10.io.Serializer;
+import x10.util.Box;
+import x10.util.Pair;
 
 // kludge for "Interval is incomplete type" error
 class Dummy_IntervalMap {

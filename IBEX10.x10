@@ -1,27 +1,16 @@
-import x10.io.Console; 
 import x10.compiler.*;
-import x10.util.*;
-import x10.io.*;
-import x10.regionarray.Dist;
 
 // kludge for "Interval is incomplete type" error
-class Dummy_RPX10 {
+class Dummy_IBEX10 {
     val dummy : Interval = new Interval(0.,0.);
     val dummyRes : BAPSolver.Result = BAPSolver.Result.unknown();
 }
 
 public class IBEX10 {
 
-    static def format(t:Long) = (t as Double) * 1.0e-9;
-
     @NativeRep("c++", "IBEX10__CoreIArray *", "IBEX10__CoreIArray", null)
     @NativeCPPOutputFile("IBEX10__CoreIArray.h")
     @NativeCPPCompilationUnit("IBEX10__CoreIArray.cc")
-    //@NativeCPPOutputFile("RPX10__CoreEx.h")
-    //@NativeCPPOutputFile("RPX10__Core.h")
-    //@NativeCPPCompilationUnit("RPX10__Core.cc")
-    //@NativeCPPOutputFile("RPX10__CoreProj.h")
-    //@NativeCPPCompilationUnit("RPX10__CoreProj.cc")
     //@NativeCPPOutputFile("propagator.h")
     //@NativeCPPOutputFile("prover.h")
     //@NativeCPPCompilationUnit("prover.cc")

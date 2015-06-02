@@ -1,4 +1,4 @@
-import x10.util.*;
+import x10.util.Box;
 import x10.util.concurrent.AtomicInteger;
 
 public class VariableSelector[K] {

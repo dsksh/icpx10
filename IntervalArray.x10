@@ -1,5 +1,6 @@
-import x10.array.*;
-import x10.util.*;
+import x10.util.Box;
+import x10.util.Pair;
+import x10.util.StringBuilder;
 
 // kludge for "Interval is incomplete type" error
 class Dummy_IntervalArray {

@@ -1,9 +1,6 @@
-TARGET		= GlbMain
+TARGET		= Main
 
 all: $(TARGET)
-
-##
-#RP_HOME	= /Users/ishii/workspace/realpaver-1.1hgsvn
 
 ## NOTE: the C++ compiler must match the one configured for x10c++.
 CC          = g++
@@ -17,13 +14,9 @@ CFLAGS		+= $(shell pkg-config --cflags ibex)
 #LDFLAGS     += -L$(RP_HOME)/src -lrealpaver -lgaol -lgdtoa -lultim
 LDFLAGS		+= $(shell pkg-config --libs  ibex)
 
-#X10_HEADERS     = IBEX10__Core.h IBEX10__CoreProj.h IBEX10__CoreEx.h IBEX10__CoreIArray.h IBEX10__CoreIMap.h
 X10_HEADERS     = IBEX10__CoreIArray.h
-#X10_SOURCES     = RPX10.x10 PlaceAgent.x10 PlaceAgentSeparated.x10 PlaceAgentSeq.x10 PlaceAgentSeqSI.x10 PlaceAgentSeqRI.x10 BAPSolver.x10 BAPListSolver.x10 BAPListSolverBnd.x10 BAPSolverSimple.x10 BAPSolverMSplit.x10 VariableSelector.x10 Interval.x10 IntervalVec.x10 IntervalArray.x10 IntervalMap.x10 CircularQueue.x10 MyHashMap.x10
-#X10_SOURCES     = Main.x10 RPX10.x10 BAPSolver.x10 VariableSelector.x10 Interval.x10 IntervalVec.x10 IntervalArray.x10 IntervalMap.x10 CircularQueue.x10 LinkedList.x10 Queue.x10 Bag.x10
 X10_SOURCES		= $(wildcard *.x10)
 X10_SOURCES		+= $(wildcard glb/*.x10)
-#X10_CPP_SOURCES = IBEX10__Core.cc IBEX10__CoreProj.cc IBEX10__CoreIArray.cc IBEX10__CoreIMap.cc
 X10_CPP_SOURCES = IBEX10__CoreIArray.cc
 
 %.o:%.cc
@@ -44,11 +37,8 @@ OUTDIR_REVERSE  = ..
 
 X10_POST_CMD    = \# \# $(CFLAGS) -I . \# -L . $(LDFLAGS) 
 
-RPX10: $(X10_HEADERS) $(X10_SOURCES) $(X10_CPP_SOURCES)
-	$(X10CXX) RPX10.x10 -d $(OUTDIR) -post '$(X10_POST_CMD)' -o RPX10
-
-GlbMain: $(X10_HEADERS) $(X10_SOURCES) $(X10_CPP_SOURCES)
-	$(X10CXX) GlbMain.x10 -d $(OUTDIR) -post '$(X10_POST_CMD)' -o GlbMain
+Main: $(X10_HEADERS) $(X10_SOURCES) $(X10_CPP_SOURCES)
+	$(X10CXX) Main.x10 -d $(OUTDIR) -post '$(X10_POST_CMD)' -o Main
 
 Test: $(X10_HEADERS) $(X10_SOURCES) $(X10_CPP_SOURCES)
 	$(X10CXX) Test.x10 -d $(OUTDIR) -post '$(X10_POST_CMD)' -o Test

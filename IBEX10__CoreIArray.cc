@@ -6,7 +6,6 @@
 #include "IBEX10__CoreIArray.h"
 
 using namespace std;
-//using namespace rp;
 using namespace ibex;
 
 RTT_CC_DECLS0(IBEX10__CoreIArray, "IBEX10.Core", x10aux::RuntimeType::class_kind)

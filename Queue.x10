@@ -1,8 +1,10 @@
 import x10.compiler.*;
-import x10.util.*;
+import x10.util.List;
+import x10.util.ArrayList;
+import x10.util.Box;
 import x10.util.concurrent.Lock;
-import x10.util.concurrent.AtomicDouble;
 import x10.util.StringBuilder;
+import x10.util.Team;
 
 import glb.Context;
 import glb.GLBResult;

@@ -1,8 +1,6 @@
 import x10.compiler.*;
-import x10.util.*;
+import x10.util.Box;
 import x10.util.concurrent.AtomicBoolean;
-import x10.util.concurrent.AtomicInteger;
-import x10.io.*;
 import x10.io.Console; 
 
 public class BAPSolver[K] {
