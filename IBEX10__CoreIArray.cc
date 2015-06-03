@@ -1,8 +1,10 @@
 
 #include <cfloat>
+#include <cstring>
 
 #include <x10/lang/String.h>
 
+#include "prover.h"
 #include "IBEX10__CoreIArray.h"
 
 using namespace std;
@@ -21,19 +23,52 @@ void IBEX10__CoreIArray::initialize(const char *filename, const int n) {
     cout.precision(16);
 cout << "initialize" << endl;
 
+    ctcPool_.clear();
+    lrPool_.clear();
+
+    projSc_.clear();
+    paramSc_.clear();
+
     try {
 	    system_ = SystemPtr(new System(filename));
 
+//cout << system_->nb_var << endl;
+        for (int i=0, o=0; i < system_->args.size(); i++) {
+//cout << system_->args[i].key << ", \"" << system_->args[i].name << "\"" << endl;
+//cout << system_->args[i].dim.dim2 << endl;
+            for (int j=0; j < system_->args[i].dim.dim2; j++) {
+                if (strcmp(system_->args[i].name, "pp") == 0)
+                    paramSc_.push_back(o);
+                else if (strcmp(system_->args[i].name, "ppc") == 0) {
+                    paramSc_.push_back(o);
+                    cyclicSc_.push_back(o);
+                } else 
+                    projSc_.push_back(o);
+                o++;
+            }
+        }
+cout << projSc_.size() << ", " << paramSc_.size() << ", " << cyclicSc_.size() << endl;
+
 		/* ============================ building contractors ========================= */
-		//Ctc *hc4(new CtcHC4(*system_, 0.01));
-		//Ctc *hc4_2(new CtcHC4(*system_, 0.1, true));
-		//Ctc *acid(new CtcAcid(*system_, *hc4_2));
-		//Ctc *newton(new CtcNewton(system_->f, 5e+08, 1e-08, 1e-04));
-		//LinearRelax *linear_relax(new LinearRelaxCombo(*system_, LinearRelaxCombo::COMPO));
-		//Ctc *polytope(new CtcPolytopeHull(*linear_relax, CtcPolytopeHull::ALL_BOX));
-		//Ctc *polytope_hc4(new CtcCompo(*polytope, *hc4));
-		//Ctc *fixpoint(new CtcFixPoint(*polytope_hc4));
-		//ctc_ = CtcPtr(new CtcCompo(*hc4, *acid, *newton, *fixpoint));
+		/*CtcPtr hc4(new CtcHC4(*system_, 0.01));
+        ctcPool_.push_back(hc4);
+		CtcPtr hc4_2(new CtcHC4(*system_, 0.1, true));
+        ctcPool_.push_back(hc4_2);
+		CtcPtr acid(new CtcAcid(*system_, *hc4_2));
+        ctcPool_.push_back(acid);
+		CtcPtr newton(new CtcNewton(system_->f, 5e+08, 1e-08, 1e-04));
+        ctcPool_.push_back(newton);
+		LRPtr linear_relax(new LinearRelaxCombo(*system_, LinearRelaxCombo::COMPO));
+        lrPool_.push_back(linear_relax);
+		CtcPtr polytope(new CtcPolytopeHull(*linear_relax, CtcPolytopeHull::ALL_BOX));
+        ctcPool_.push_back(polytope);
+		CtcPtr polytope_hc4(new CtcCompo(*polytope, *hc4));
+        ctcPool_.push_back(polytope_hc4);
+		CtcPtr fixpoint(new CtcFixPoint(*polytope_hc4));
+        ctcPool_.push_back(fixpoint);
+		ctc_ = CtcPtr(new CtcCompo(*hc4, *acid, *newton, *fixpoint));
+		ctc_ = CtcPtr(new CtcCompo(*hc4, *acid, *newton, *fixpoint));
+        */
         
 		ctc_ = CtcPtr(new CtcHC4(*system_, 0.01));
 
@@ -61,7 +96,6 @@ cout << "initialize" << endl;
 //template<typename K>
 IntervalVec<x10_long> *IBEX10__CoreIArray::getInitialDomain() {
     //rp::sp<rp::Box> sbx = list_->get_cell()->box;
-cout << "getID" << endl;
     return getIVFromBox(system_->box);
 }
 
@@ -70,30 +104,34 @@ BAPSolver__Result IBEX10__CoreIArray::contract(IntervalVec<x10_long> *iv) {
 	if (IntervalVec<x10_long>::size(iv) == 0)
         return BAPSolver__Result::noSolution();
 
-cout << "contract" << endl;
+//cout << "contract" << endl;
     //rp::Box box( *list_->get_cell()->box );
     IntervalVector box(IntervalVec<x10_long>::size(iv));
     setIVIntoBox(*iv, box);
-cout << "c0" << endl;
 
     try {
-
         impact_.fill(0, ctc_->nb_var-1);
-cout << "c1" << endl;
-
         ctc_->contract(box, impact_);
 
     } catch (EmptyBoxException& e) {
-cout << "c done0" << endl;
         setBoxIntoIV(box, *iv);
-cout << "c done00" << endl;
         return BAPSolver__Result::noSolution();
     }
 
-cout << "c done1" << endl;
+    innerResult res = verifyInner(box, system_->box, projSc_, paramSc_, cyclicSc_,
+            system_->f, true, -1);
+
+    BAPSolver__Result sr = BAPSolver__Result::unknown();
+    if (box.is_empty())
+        sr = BAPSolver__Result::noSolution();
+
+    else if (res.regular)
+        sr = BAPSolver__Result::inner();
+    else if (res.regularJu)
+        sr = BAPSolver__Result::regular();
+
     setBoxIntoIV(box, *iv);
-cout << "c done11" << endl;
-    return BAPSolver__Result::unknown();
+    return sr;
 }
 
 

@@ -89,9 +89,11 @@ lockList();
                     list.add(bp.first);
                     list.add(bp.second);
                 }
-                else 
+                else {
+Console.OUT.println(here + ": solution:\n: " + box + '\n');
 		            //solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
 		            solutions.add(box);
+                }
             }        
         }
 //Console.OUT.println(here + ": processed: " + cntPrune);
@@ -143,6 +145,8 @@ logger.stopProc();
                 else {
 // count depth
 logger.incrDepthCount(box.depth());
+//Console.OUT.println(here + ": solution:");
+Console.OUT.println("" + box + '\n');
 		            //solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
 		            solutions.add(box);
                 }

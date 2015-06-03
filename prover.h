@@ -1,22 +1,30 @@
-namespace rp
-{
-	struct inner_result
-	{
-		inner_result()
-		: regular(false), regular_Ju(false), cond(0)
-		{}
+#ifndef PROVER_H
+#define PROVER_H
 
-		bool regular;
-		bool regular_Ju;
+#include "ibex.h"
 
-		REAL cond;
-	};
+#include "util.h"
 
-	bool regular(const IntervalMatrix& J);
+struct innerResult {
+    innerResult()
+    : regular(false), regularJu(false), cond(0)
+    {}
 
-	/// inner testing procedure
-	inner_result inner(Box& dom_bx, const Scope& proj_sc, const Scope& param_sc__, 
-					   const Scope& cyclic_sc, 
-					   IntervalFunctionVector& fun,
-					   bool reduce_box, int infl_trial);
-}
+    bool regular;
+    bool regularJu;
+
+    double cond;
+};
+
+bool regular(const ibex::IntervalMatrix& J);
+
+/// inner box verification
+innerResult verifyInner(ibex::IntervalVector& box, const ibex::IntervalVector& box_dom0, 
+                        const Scope& proj_sc, const Scope& param_sc, 
+                        const Scope& cyclic_sc, 
+                        ibex::Function& fun,
+                        bool reduce_box, int infl_trial);
+
+#endif // PROVER_H
+
+// vim: shiftwidth=4:tabstop=4:softtabstop=0:expandtab

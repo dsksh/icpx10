@@ -4,186 +4,195 @@
 #include <sstream>
 #include <cassert>
 
-#include "realpaver"
-#include "rp_interval.h"
+#include "ibex.h"
 
 #include "config.h"
-//#include "util.h"
+#include "util.h"
 #include "prover.h"
 
-namespace rp {
+using namespace std;
+using namespace ibex;
 
-	bool is_superset(const Scope& scope, const IntervalVector& vec)
+/// Check whether the initial domain of the box covers the box within the scope.
+bool isSuperset(const Scope& scope, const IntervalVector& init, const IntervalVector& box) {
+	for (int i(0); i < scope.size() && i < box.size(); ++i) {
+		if (!init[i].is_superset(box[i])) return false;
+	}
+	return true;
+}
+
+/// interval Gauss-Seidel operator
+IntervalVector gaussSeidel(const IntervalMatrix& J, 
+						   const IntervalVector& a, const IntervalVector& b) {
+	int dim(a.size());
+
+	// diagonal inverse matrix of J
+	IntervalMatrix DiagJ(dim, dim, 0.);
+	for (int i(0); i < dim; ++i)
 	{
-		Scope::const_iterator it(scope.begin());
-		for (SIZE_TYPE i(0); i < scope.size() && i < vec.size(); ++it, ++i)
-		{
-			try {
-				Interval& intv = dynamic_cast<Interval&>((*it)->domain());
-				if (!intv.is_superset(vec[i]))
-					return false;
-			} 
-			catch (const std::bad_cast&) {
-				//return false;
-				throw("initial domain is a point!");
-			}
-		}
-		return true;
+		if (J[i][i].is_superset(Interval::ZERO))
+			throw(std::runtime_error("singular matrix!"));
+
+		DiagJ[i][i] = 1 / J[i][i];
 	}
 
-	/// interval Gauss-Seidel operator
-	IntervalVector GaussSeidel(const IntervalMatrix& J, 
-							   const IntervalVector& a, const IntervalVector& b)
-	{
-		int dim(a.size());
-
-		// diagonal inverse matrix of J
-		IntervalMatrix DiagJ(dim, dim);
-		for (SIZE_TYPE i(0); i < dim; ++i)
-		{
-			if (J(i,i).is_superset(Interval(0.0)))
-				throw(std::runtime_error("singular matrix!"));
-
-			DiagJ(i, i) = 1 / J(i, i);
-		}
-
-		// off-diagonal matrix of J
-		IntervalMatrix OffJ(dim, dim);
-		for (SIZE_TYPE i(0); i < dim; ++i)
-			for (SIZE_TYPE j(0); j < dim; ++j)
-				if (i != j)
-					OffJ(i, j) = J(i, j);
-			
-		return DiagJ * (b - OffJ*a);
-	}
+	// off-diagonal matrix of J
+	IntervalMatrix OffJ(dim, dim, 0.);
+	for (int i(0); i < dim; ++i)
+		for (int j(0); j < dim; ++j)
+			if (i != j)
+				OffJ[i][j] = J[i][j];
+		
+	return DiagJ * (b - OffJ*a);
+}
 
 
-	bool regular(const IntervalMatrix& J)
-	{
-		int dim(J.nrows());
+bool regular(const IntervalMatrix& J) {
+	int dim(J.nb_rows());
 
-		const RealMatrix midJ(J.midpoint());
+	const Matrix midJ(J.mid());
 
-		// inverse of the center of J
-		RealMatrix Inv(J.ncols(), J.nrows());
-		if (J.nrows() == J.ncols()) {
-			if (!midJ.inverse(Inv))
-				return false;
-		} else {
-			RealMatrix Inv_(dim, dim);
-			if (!RealMatrix(midJ * midJ.transpose()).inverse(Inv_))
-				return false;
-			Inv = midJ.transpose() * Inv_;
-
-			//RealMatrix Inv_(J.ncols(), J.ncols());
-			//if (!RealMatrix(midJ.transpose() * midJ).inverse(Inv_)) {
+	// inverse of the center of J
+	Matrix Inv(J.nb_rows(), J.nb_cols());
+	try {
+		if (J.nb_rows() == J.nb_cols()) {
+			//if (!midJ.inverse(Inv))
 			//	return false;
-			//}
-			//Inv = Inv_ * midJ.transpose();
+			real_inverse(midJ, Inv);
+		} else {
+			Matrix Inv_(dim, dim);
+			//if (!Matrix(midJ * midJ.transpose()).inverse(Inv_))
+			//	return false;
+			real_inverse(Matrix(midJ * midJ.transpose()), Inv_);
+			Inv = midJ.transpose() * Inv_;
 		}
+	} catch(SingularMatrixException&) {
+		return false;
+	}
 
-		//J = IntervalMatrix(Inv) * J;
-		IntervalMatrix CJ(J * IntervalMatrix(Inv));
+	//J = IntervalMatrix(Inv) * J;
+	IntervalMatrix CJ(J * IntervalMatrix(Inv));
 
-		bool res(true);
-		for (SIZE_TYPE i(0); i < dim; ++i)
-		{
-			REAL mag(0.0);
-			for (SIZE_TYPE j(0); j < dim; ++j)
-			{
 #if RPR_DEBUG
-std::cout << ' ' << CJ(i,j);
+	bool res(true);
 #endif
-				if (i != j)
-					mag += CJ(i,j).mag();
-			}
+	for (int i(0); i < dim; ++i) {
+		double mag(0.0);
+		for (int j(0); j < dim; ++j) {
+#if RPR_DEBUG
+std::cout << ' ' << CJ[i][j];
+#endif
+			if (i != j) mag += CJ[i][j].mag();
+		}
 #if RPR_DEBUG
 std::cout << std::endl;
 #endif
 
 #if RPR_DEBUG
-			std::cout << CJ(i,i).mig() << " vs "<< mag << std::endl;
+		std::cout << CJ[i][i].mig() << " vs "<< mag << std::endl;
 #endif
 
-			if (CJ(i,i).mig() <= mag)
-#ifndef RPR_DEBUG
-				return false;
+		if (CJ[i][i].mig() <= mag)
+#if !(RPR_DEBUG)
+			return false;
 #else
-				res = false;
-#endif
-		}
-
-#ifndef RPR_DEBUG
-		return true;
-#else
-		return res;
+			res = false;
 #endif
 	}
 
-
-	inline double euclidean_norm(const RealVector& vec)
-	{
-		double r(0);
-		for (SIZE_TYPE i=0; i<vec.size(); ++i)
-			r += vec[i]*vec[i];
-		return std::sqrt(r);
-	}
+#if !(RPR_DEBUG)
+	return true;
+#else
+	return res;
+#endif
+}
 
 
-	void fix_redundant_params(const Box& dom_bx, 
-							  const Scope& proj_sc, const Scope& param_sc__, 
-							  IntervalFunctionVector& fun,
-							  Scope& param_sc, Scope& fixed_sc)
-	{
-		int dim(fun.nfuns());
-		IntervalMatrix J(dim, param_sc__.size());
+inline double euclideanNorm(const Vector& vec) {
+	double r(0);
+	for (int i=0; i < vec.size(); ++i)
+		r += vec[i]*vec[i];
+	return std::sqrt(r);
+}
 
-		if (param_sc__.size() > fun.nfuns()) {
-			Scope param_sc_(param_sc__);
 
-			// compute the midpoint of Jacobian matrix
-			//RealMatrix Jtr(param_sc_.size(), dim);
-			typedef std::list< sp<RealVector> > Matrix;
-			Matrix Jtr;
-			for (SIZE_TYPE i(0); i < param_sc_.size(); ++i)
-				Jtr.push_back(sp<RealVector>(new RealVector(dim)));
+/*void fix_redundant_params(const Box& dom_bx, 
+						  const Scope& proj_sc, const Scope& param_sc__, 
+						  IntervalFunctionVector& fun,
+						  Scope& param_sc, Scope& fixed_sc)
+{
+	int dim(fun.nfuns());
+	IntervalMatrix J(dim, param_sc__.size());
 
-			Box box(dom_bx);
-			Scope::const_iterator dit(dom_bx.scope()->begin());
-			//for (; dit != dom_bx.scope()->end(); ++dit)
-			//	box.set_interval(**dit, box.get_interval(**dit).midpoint());
+	if (param_sc__.size() > fun.nfuns()) {
+		Scope param_sc_(param_sc__);
 
-			//IntervalVector dom(get_interval_vector(dom_bx, param_sc_));
-			//set_interval_vector(box, dom, param_sc_);
-			for (SIZE_TYPE i(0); i < dim; ++i) {
-				fun[i]->eval(box);
-				Scope::const_iterator dit(param_sc_.begin());
-				Matrix::iterator mit(Jtr.begin());
-				for (SIZE_TYPE j(0); dit != param_sc_.end(), mit != Jtr.end(); 
-					 ++dit, ++mit, ++j) {
-					(**mit)[i] = fun[i]->deriv(**dit).midpoint();
+		// compute the midpoint of Jacobian matrix
+		//Matrix Jtr(param_sc_.size(), dim);
+		typedef std::list< sp<Vector> > Matrix;
+		Matrix Jtr;
+		for (int i(0); i < param_sc_.size(); ++i)
+			Jtr.push_back(sp<Vector>(new Vector(dim)));
+
+		Box box(dom_bx);
+		Scope::const_iterator dit(dom_bx.scope()->begin());
+		//for (; dit != dom_bx.scope()->end(); ++dit)
+		//	box.set_interval(**dit, box.get_interval(**dit).midpoint());
+
+		//IntervalVector dom(getProjValue(dom_bx, param_sc_));
+		//setProjValue(box, dom, param_sc_);
+		for (int i(0); i < dim; ++i) {
+			fun[i]->eval(box);
+			Scope::const_iterator dit(param_sc_.begin());
+			Matrix::iterator mit(Jtr.begin());
+			for (int j(0); dit != param_sc_.end(), mit != Jtr.end(); 
+				 ++dit, ++mit, ++j) {
+				(**mit)[i] = fun[i]->deriv(**dit).midpoint();
 #if RPR_DEBUG
 std::cout << ' ' << (**mit)[i];
 #endif
 
-					//J(i,j) = fun[i]->deriv(**dit);
+				//J(i,j) = fun[i]->deriv(**dit);
 #if RPR_DEBUG
 std::cout << ' ' << J(i,j);
 #endif
-				}
+			}
 #if RPR_DEBUG
 std::cout << std::endl;
 #endif
+		}
+
+		dit = param_sc_.begin();
+
+		// first, take the largest vector
+		double max_norm(0);
+		Scope::const_iterator dit_(param_sc_.begin());
+		Matrix::iterator mit(Jtr.begin()), mit_(Jtr.begin());
+		for (; dit_ != param_sc_.end(), mit_ != Jtr.end(); 
+			 ++dit_, ++mit_) {
+			if (euclidean_norm(**mit_) > max_norm) {
+				max_norm = euclidean_norm(**mit_);
+				dit = dit_;
+				mit = mit_;
 			}
+		}
+//std::cout << *dit << std::endl;
+		param_sc.insert(*dit);
+		param_sc_.remove(**dit);
 
-			dit = param_sc_.begin();
+		sp<Vector> prev(*mit);
+		Jtr.erase(mit);
 
-			// first, take the largest vector
-			REAL max_norm(0);
-			Scope::const_iterator dit_(param_sc_.begin());
-			Matrix::iterator mit(Jtr.begin()), mit_(Jtr.begin());
+		// in the followings, take the most orthogonal ones
+		while (param_sc.size() < fun.nfuns()) {
+			max_norm = 0;
+			dit = param_sc_.begin(); dit_ = param_sc_.begin();
+			mit = Jtr.begin(); mit_ = Jtr.begin();
 			for (; dit_ != param_sc_.end(), mit_ != Jtr.end(); 
 				 ++dit_, ++mit_) {
+				Vector proj(*prev);
+				proj *= prev->scalar_product(**mit_) / prev->scalar_product(*prev);
+				**mit_ -= proj;
 				if (euclidean_norm(**mit_) > max_norm) {
 					max_norm = euclidean_norm(**mit_);
 					dit = dit_;
@@ -193,304 +202,267 @@ std::cout << std::endl;
 //std::cout << *dit << std::endl;
 			param_sc.insert(*dit);
 			param_sc_.remove(**dit);
-
-			sp<RealVector> prev(*mit);
+			prev = *mit;
 			Jtr.erase(mit);
-
-			// in the followings, take the most orthogonal ones
-			while (param_sc.size() < fun.nfuns()) {
-				max_norm = 0;
-				dit = param_sc_.begin(); dit_ = param_sc_.begin();
-				mit = Jtr.begin(); mit_ = Jtr.begin();
-				for (; dit_ != param_sc_.end(), mit_ != Jtr.end(); 
-					 ++dit_, ++mit_) {
-					RealVector proj(*prev);
-					proj *= prev->scalar_product(**mit_) / prev->scalar_product(*prev);
-					**mit_ -= proj;
-					if (euclidean_norm(**mit_) > max_norm) {
-						max_norm = euclidean_norm(**mit_);
-						dit = dit_;
-						mit = mit_;
-					}
-				}
-//std::cout << *dit << std::endl;
-				param_sc.insert(*dit);
-				param_sc_.remove(**dit);
-				prev = *mit;
-				Jtr.erase(mit);
-			}
-
-			dit = param_sc_.begin();
-			for (; dit != param_sc_.end(); ++dit)
-				fixed_sc.insert(*dit);
-		}
-		else { // param_sc_.size() == fun.nfuns()
-			Scope::const_iterator dit(param_sc__.begin());
-			for (SIZE_TYPE j(0); dit != param_sc__.end(); ++dit, ++j) {
-				param_sc.insert(*dit);
-
-				for (SIZE_TYPE i(0); i < dim; ++i)
-					J(i,j) = fun[i]->deriv(**dit);
-			}
 		}
 
-		//result.regular_Ju = regular(J);
+		dit = param_sc_.begin();
+		for (; dit != param_sc_.end(); ++dit)
+			fixed_sc.insert(*dit);
+	}
+	else { // param_sc_.size() == fun.nfuns()
+		Scope::const_iterator dit(param_sc__.begin());
+		for (int j(0); dit != param_sc__.end(); ++dit, ++j) {
+			param_sc.insert(*dit);
+
+			for (int i(0); i < dim; ++i)
+				J(i,j) = fun[i]->deriv(**dit);
+		}
 	}
 
+	//result.regularJu = regular(J);
+}
+*/
 
-	static const double Tau(1.01);
-	//static constdouble Tau(1.0);
-	static const double Mu(0.9);
-	//static const double Mu(0.999999);
+IntervalVector getProjValue(const IntervalVector& box, const Scope& scope) {
+	IntervalVector proj(scope.size());
+	for (int i=0; i < scope.size(); i++) {
+		proj[i] = box[scope[i]];
+	}
+	return proj;
+}
 
-	/**
-	 * inner testing procedure
-	 */
-	inner_result inner(Box& dom_bx, const Scope& proj_sc, const Scope& param_sc__, 
-					   const Scope& cyclic_sc, 
-					   IntervalFunctionVector& fun,
-					   bool reduce_box, int infl_trial )
-	{
-		assert(param_sc__.size() >= fun.nfuns());
-		//assert(param_sc_.size() <= fun.nfuns()+1);
-		int dim(fun.nfuns());
+void setProjValue(IntervalVector& box, const IntervalVector& proj, const Scope& scope) {
+	for (int i=0; i < scope.size(); i++)
+		box[scope[i]] = proj[i];
+}
 
-		inner_result result;		
-		result.regular_Ju = false;
+double norm(const Matrix& mtx) {
+	double n=0;
+	for (int i=0; i < mtx.nb_rows(); i++)
+		for (int j=0; j < mtx.nb_cols(); j++)
+			n += ::pow(mtx[i][j], 2);
+	return ::sqrt(n);
+}
+
+void jacobianProj(const Function& fun, const Scope& scope, const IntervalVector& v,
+				  IntervalMatrix& J) {
+	IntervalVector gr(v.size());
+	for (int i=0; i < fun.image_dim(); i++) {
+		fun[i].gradient(v, gr);
+		for (int j=0; j < scope.size(); j++)
+			J[i][j] = gr[scope[j]];
+	}
+}
+
+
+static const double Tau(1.01);
+//static constdouble Tau(1.0);
+static const double Mu(0.9);
+//static const double Mu(0.999999);
+
+/**
+ * inner testing procedure
+ */
+innerResult verifyInner(IntervalVector& dom_bx, const IntervalVector& bx_dom0, 
+						const Scope& proj_sc, const Scope& param_sc, 
+			 		    const Scope& cyclic_sc, 
+					    Function& fun,
+					    bool reduce_box, int infl_trial ) {
+
+	//assert(param_sc.size() >= fun.image_dim());
+	int dim(fun.image_dim());
+
+	innerResult result;		
+	result.regularJu = false;
+
+	if (param_sc.size() < dim)
+		return result;
 
 #if RPR_DEBUG
-		std::cout << "dom_bx" << std::endl;
-		std::cout << dom_bx << std::endl;
+	std::cout << std::endl;
+	std::cout << "dom_bx" << std::endl;
+	std::cout << dom_bx << std::endl;
 #endif
 
-		///
+	//Scope param_sc, fixed_sc;
+	//fix_redundant_params(dom_bx, proj_sc, param_sc__, fun, param_sc, fixed_sc);
 
-		Scope param_sc, fixed_sc;
-		fix_redundant_params(dom_bx, proj_sc, param_sc__, fun, param_sc, fixed_sc);
-
-		const IntervalVector dom_orig(get_interval_vector(dom_bx, param_sc));
-		IntervalVector dom(get_interval_vector(dom_bx, param_sc));
+	const IntervalVector dom_orig(getProjValue(dom_bx, param_sc));
+	IntervalVector dom(dom_orig);
 
 #if RPR_CENTERED_FORM
-		IntervalVector range(get_interval_vector(dom_bx, proj_sc));
-		IntervalVector cnt_range(range - IntervalVector(range.midpoint()) );
+	IntervalVector range(getProjValue(dom_bx, proj_sc));
+	IntervalVector cnt_range(range - IntervalVector(range.mid()) );
 #endif
 
-		// extract the non-cyclic scope 
-		Scope non_cyclic_sc(param_sc);
-		non_cyclic_sc.set_difference(cyclic_sc);
-		//non_cyclic_sc.set_difference(fixed_sc);
+	// extract the non-cyclic scope 
+	//Scope non_cyclic_sc(param_sc);
+	//non_cyclic_sc.set_difference(cyclic_sc);
+	////non_cyclic_sc.set_difference(fixed_sc);
+	Scope non_cyclic_sc;
+	for (int i=0, j=0; i < param_sc.size();) {
+//cout << "i: " << i << ", j: " << j << endl;
+		if (j >= cyclic_sc.size() || param_sc[i] < cyclic_sc[j])
+			non_cyclic_sc.push_back(param_sc[i++]);
+		else if (param_sc[i] > cyclic_sc[j])
+			j++;
+		else { // param_sc[i] == cyclic_sc[j]
+			non_cyclic_sc.push_back(param_sc[i++]); j++;
+		}
+	}
 
-		double d(HUGE_VAL), d_prev(HUGE_VAL);
+	double d(HUGE_VAL), d_prev(HUGE_VAL);
 
-//#if RPR_DEBUG
-//		std::cout << dom_bx << std::endl;
-//#endif
+	int k(0);
+	while (d > 0.0 && d <= Mu*d_prev 
+		   && isSuperset(non_cyclic_sc, bx_dom0, dom)
+		   && (infl_trial < 0 || k <= infl_trial)
+		  ) {
 
-		int k(0);
-		// TODO
-		while (d > 0.0 && d <= Mu*d_prev 
-			   && is_superset(non_cyclic_sc, dom)
-			   && (infl_trial < 0 || k <= infl_trial)
-			)
-		{
+		// Jacobian matrix
+		IntervalMatrix J(dim, proj_sc.size());
+		IntervalVector box(dom_bx);
+		setProjValue(box, dom, param_sc);
+		//fun.jacobian(box, J);
+		jacobianProj(fun, param_sc, box, J);
+		/*IntervalVector gr(dom_bx.size());
+		for (int i=0; i < dim; i++) {
+			fun[i].gradient(box, gr);
+			for (int j=0; j < proj_sc.size(); j++)
+				J[i][j] = gr[param_sc[j]];
+		}*/
 
-			// Jacobian matrix
-			IntervalMatrix J(dim, dim);
-			Box box(dom_bx);
-			set_interval_vector(box, dom, param_sc);
 #if RPR_CENTERED_FORM
-			IntervalMatrix dxf(dim, proj_sc.size());
-			Box box1(dom_bx);
-			set_interval_vector(box1, IntervalVector(dom.midpoint()), param_sc);
+		IntervalMatrix Jcnt(dim, proj_sc.size());
+		IntervalVector box1(dom_bx);
+		setProjValue(box1, IntervalVector(dom.mid()), param_sc);
+		jacobianProj(fun, param_sc, box1, Jcnt);
 #endif
 
-/*			// fix the value
-			Scope::const_iterator dit(fixed_sc.begin());
-			for (; dit != fixed_sc.end(); ++dit) {
-				box.set_interval(**dit, box.get_interval(**dit).midpoint());
-			}
-#if RPR_CENTERED_FORM
-			dit = fixed_sc.begin();
-			for (; dit != fixed_sc.end(); ++dit) {
-				box1.set_interval(**dit, box1.get_interval(**dit).midpoint());
-			}
-#endif
-*/
-			for (SIZE_TYPE i(0); i < dim; ++i)
-			{
-				fun[i]->eval(box);
-				Scope::const_iterator dit(param_sc.begin());
-				for (SIZE_TYPE j(0); dit != param_sc.end(); ++dit, ++j) {
-					J(i,j) = fun[i]->deriv(**dit);
-				}
-#if RPR_CENTERED_FORM
-				fun[i]->eval(box1);
-				dit = proj_sc.begin();
-				for (SIZE_TYPE j(0); dit != proj_sc.end(); ++dit, ++j) {
-					dxf(i,j) = fun[i]->deriv(**dit);
-				}
-#endif
-			}
-
-/*#if RPR_COND_NUM
-			IntervalMatrix dxf1(dim, dim);
-			for (SIZE_TYPE i(0); i < dim; ++i)
-			{
-				fun[i]->eval(box);
-				Scope::const_iterator dit(proj_sc.begin());
-				for (SIZE_TYPE j(0); dit != proj_sc.end(); ++dit, ++j)
-				{
-					dxf1(i,j) = fun[i]->deriv(**dit);
-				}
-			}
-#endif*/
-
-			// preconditioning
-			IntervalMatrix C(dim, dim);
-			RealMatrix realC(dim, dim);
-			RealMatrix midJ(J.midpoint());
-			if (!midJ.inverse(realC)) {
-				result.regular_Ju = false;
-				return result;
-				//break;
-			}
-			C = IntervalMatrix(realC);
+		// preconditioning
+		IntervalMatrix C(dim, dim);
+		Matrix realC(dim, dim);
+		Matrix midJ(J.mid());
+		try {
+			real_inverse(midJ, realC);
+		} 
+		catch(SingularMatrixException&) {
+			result.regularJu = false;
+			return result;
+		}
+		C = IntervalMatrix(realC);
 
 #if RPR_COND_NUM
-			/*RealMatrix mid_dxf(dxf1.midpoint());
-			RealMatrix dudx_inv(dim, dim, 0.0); // is zero, initially
-			RealMatrix dudx( dudx_inv - mid_dxf * C );
-			if (!dudx.inverse(dudx_inv))
-				return result;
-			result.cond = dudx_inv.norm() * dudx.norm();
-			*/
-
-			RealMatrix mid_J(J.midpoint());
-			RealMatrix J_inv(dim, dim);
-			if (!mid_J.inverse(J_inv)) {
-				result.regular_Ju = false;
-				return result;
-				//break;
-			}
-			result.cond = J_inv.norm() * mid_J.norm();
-
+		Matrix J_inv(dim, dim);
+		try {
+			real_inverse(midJ, J_inv)
+		} 
+		catch (SingularMatrixException&) {
+			result.regularJu = false;
+			return result;
+		}
+		result.cond = norm(J_inv) * norm(midJ);
 #endif
 
-//std::cout << "regular J" << std::endl;
+		J = C * J;
 
-			J = C * J;
+		// cf. [Goldsztejn+, RC'10] Col.3.1
+		IntervalVector mid( dom.mid() );
+		IntervalVector mid_bx(dom_bx);
+#if RPR_CENTERED_FORM
+		mid_bx = dom_bx.mid();
+#endif
+		setProjValue(mid_bx, mid, param_sc);
 
-			// cf. Col.3.1
-			IntervalVector mid( dom.midpoint() );
-			Box mid_bx(dom_bx);
-#ifndef RPR_CENTERED_FORM
-			set_interval_vector(mid_bx, mid, param_sc);
+		IntervalVector midFun(dim);
+		midFun = fun.eval_vector(mid_bx);
+
+		IntervalVector gamma(dom);
+		try {
+			gamma = gaussSeidel(J, dom - mid, 
+#if !(RPR_CENTERED_FORM)
+								C * (-midFun)
 #else
-			dom_bx.midpoint(mid_bx);
-			set_interval_vector(mid_bx, mid, param_sc);
+								C * (-midFun) - (C*Jcnt) * cnt_range
 #endif
-
-			IntervalVector mid_fun;
-			mid_fun.resize(dim);
-			for (SIZE_TYPE i(0); i < dim; ++i)
-				mid_fun[i] = fun[i]->eval(mid_bx);
-
-			IntervalVector gamma;
-			try {
-				gamma = GaussSeidel(J, dom - mid, 
-#ifndef RPR_CENTERED_FORM
-									C * (-mid_fun)
-#else
-									C * (-mid_fun) - (C*dxf) * cnt_range
-#endif
-					);
-			}
-			catch (const std::runtime_error& err) {
+				);
+		} catch (const std::runtime_error& err) {
 #if RPR_DEBUG
 std::cout << err.what() << std::endl;
 #endif
 
-				// some element of J contains 0
-				result.regular_Ju = false;
-				return result;
-				//break;
-			}
-			IntervalVector contracted(mid + gamma);
+			// some element of J contains 0
+			result.regularJu = false;
+			return result;
+		}
+		IntervalVector contracted(mid + gamma);
 
-//std::cout << "J not contain 0" << std::endl;
-
-			//if (k == 0)
-				result.regular_Ju = regular(J);
-			//else
-			//	result.regular_Ju = false;
+		result.regularJu = regular(J);
 
 #if RPR_DEBUG
-			std::cout << std::endl;
-			std::cout << "k:  " << k << std::endl;
-			std::cout << "J:  " << J << std::endl;
-			std::cout << "C:  " << C << std::endl;
-			//std::cout << "mu: " << mid_bx << std::endl;
-			//std::cout << "mf: " << mid_fun << std::endl;
-			std::cout << "Y:  " << dom << std::endl;
-			std::cout << "Y': " << contracted << std::endl;
-			std::cout << "inclusion: " << dom.is_strict_superset(contracted) << std::endl;
+		std::cout << std::endl;
+		std::cout << "k:  " << k << std::endl;
+		std::cout << "J:  " << J << std::endl;
+		std::cout << "C:  " << C << std::endl;
+		std::cout << "Y:  " << dom << std::endl;
+		std::cout << "Y': " << contracted << std::endl;
+		std::cout << "inclusion: " << dom.is_strict_superset(contracted) << std::endl;
 #endif
 
-			// TODO
-			if (contracted.is_empty())
-				//break;
-				throw("contracted to empty interval!");
+		// TODO
+		if (contracted.is_empty())
+			//break;
+			throw(std::runtime_error("contracted to empty interval!"));
 
-			if ( dom.is_strict_superset(contracted) && 
-				 is_superset(non_cyclic_sc, dom) ) 
-			{
+		if ( dom.is_strict_superset(contracted) && 
+			 isSuperset(non_cyclic_sc, bx_dom0, dom) ) {
 //std::cout << "inner: " << contracted.width() / dom.width() << std::endl;
 
-				if (reduce_box) {
-					set_interval_vector(dom_bx, contracted, param_sc);
-#if RPR_COND_NUM
-					dom_bx.cond_number = result.cond;
-#endif
-				}
-
-//std::cout << "contracted" << std::endl;
-				result.regular = true;
-				return result;
-			}
-
-			// TODO
 			if (reduce_box) {
-				IntervalVector reduced( dom_orig & contracted );
-				if (!reduced.is_empty())
-					set_interval_vector(dom_bx, reduced, param_sc);
-
+				setProjValue(dom_bx, contracted, param_sc);
 #if RPR_COND_NUM
 				dom_bx.cond_number = result.cond;
 #endif
 			}
 
-
-			// domain inflation
-			d_prev = d;
-			// TODO
-			d = distance(dom, contracted);
-#if RPR_DEBUG
-			std::cout << "d:  " << d << ", d-: " << Mu*d_prev << std::endl;
-#endif
-			// TODO
-			//if (d == 0.0) throw("no contraction!");
-
-			++k;
-
-			dom = contracted - IntervalVector(contracted.midpoint());
-			dom *= Interval(Tau);
-			dom = IntervalVector(contracted.midpoint()) + dom;
+//std::cout << "contracted" << std::endl;
+			result.regular = true;
+			return result;
 		}
 
-		//continue;
-		//}
+		// TODO
+		if (reduce_box) {
+			IntervalVector reduced( dom_orig & contracted );
+			if (!reduced.is_empty())
+				setProjValue(dom_bx, reduced, param_sc);
 
-		return result;
+#if RPR_COND_NUM
+			dom_bx.cond_number = result.cond;
+#endif
+		}
+
+		// domain inflation
+		d_prev = d;
+		d = ibex::distance(dom, contracted);
+#if RPR_DEBUG
+		std::cout << "d:  " << d << ", d-: " << Mu*d_prev << std::endl;
+#endif
+		// TODO
+		//if (d == 0.0) throw(std::runtime_error("no contraction!"));
+
+		dom = contracted - IntervalVector(contracted.mid());
+		dom *= Interval(Tau);
+		dom = IntervalVector(contracted.mid()) + dom;
+
+		++k;
 	}
+
+#if RPR_DEBUG
+	std::cout << "inner box verification done" << std::endl;
+#endif
+
+	return result;
 }
+
+// vim: shiftwidth=4:tabstop=4:softtabstop=0:expandtab

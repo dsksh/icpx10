@@ -12,8 +12,9 @@ public class IBEX10 {
     @NativeCPPOutputFile("IBEX10__CoreIArray.h")
     @NativeCPPCompilationUnit("IBEX10__CoreIArray.cc")
     //@NativeCPPOutputFile("propagator.h")
-    //@NativeCPPOutputFile("prover.h")
-    //@NativeCPPCompilationUnit("prover.cc")
+    @NativeCPPOutputFile("prover.h")
+    @NativeCPPCompilationUnit("prover.cc")
+    @NativeCPPOutputFile("util.h")
     @NativeCPPOutputFile("config.h")
     public static class CoreIArray implements BAPSolver.Core[Long] {
         public def this(filename:String, n:Int) : CoreIArray {}
@@ -26,7 +27,9 @@ public class IBEX10 {
             return new IntervalArray(1); 
         };
         @Native("c++", "(#0)->contract((#1))")
-        public def contract(box:IntervalVec[Long]) : BAPSolver.Result { return BAPSolver.Result.unknown(); };
+        public def contract(box:IntervalVec[Long]) : BAPSolver.Result { 
+            return BAPSolver.Result.unknown(); 
+        };
         @Native("c++", "(#0)->isProjected((#1))")
         public def isProjected(v:Long) : Boolean { return false; }
         public def dummyBox() : IntervalVec[Long] { return new IntervalArray(0); }

@@ -1,18 +1,18 @@
 # ICPX10
 
-ICPX10 is a parallel interval/numerical constraint solver implemented with X10.
+ICPX10 is a parallel interval-based numerical constraint solver implemented with X10.
 
 ## Requirements
 
 * IBEX <http://www.ibex-lib.org/> (tested with version 2.1.13)
 * X10 <http://x10-lang.org/> (tested with version 2.4.3.2)
-* C/C++ (tested with gcc version 4.7.4 and ver. 4.8.2)
+* C/C++ (tested with gcc version 4.7.4 and version 4.8.2)
 
-Tested on Linux ver. 3.2.0-4-amd64 and Mac OS X ver. 10.9.5.
+Tested on Linux version 3.2.0-4-amd64 and Mac OS X version 10.9.5.
 
 ## Install
 
-`$(ICPX10_DIR)` and `$(IBEX_DIR)` represents the path to the unpacked directory of ICPX10 and IBEX, respectively.
+`$(ICPX10_DIR)` and `$(IBEX_DIR)` represent the paths to the unpacked directories of ICPX10 and IBEX, respectively.
 
 1. Modify the Makefile if necessary.
 2. Build ICPX10.
@@ -21,12 +21,12 @@ $ cd $(ICPX10_DIR)
 $ make
 ```
 
-Binary file `$(ICPX10_DIR)/GlbMail` will be generated.
+Binary file `$(ICPX10_DIR)/Mail` will be generated.
 
 ## Example
 
 ```
-$ ./GlbMain -f $(IBEX_DIR)/benchs/benchs-satisfaction/benchs-coprin/BroydenTri-0010.bch -p 1 -e 0.01 -v 7 -i 0.001 -li 100 -w 1 -l 2
+$ ./Main -f $(IBEX_DIR)/benchs/benchs-satisfaction/benchs-coprin/BroydenTri-0010.bch -p 1 -e 0.01 -v 7 -i 0.001 -li 100 -w 1 -l 2
 ```
 
 ## Reference

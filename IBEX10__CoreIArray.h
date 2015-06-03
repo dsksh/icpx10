@@ -2,6 +2,7 @@
 #define IBEX10__CORE_H
 
 #include <memory>
+#include <vector>
 
 #include <boost/shared_ptr.hpp>
 
@@ -20,11 +21,14 @@
 #include "BAPSolver__Result.h"
 #include "BAPSolver__Core.h"
 
+#include "util.h"
 
 class IBEX10__CoreIArray : public x10::lang::X10Class {
 	typedef std::auto_ptr<ibex::System> SystemPtr;
 	typedef boost::shared_ptr<ibex::Ctc> CtcPtr;
+	typedef std::vector<CtcPtr> CtcPtrVec;
 	typedef boost::shared_ptr<ibex::LinearRelax> LRPtr;
+	typedef std::vector<LRPtr> LRPtrVec;
 	//typedef boost::shared_ptr<ibex::Bsc> BscPtr;
 	//typedef boost::shared_ptr<ibex::CellBuffer> BufferPtr;
 
@@ -70,11 +74,15 @@ std::cout << "]," << std::endl;
 	virtual BAPSolver__Result contract(IntervalVec<x10_long> *box);
 
     virtual x10_boolean isProjected(x10_long v) {
-#if RPX_PROJ
-		return v < proj_sc->size();
-#else
+//#if RPX_PROJ
+//		return v < proj_sc->size();
+//#else
+//		return false;
+//#endif
+		for (int i=0; i < projSc_.size(); i++)
+			if (projSc_[i] == v) return true;
 		return false;
-#endif
+
 	}
 
 	virtual IntervalVec<x10_long> *dummyBox() {
@@ -90,10 +98,18 @@ protected:
 	SystemPtr system_;
 
 	CtcPtr ctc_;
+	CtcPtrVec ctcPool_;
+	LRPtrVec lrPool_;
 	//BscPtr bsc_;
 	//BufferPtr buffer_;
+	
+	Scope projSc_;
+	Scope paramSc_;
+	Scope cyclicSc_;
 
 	ibex::BitSet impact_;
 };
 
 #endif // IBEX10__CORE_H
+
+// vim: shiftwidth=4:tabstop=4:softtabstop=0:expandtab

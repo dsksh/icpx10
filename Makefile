@@ -14,10 +14,10 @@ CFLAGS		+= $(shell pkg-config --cflags ibex)
 #LDFLAGS     += -L$(RP_HOME)/src -lrealpaver -lgaol -lgdtoa -lultim
 LDFLAGS		+= $(shell pkg-config --libs  ibex)
 
-X10_HEADERS     = IBEX10__CoreIArray.h
+X10_HEADERS     = IBEX10__CoreIArray.h util.h prover.h config.h
 X10_SOURCES		= $(wildcard *.x10)
 X10_SOURCES		+= $(wildcard glb/*.x10)
-X10_CPP_SOURCES = IBEX10__CoreIArray.cc
+X10_CPP_SOURCES = IBEX10__CoreIArray.cc prover.cc
 
 %.o:%.cc
 	$(CC) $(CFLAGS) -c $< -o $@
