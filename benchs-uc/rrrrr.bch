@@ -1,0 +1,15 @@
+Constants
+M in 9;
+L1 in 8;
+L2 in 5;
+L3 in 5;
+L4 in 8;
+
+Variables
+x[2]  in [-20,20];
+ppc[2] in [-3.141592,3.141593];
+
+Constraints
+(x(1) - L1*cos(ppc(1)))^2     + (x(2) - L1*sin(ppc(1)))^2 - L2^2 = 0;
+(x(1) - L3*cos(ppc(2)) - M)^2 + (x(2) - L3*sin(ppc(2)))^2 - L4^2 = 0;
+end

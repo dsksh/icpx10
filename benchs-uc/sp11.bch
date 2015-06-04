@@ -1,0 +1,8 @@
+Variables
+
+x  in [-1,1];
+pp in [-1,1];
+
+Constraints
+x^2 + pp^2 - 1 = 0;
+end

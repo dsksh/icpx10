@@ -11,15 +11,14 @@ public class IBEX10 {
     @NativeRep("c++", "IBEX10__CoreIArray *", "IBEX10__CoreIArray", null)
     @NativeCPPOutputFile("IBEX10__CoreIArray.h")
     @NativeCPPCompilationUnit("IBEX10__CoreIArray.cc")
-    //@NativeCPPOutputFile("propagator.h")
-    @NativeCPPOutputFile("prover.h")
-    @NativeCPPCompilationUnit("prover.cc")
+    @NativeCPPOutputFile("innerVerification.h")
+    @NativeCPPCompilationUnit("innerVerification.cc")
     @NativeCPPOutputFile("util.h")
     @NativeCPPOutputFile("config.h")
     public static class CoreIArray implements BAPSolver.Core[Long] {
-        public def this(filename:String, n:Int) : CoreIArray {}
-        @Native("c++", "(#0)->initialize((#1))")
-        public def initialize(filename:String, n:Int) : void {};
+        public def this() : CoreIArray {}
+        @Native("c++", "(#0)->initialize(#1,#2)")
+        public def initialize(filename:String, n:Int) : Boolean { return false; };
         @Native("c++", "(#0)->finalize()")
         public def finalize() : void {};
         @Native("c++", "(#0)->getInitialDomain()")

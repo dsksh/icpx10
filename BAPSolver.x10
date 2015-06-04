@@ -22,7 +22,7 @@ public class BAPSolver[K] {
     }
 
     public static interface Core[K] {
-        //public def initialize(filename:String, n:Int) : void;
+        public def initialize(filename:String, n:Int) : Boolean;
 		public def finalize() : void;
         public def getInitialDomain() :IntervalVec[K];
         //public def solve() : int;

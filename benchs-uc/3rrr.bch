@@ -1,0 +1,33 @@
+Constants
+AX1 in -10;
+AY1 in -10;
+AX2 in 10;
+AY2 in -10;
+AX3 in 0;
+AY3 in 10;
+CX1 in 0;
+CY1 in 0;
+CX2 in 10;
+CY2 in 0;
+CX3 in 10;
+CY3 in 10;
+L1 in 10;
+L2 in 10;
+L3 in 10;
+M1 in 10;
+M2 in 10;
+M3 in 10;
+
+Variables
+x[2]   in [-50,50];
+x3     in [-3.141592,3.141593];
+ppc[3] in [-3.141592,3.141593];
+
+Constraints
+  (x(1) - CX1*cos(x3) - CY1*sin(x3) - AX1 - L1*cos(ppc(1)))^2
++ (x(2) - CX1*cos(x3) + CY1*sin(x3) - AY1 - L1*sin(ppc(1)))^2 = M1^2;
+  (x(1) - CX2*cos(x3) - CY2*sin(x3) - AX2 - L2*cos(ppc(2)))^2
++ (x(2) - CX2*cos(x3) + CY2*sin(x3) - AY2 - L2*sin(ppc(2)))^2 = M2^2;
+  (x(1) - CX3*cos(x3) - CY3*sin(x3) - AX3 - L3*cos(ppc(3)))^2
++ (x(2) - CX3*cos(x3) + CY3*sin(x3) - AY3 - L3*sin(ppc(3)))^2 = M3^2;
+end;

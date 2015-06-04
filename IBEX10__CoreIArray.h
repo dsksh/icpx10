@@ -50,11 +50,12 @@ public:
     virtual x10aux::serialization_id_t _get_serialization_id() { abort(); return -1; }
     virtual void _serialize_body(x10aux::serialization_buffer &) { abort(); }
 
-    static IBEX10__CoreIArray *_make(x10::lang::String *filename, x10_int n);
+    //static IBEX10__CoreIArray *_make(x10::lang::String *filename, x10_int n);
+    static IBEX10__CoreIArray *_make();
 
-	virtual void initialize(const char *, const int n);
-	void initialize(x10::lang::String *filename, x10_int n) {
-   		initialize(filename->c_str(), n);
+	virtual bool initialize(const char *, const int n);
+	bool initialize(x10::lang::String *filename, x10_int n) {
+   		return initialize(filename->c_str(), n);
 	}
 
 	void finalize() {

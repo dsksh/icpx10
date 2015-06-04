@@ -1,0 +1,12 @@
+Constants
+L in 2;
+
+Variables
+x[2]  in [-10,10];
+pp1 in [0,4];
+pp2 in [-2,2];
+
+Constraints
+x(1) - (pp1 + L*cos(pp2)) = 0;
+x(2) - (pp1 + L*sin(pp2)) = 0;
+end

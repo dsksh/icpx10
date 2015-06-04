@@ -1,10 +1,9 @@
 
 #include <cfloat>
-#include <cstring>
 
 #include <x10/lang/String.h>
 
-#include "prover.h"
+#include "innerVerification.h"
 #include "IBEX10__CoreIArray.h"
 
 using namespace std;
@@ -12,16 +11,16 @@ using namespace ibex;
 
 RTT_CC_DECLS0(IBEX10__CoreIArray, "IBEX10.Core", x10aux::RuntimeType::class_kind)
     
-IBEX10__CoreIArray *IBEX10__CoreIArray::_make(x10::lang::String *filename, x10_int n) {
+IBEX10__CoreIArray *IBEX10__CoreIArray::_make() {
 	IBEX10__CoreIArray *core = new IBEX10__CoreIArray();
-    core->initialize(filename, n);
+    //core->initialize(filename, n);
     return core;
 }
 
 
-void IBEX10__CoreIArray::initialize(const char *filename, const int n) {
+bool IBEX10__CoreIArray::initialize(const char *filename, const int n) {
     cout.precision(16);
-cout << "initialize" << endl;
+//cout << "initialize" << endl;
 
     ctcPool_.clear();
     lrPool_.clear();
@@ -37,11 +36,12 @@ cout << "initialize" << endl;
 //cout << system_->args[i].key << ", \"" << system_->args[i].name << "\"" << endl;
 //cout << system_->args[i].dim.dim2 << endl;
             for (int j=0; j < system_->args[i].dim.dim2; j++) {
-                if (strcmp(system_->args[i].name, "pp") == 0)
-                    paramSc_.push_back(o);
-                else if (strcmp(system_->args[i].name, "ppc") == 0) {
+                string name(system_->args[i].name);
+                if (name.substr(0,3) == "ppc") {
                     paramSc_.push_back(o);
                     cyclicSc_.push_back(o);
+                } else if (name.substr(0,2) == "pp") {
+                    paramSc_.push_back(o);
                 } else 
                     projSc_.push_back(o);
                 o++;
@@ -89,7 +89,9 @@ cout << "initialize" << endl;
     }
 	catch(ibex::SyntaxError& e) {
 		cout << e << endl;
+        return false;
     }
+    return true;
 }
 
 
@@ -172,6 +174,7 @@ BAPSolver__Core<x10_long>::itable<IBEX10__CoreIArray>  IBEX10__CoreIArray::_itab
         &IBEX10__CoreIArray::finalize, 
         &IBEX10__CoreIArray::getInitialDomain, 
         &IBEX10__CoreIArray::hashCode, 
+        &IBEX10__CoreIArray::initialize, 
         &IBEX10__CoreIArray::isProjected, 
         &IBEX10__CoreIArray::toString, 
         &IBEX10__CoreIArray::typeName );

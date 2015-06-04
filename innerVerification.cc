@@ -8,7 +8,7 @@
 
 #include "config.h"
 #include "util.h"
-#include "prover.h"
+#include "innerVerification.h"
 
 using namespace std;
 using namespace ibex;
@@ -281,24 +281,12 @@ IntervalVector contract(Function& fun, const Scope& scProj, const Scope& scParam
 	IntervalMatrix C(dim, dim);
 	Matrix realC(dim, dim);
 	Matrix midJ(J.mid());
-	//try {
-		real_inverse(midJ, realC);
-	//} 
-	//catch(SingularMatrixException&) {
-	//	result.regularJu = false;
-	//	return result;
-	//}
+	real_inverse(midJ, realC);
 	C = IntervalMatrix(realC);
 
 #if RPR_COND_NUM
 	Matrix J_inv(dim, dim);
-	//try {
-		real_inverse(midJ, J_inv)
-	//} 
-	//catch (SingularMatrixException&) {
-	//	result.regularJu = false;
-	//	return result;
-	//}
+	real_inverse(midJ, J_inv)
 	result.cond = norm(J_inv) * norm(midJ);
 #endif
 
@@ -348,7 +336,7 @@ static const double Mu(0.9);
  */
 innerResult verifyInner(Function& fun,
 						const Scope& scProj, const Scope& scParam, const Scope& scCyclic, 
-						IntervalVector& dom, const IntervalVector& bx_dom0, 
+						IntervalVector& dom, const IntervalVector& domInit, 
 						bool reduceBox, int inflTrial ) {
 
 	int dim(fun.image_dim());
@@ -393,7 +381,7 @@ innerResult verifyInner(Function& fun,
 
 	int k(0);
 	while (d > 0.0 && d <= Mu*dPrev 
-		   && isSuperset(scNonCyclic, bx_dom0, pjDom)
+		   && isSuperset(scNonCyclic, domInit, pjDom)
 		   && (inflTrial < 0 || k <= inflTrial)
 		  ) {
 
@@ -426,7 +414,7 @@ std::cout << err.what() << std::endl;
 			throw(std::runtime_error("contracted to empty interval!"));
 
 		if (pjDom.is_strict_superset(pjContracted) && 
-			isSuperset(scNonCyclic, bx_dom0, pjDom) ) {
+			isSuperset(scNonCyclic, domInit, pjDom) ) {
 //std::cout << "inner: " << pjContracted.width() / pjDom.width() << std::endl;
 
 			if (reduceBox) {
