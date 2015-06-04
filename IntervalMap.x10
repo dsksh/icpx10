@@ -61,7 +61,7 @@ implements IntervalVec[String] {
     public def toString() :String {
         return toString(3n);
     }
-    public def toString(plot:Int) :String {
+    public def toString(plot:Long) :String {
         val sb:StringBuilder = new StringBuilder();
         sb.add('{');
         sb.add("\"plot\" : "+plot+",\n");

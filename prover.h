@@ -19,11 +19,10 @@ struct innerResult {
 bool regular(const ibex::IntervalMatrix& J);
 
 /// inner box verification
-innerResult verifyInner(ibex::IntervalVector& box, const ibex::IntervalVector& box_dom0, 
-                        const Scope& proj_sc, const Scope& param_sc, 
-                        const Scope& cyclic_sc, 
-                        ibex::Function& fun,
-                        bool reduce_box, int infl_trial);
+innerResult verifyInner(ibex::Function& fun,
+    const Scope& proj_sc, const Scope& param_sc, const Scope& cyclic_sc, 
+    ibex::IntervalVector& box, const ibex::IntervalVector& box_dom0, 
+    bool reduce_box, int infl_trial);
 
 #endif // PROVER_H
 

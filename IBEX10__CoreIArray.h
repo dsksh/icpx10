@@ -91,9 +91,9 @@ std::cout << "]," << std::endl;
 
 
 protected:
-	virtual IntervalVec<x10_long> *getIVFromBox(const ibex::IntervalVector& box);
-	virtual void setIVIntoBox(IntervalVec<x10_long>& iv, ibex::IntervalVector& box);
-	virtual void setBoxIntoIV(const ibex::IntervalVector& box, IntervalVec<x10_long>& iv);
+	virtual IntervalVec<x10_long> *toX10Box(const ibex::IntervalVector& native);
+	virtual void setToNativeBox(IntervalVec<x10_long>& managed, ibex::IntervalVector& native);
+	virtual void setToX10Box(const ibex::IntervalVector& native, IntervalVec<x10_long>& managed);
 
 	SystemPtr system_;
 

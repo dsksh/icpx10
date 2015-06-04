@@ -90,7 +90,8 @@ lockList();
                     list.add(bp.second);
                 }
                 else {
-Console.OUT.println(here + ": solution:\n: " + box + '\n');
+val p = res.entails(Result.regular()) ? 5 : 3;
+Console.OUT.println(here + ": solution:\n: " + box.toString() + '\n');
 		            //solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
 		            solutions.add(box);
                 }
@@ -146,7 +147,8 @@ logger.stopProc();
 // count depth
 logger.incrDepthCount(box.depth());
 //Console.OUT.println(here + ": solution:");
-Console.OUT.println("" + box + '\n');
+val p = res.entails(Result.inner()) ? 5 : 3;
+Console.OUT.println("" + box.toString(p) + '\n');
 		            //solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
 		            solutions.add(box);
                 }

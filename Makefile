@@ -6,7 +6,7 @@ all: $(TARGET)
 CC          = g++
 BUILD       = ar rs    # for static libraries
 #INCLUDES	+= -I$(RP_HOME)/src
-CFLAGS      += -O3 -g $(INCLUDES)
+CFLAGS      += -O0 -g $(INCLUDES)
 #CFLAGS      += -O3 -arch i386 -arch x86_64
 #CFLAGS      += -g -O3 -Wall
 #CFLAGS      += -pg -O0
@@ -26,9 +26,9 @@ X10_CPP_SOURCES = IBEX10__CoreIArray.cc prover.cc
 ## X10 STUFF ##
 X10CXX          = x10c++
 #X10CXX		   += -VERBOSE_CHECKS
-X10CXX		   += -STATIC_CHECKS
+#X10CXX		   += -STATIC_CHECKS
 #X10CXX         += -x10rt mpi
-X10CXX		   += -O
+#X10CXX		   += -O
 X10CXX         += -NO_CHECKS
 X10CXX         += -report postcompile=1
 X10CXX         += -debugpositions

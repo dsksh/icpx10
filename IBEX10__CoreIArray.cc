@@ -47,7 +47,7 @@ cout << "initialize" << endl;
                 o++;
             }
         }
-cout << projSc_.size() << ", " << paramSc_.size() << ", " << cyclicSc_.size() << endl;
+//cout << projSc_.size() << ", " << paramSc_.size() << ", " << cyclicSc_.size() << endl;
 
 		/* ============================ building contractors ========================= */
 		/*CtcPtr hc4(new CtcHC4(*system_, 0.01));
@@ -96,7 +96,7 @@ cout << projSc_.size() << ", " << paramSc_.size() << ", " << cyclicSc_.size() <<
 //template<typename K>
 IntervalVec<x10_long> *IBEX10__CoreIArray::getInitialDomain() {
     //rp::sp<rp::Box> sbx = list_->get_cell()->box;
-    return getIVFromBox(system_->box);
+    return toX10Box(system_->box);
 }
 
 //template<typename K>
@@ -107,19 +107,19 @@ BAPSolver__Result IBEX10__CoreIArray::contract(IntervalVec<x10_long> *iv) {
 //cout << "contract" << endl;
     //rp::Box box( *list_->get_cell()->box );
     IntervalVector box(IntervalVec<x10_long>::size(iv));
-    setIVIntoBox(*iv, box);
+    setToNativeBox(*iv, box);
 
     try {
         impact_.fill(0, ctc_->nb_var-1);
         ctc_->contract(box, impact_);
 
     } catch (EmptyBoxException& e) {
-        setBoxIntoIV(box, *iv);
+        setToX10Box(box, *iv);
         return BAPSolver__Result::noSolution();
     }
 
-    innerResult res = verifyInner(box, system_->box, projSc_, paramSc_, cyclicSc_,
-            system_->f, true, -1);
+    innerResult res = verifyInner(system_->f, projSc_, paramSc_, cyclicSc_,
+            box, system_->box, true, -1);
 
     BAPSolver__Result sr = BAPSolver__Result::unknown();
     if (box.is_empty())
@@ -130,37 +130,37 @@ BAPSolver__Result IBEX10__CoreIArray::contract(IntervalVec<x10_long> *iv) {
     else if (res.regularJu)
         sr = BAPSolver__Result::regular();
 
-    setBoxIntoIV(box, *iv);
+    setToX10Box(box, *iv);
     return sr;
 }
 
 
-IntervalVec<x10_long> *IBEX10__CoreIArray::getIVFromBox(const ibex::IntervalVector& box) {
-    IntervalArray *iv = IntervalArray::_make(box.size());
+IntervalVec<x10_long> *IBEX10__CoreIArray::toX10Box(const ibex::IntervalVector& native) {
 
-    for (int i(0); i < box.size(); ++i) {
-        const ibex::Interval& intv(box[i]);
+    IntervalArray *managed = IntervalArray::_make(native.size());
+    for (int i(0); i < native.size(); ++i) {
+        const ibex::Interval& intv(native[i]);
         ::Interval si = ::Interval::_make(intv.lb(), intv.ub());
-        iv->put(i, si);
+        managed->put(i, si);
     }
-
-    return reinterpret_cast<IntervalVec<x10_long> *>(iv);
+    return reinterpret_cast<IntervalVec<x10_long> *>(managed);
 }
 
-void IBEX10__CoreIArray::setIVIntoBox(IntervalVec<x10_long>& iv, ibex::IntervalVector& box) {
-    for (int i(0); i < box.size(); ++i) {
-        ::Interval si = ::IntervalVec<x10_long>::getOrThrow(&iv, i);
+void IBEX10__CoreIArray::setToNativeBox(IntervalVec<x10_long>& managed, 
+                                        ibex::IntervalVector& native) {
+    for (int i(0); i < ::IntervalVec<x10_long>::size(&managed); ++i) {
+        ::Interval si = ::IntervalVec<x10_long>::getOrThrow(&managed, i);
         ibex::Interval intv(si.FMGL(left), si.FMGL(right));
-        box[i] = intv;
+        native[i] = intv;
     }
 }
 
-void IBEX10__CoreIArray::setBoxIntoIV(const ibex::IntervalVector& box, 
-                                IntervalVec<x10_long>& iv) {
-    for (int i = 0; i < box.size(); ++i) {
-        const ibex::Interval& intv(box[i]);
+void IBEX10__CoreIArray::setToX10Box(const ibex::IntervalVector& native, 
+                                     IntervalVec<x10_long>& managed) {
+    for (int i = 0; i < native.size(); ++i) {
+        const ibex::Interval& intv(native[i]);
         ::Interval si = ::Interval::_make(intv.lb(), intv.ub());
-        IntervalVec<x10_long>::put(&iv, i, si);
+        IntervalVec<x10_long>::put(&managed, i, si);
     }
 }
 
