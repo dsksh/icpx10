@@ -1,22 +1,22 @@
 import x10.compiler.*;
 
 // kludge for "Interval is incomplete type" error
-class Dummy_IBEX10 {
+class Dummy_IbexAdapter {
     val dummy : Interval = new Interval(0.,0.);
     val dummyRes : BAPSolver.Result = BAPSolver.Result.unknown();
 }
 
-public class IBEX10 {
+public class IbexAdapter {
 
-    @NativeRep("c++", "IBEX10__CoreIArray *", "IBEX10__CoreIArray", null)
-    @NativeCPPOutputFile("IBEX10__CoreIArray.h")
-    @NativeCPPCompilationUnit("IBEX10__CoreIArray.cc")
+    @NativeRep("c++", "IbexAdapter__Core *", "IbexAdapter__Core", null)
+    @NativeCPPOutputFile("IbexAdapter__Core.h")
+    @NativeCPPCompilationUnit("IbexAdapter__Core.cc")
     @NativeCPPOutputFile("innerVerification.h")
     @NativeCPPCompilationUnit("innerVerification.cc")
     @NativeCPPOutputFile("util.h")
     @NativeCPPOutputFile("config.h")
-    public static class CoreIArray implements BAPSolver.Core[Long] {
-        public def this() : CoreIArray {}
+    public static class Core implements BAPSolver.Core[Long] {
+        public def this() : Core {}
         @Native("c++", "(#0)->initialize(#1,#2)")
         public def initialize(filename:String, n:Int) : Boolean { return false; };
         @Native("c++", "(#0)->finalize()")

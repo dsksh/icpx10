@@ -1,17 +1,19 @@
-#ifndef IBEX10__CORE_H
-#define IBEX10__CORE_H
+#ifndef IBEX__CORE_H
+#define IBEX__CORE_H
 
 #include <memory>
 #include <vector>
 
 #include <boost/shared_ptr.hpp>
 
-#include "ibex.h"
+//#include "ibex.h"
 #include "ibex_Ctc.h"
 #include "ibex_Pdc.h"
-#include "ibex_Bsc.h"
-#include "ibex_CellBuffer.h"
+//#include "ibex_Bsc.h"
+//#include "ibex_CellBuffer.h"
+#include "ibex_LinearRelax.h"
 #include "ibex_SubPaving.h"
+#include "ibex_System.h"
 #include "ibex_Timer.h"
 #include "ibex_Exception.h"
 
@@ -23,7 +25,7 @@
 
 #include "util.h"
 
-class IBEX10__CoreIArray : public x10::lang::X10Class {
+class IbexAdapter__Core : public x10::lang::X10Class {
 	typedef std::auto_ptr<ibex::System> SystemPtr;
 	typedef boost::shared_ptr<ibex::Ctc> CtcPtr;
 	typedef std::vector<CtcPtr> CtcPtrVec;
@@ -35,13 +37,13 @@ class IBEX10__CoreIArray : public x10::lang::X10Class {
 public:
     RTT_H_DECLS_CLASS
 
-	IBEX10__CoreIArray() { }
-	//~IBEX10__CoreIArray() { }
+	IbexAdapter__Core() { }
+	//~IbexAdapter__Core() { }
 
     static x10aux::itable_entry _itables[3];
     virtual x10aux::itable_entry *_getITables() { return _itables; }
-    static BAPSolver__Core<x10_long>::itable<IBEX10__CoreIArray> _itable_0;
-    static x10::lang::Any::itable<IBEX10__CoreIArray> _itable_1;
+    static BAPSolver__Core<x10_long>::itable<IbexAdapter__Core> _itable_0;
+    static x10::lang::Any::itable<IbexAdapter__Core> _itable_1;
 
     // X10 serialization requires these functions be stubbed out.
     // We never intend to serialize instances of SatX10_Solver or
@@ -50,8 +52,8 @@ public:
     virtual x10aux::serialization_id_t _get_serialization_id() { abort(); return -1; }
     virtual void _serialize_body(x10aux::serialization_buffer &) { abort(); }
 
-    //static IBEX10__CoreIArray *_make(x10::lang::String *filename, x10_int n);
-    static IBEX10__CoreIArray *_make();
+    //static IbexAdapter__Core *_make(x10::lang::String *filename, x10_int n);
+    static IbexAdapter__Core *_make();
 
 	virtual bool initialize(const char *, const int n);
 	bool initialize(x10::lang::String *filename, x10_int n) {
@@ -111,6 +113,6 @@ protected:
 	ibex::BitSet impact_;
 };
 
-#endif // IBEX10__CORE_H
+#endif // IBEX__CORE_H
 
 // vim: shiftwidth=4:tabstop=4:softtabstop=0:expandtab

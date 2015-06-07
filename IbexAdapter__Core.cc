@@ -3,22 +3,36 @@
 
 #include <x10/lang/String.h>
 
+#include "ibex_Ctc3BCid.h"
+#include "ibex_CtcAcid.h"
+#include "ibex_CtcCompo.h"
+#include "ibex_CtcFixPoint.h"
+#include "ibex_CtcForAll.h"
+#include "ibex_CtcFwdBwd.h"
+#include "ibex_CtcHC4.h"
+#include "ibex_CtcMohc.h"
+#include "ibex_CtcNewton.h"
+#include "ibex_Linear.h"
+#include "ibex_LinearException.h"
+#include "ibex_SyntaxError.h"
+#include "ibex_EmptyBoxException.h"
+
 #include "innerVerification.h"
-#include "IBEX10__CoreIArray.h"
+#include "IbexAdapter__Core.h"
 
 using namespace std;
 using namespace ibex;
 
-RTT_CC_DECLS0(IBEX10__CoreIArray, "IBEX10.Core", x10aux::RuntimeType::class_kind)
+RTT_CC_DECLS0(IbexAdapter__Core, "IbexAdapter.Core", x10aux::RuntimeType::class_kind)
     
-IBEX10__CoreIArray *IBEX10__CoreIArray::_make() {
-	IBEX10__CoreIArray *core = new IBEX10__CoreIArray();
+IbexAdapter__Core *IbexAdapter__Core::_make() {
+	IbexAdapter__Core *core = new IbexAdapter__Core();
     //core->initialize(filename, n);
     return core;
 }
 
 
-bool IBEX10__CoreIArray::initialize(const char *filename, const int n) {
+bool IbexAdapter__Core::initialize(const char *filename, const int n) {
     cout.precision(16);
 //cout << "initialize" << endl;
 
@@ -96,13 +110,13 @@ bool IBEX10__CoreIArray::initialize(const char *filename, const int n) {
 
 
 //template<typename K>
-IntervalVec<x10_long> *IBEX10__CoreIArray::getInitialDomain() {
+IntervalVec<x10_long> *IbexAdapter__Core::getInitialDomain() {
     //rp::sp<rp::Box> sbx = list_->get_cell()->box;
     return toX10Box(system_->box);
 }
 
 //template<typename K>
-BAPSolver__Result IBEX10__CoreIArray::contract(IntervalVec<x10_long> *iv) {
+BAPSolver__Result IbexAdapter__Core::contract(IntervalVec<x10_long> *iv) {
 	if (IntervalVec<x10_long>::size(iv) == 0)
         return BAPSolver__Result::noSolution();
 
@@ -137,7 +151,7 @@ BAPSolver__Result IBEX10__CoreIArray::contract(IntervalVec<x10_long> *iv) {
 }
 
 
-IntervalVec<x10_long> *IBEX10__CoreIArray::toX10Box(const ibex::IntervalVector& native) {
+IntervalVec<x10_long> *IbexAdapter__Core::toX10Box(const ibex::IntervalVector& native) {
 
     IntervalArray *managed = IntervalArray::_make(native.size());
     for (int i(0); i < native.size(); ++i) {
@@ -148,7 +162,7 @@ IntervalVec<x10_long> *IBEX10__CoreIArray::toX10Box(const ibex::IntervalVector& 
     return reinterpret_cast<IntervalVec<x10_long> *>(managed);
 }
 
-void IBEX10__CoreIArray::setToNativeBox(IntervalVec<x10_long>& managed, 
+void IbexAdapter__Core::setToNativeBox(IntervalVec<x10_long>& managed, 
                                         ibex::IntervalVector& native) {
     for (int i(0); i < ::IntervalVec<x10_long>::size(&managed); ++i) {
         ::Interval si = ::IntervalVec<x10_long>::getOrThrow(&managed, i);
@@ -157,7 +171,7 @@ void IBEX10__CoreIArray::setToNativeBox(IntervalVec<x10_long>& managed,
     }
 }
 
-void IBEX10__CoreIArray::setToX10Box(const ibex::IntervalVector& native, 
+void IbexAdapter__Core::setToX10Box(const ibex::IntervalVector& native, 
                                      IntervalVec<x10_long>& managed) {
     for (int i = 0; i < native.size(); ++i) {
         const ibex::Interval& intv(native[i]);
@@ -167,27 +181,27 @@ void IBEX10__CoreIArray::setToX10Box(const ibex::IntervalVector& native,
 }
 
 
-BAPSolver__Core<x10_long>::itable<IBEX10__CoreIArray>  IBEX10__CoreIArray::_itable_0(
-        &IBEX10__CoreIArray::contract, 
-        &IBEX10__CoreIArray::dummyBox, 
-        &IBEX10__CoreIArray::equals, 
-        &IBEX10__CoreIArray::finalize, 
-        &IBEX10__CoreIArray::getInitialDomain, 
-        &IBEX10__CoreIArray::hashCode, 
-        &IBEX10__CoreIArray::initialize, 
-        &IBEX10__CoreIArray::isProjected, 
-        &IBEX10__CoreIArray::toString, 
-        &IBEX10__CoreIArray::typeName );
+BAPSolver__Core<x10_long>::itable<IbexAdapter__Core>  IbexAdapter__Core::_itable_0(
+        &IbexAdapter__Core::contract, 
+        &IbexAdapter__Core::dummyBox, 
+        &IbexAdapter__Core::equals, 
+        &IbexAdapter__Core::finalize, 
+        &IbexAdapter__Core::getInitialDomain, 
+        &IbexAdapter__Core::hashCode, 
+        &IbexAdapter__Core::initialize, 
+        &IbexAdapter__Core::isProjected, 
+        &IbexAdapter__Core::toString, 
+        &IbexAdapter__Core::typeName );
 
-x10::lang::Any::itable<IBEX10__CoreIArray>  IBEX10__CoreIArray::_itable_1(
-        &IBEX10__CoreIArray::equals, 
-        &IBEX10__CoreIArray::hashCode, 
-        &IBEX10__CoreIArray::toString, 
-        &IBEX10__CoreIArray::typeName );
+x10::lang::Any::itable<IbexAdapter__Core>  IbexAdapter__Core::_itable_1(
+        &IbexAdapter__Core::equals, 
+        &IbexAdapter__Core::hashCode, 
+        &IbexAdapter__Core::toString, 
+        &IbexAdapter__Core::typeName );
 
-x10aux::itable_entry IBEX10__CoreIArray::_itables[3] = 
+x10aux::itable_entry IbexAdapter__Core::_itables[3] = 
     {x10aux::itable_entry(&x10aux::getRTT<BAPSolver__Core<x10_long> >, &_itable_0), 
      x10aux::itable_entry(&x10aux::getRTT<x10::lang::Any>, &_itable_1), 
-     x10aux::itable_entry(NULL, (void*)x10aux::getRTT<IBEX10__CoreIArray>()) };
+     x10aux::itable_entry(NULL, (void*)x10aux::getRTT<IbexAdapter__Core>()) };
 
 // vim: shiftwidth=4:tabstop=4:softtabstop=0:expandtab

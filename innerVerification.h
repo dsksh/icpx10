@@ -2,6 +2,9 @@
 #define INNER_VERIFICATION_H
 
 #include "ibex.h"
+#include "ibex_Interval.h"
+#include "ibex_IntervalVector.h"
+#include "ibex_Function.h"
 
 #include "util.h"
 
