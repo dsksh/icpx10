@@ -1,5 +1,4 @@
 import x10.compiler.*;
-import x10.util.*;
 
 // kludge for "Interval is incomplete type" error
 class Dummy_SolutionSet {

@@ -1,0 +1,14 @@
+Constants
+Cx in 3;
+Cy in 1;
+
+Variables
+x[2]  in [-10,10];
+pp1 in [0,4];
+pp2 in [-2,2];
+pp3 in [1,2];
+
+Constraints
+x(1) - (pp1 + pp3*cos(pp2)) = 0;
+x(2) - (pp1 + pp3*sin(pp2)) = 0;
+end

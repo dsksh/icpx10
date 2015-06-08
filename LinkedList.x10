@@ -76,7 +76,15 @@
  * @param [E] the type of elements held in this collection
  */
 
-import x10.util.*;
+import x10.util.AbstractCollection;
+import x10.util.Container;
+import x10.util.Collection;
+import x10.util.List;
+import x10.util.ListIterator;
+import x10.util.ArrayList;
+import x10.util.Box;
+import x10.util.RailUtils;
+import x10.util.NoSuchElementException;
 
 public class LinkedList[E] extends AbstractCollection[E] implements List[E] {
 

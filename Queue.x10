@@ -1,8 +1,10 @@
 import x10.compiler.*;
-import x10.util.*;
+import x10.util.List;
+import x10.util.ArrayList;
+import x10.util.Box;
 import x10.util.concurrent.Lock;
-import x10.util.concurrent.AtomicDouble;
 import x10.util.StringBuilder;
+import x10.util.Team;
 
 import glb.Context;
 import glb.GLBResult;
@@ -87,9 +89,12 @@ lockList();
                     list.add(bp.first);
                     list.add(bp.second);
                 }
-                else 
+                else {
+val p = res.entails(Result.regular()) ? 5 : 3;
+Console.OUT.println(here + ": solution:\n: " + box.toString() + '\n');
 		            //solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
 		            solutions.add(box);
+                }
             }        
         }
 //Console.OUT.println(here + ": processed: " + cntPrune);
@@ -141,6 +146,9 @@ logger.stopProc();
                 else {
 // count depth
 logger.incrDepthCount(box.depth());
+//Console.OUT.println(here + ": solution:");
+val p = res.entails(Result.inner()) ? 5 : 3;
+Console.OUT.println("" + box.toString(p) + '\n');
 		            //solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
 		            solutions.add(box);
                 }

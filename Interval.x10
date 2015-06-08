@@ -1,4 +1,4 @@
-import x10.util.*;
+import x10.util.Pair;
 
 public struct Interval {
     public val left:Double;

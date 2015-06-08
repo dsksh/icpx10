@@ -1,0 +1,18 @@
+Constants
+Phi in 9;
+L2 in 17;
+L3 in 20.8;
+C2 in 15.9;
+C3 in 0;
+D3 in 10;
+
+Variables
+x[2]  in [-50,50];
+x3    in [-3.141592,3.141593];
+pp[3] in [10,32];
+
+Constraints
+ x(1)^2                              +  x(2)^2                          - pp(1)^2 = 0;
+(x(1) - L2*cos(x3)       - C2)^2     + (x(2) - L2*sin(x3))^2            - pp(2)^2 = 0;
+(x(1) - L3*cos(x3 + Phi) - C3)^2     + (x(2) - L2*sin(x3 + Phi) - D3)^2 - pp(3)^2 = 0;
+end

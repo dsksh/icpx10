@@ -1,4 +1,5 @@
-import x10.util.*;
+import x10.util.Box;
+import x10.util.Pair;
 
 // kludge for "Interval is incomplete type" error
 struct Dummy_IntervalVec {
@@ -13,7 +14,7 @@ public interface IntervalVec[K] {
 
     public def split(variable:K) : Pair[IntervalVec[K],IntervalVec[K]];
     public def width() : Double;
-    public def toString(plot:Int) :String;
+    public def toString(plot:Long) :String;
     public def toString() :String;
 
     public def vit() : Iterator[K];

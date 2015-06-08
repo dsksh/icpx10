@@ -1,8 +1,6 @@
 import x10.compiler.*;
-import x10.util.*;
+import x10.util.Box;
 import x10.util.concurrent.AtomicBoolean;
-import x10.util.concurrent.AtomicInteger;
-import x10.io.*;
 import x10.io.Console; 
 
 public class BAPSolver[K] {
@@ -24,7 +22,7 @@ public class BAPSolver[K] {
     }
 
     public static interface Core[K] {
-        //public def initialize(filename:String, n:Int) : void;
+        public def initialize(filename:String, n:Int) : Boolean;
 		public def finalize() : void;
         public def getInitialDomain() :IntervalVec[K];
         //public def solve() : int;
