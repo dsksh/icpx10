@@ -1,6 +1,6 @@
 # ICPX10
 
-ICPX10 is a parallel interval-based numerical constraint solver implemented with X10.
+ICPX10 is a parallel interval-based numerical constraint solver implemented with X10 and IBEX.
 
 ## Requirements
 
@@ -12,7 +12,7 @@ Tested on Linux version 3.2.0-4-amd64 and Mac OS X version 10.9.5.
 
 ## Install
 
-`$(ICPX10_DIR)` and `$(IBEX_DIR)` represent the paths to the unpacked directories of ICPX10 and IBEX, respectively.
+`$(ICPX10_DIR)` represents the path to the unpacked directories of ICPX10.
 
 1. Modify the Makefile if necessary.
 2. Build ICPX10.
@@ -21,12 +21,12 @@ $ cd $(ICPX10_DIR)
 $ make
 ```
 
-Binary file `$(ICPX10_DIR)/Mail` will be generated.
+Binary file `$(ICPX10_DIR)/Main` will be generated.
 
 ## Example
 
 ```
-$ ./Main -f $(IBEX_DIR)/benchs/benchs-satisfaction/benchs-coprin/BroydenTri-0010.bch -p 1 -e 0.01 -v 7 -i 0.001 -li 100 -w 1 -l 2
+$ ./Main -f benchs-uc/sp22.bch -p 1 -e 0.01 -v 7 -i 0.001 -li 100 -w 1 -l 2
 ```
 
 ## Reference
@@ -37,7 +37,7 @@ D. Ishii, K. Yoshizoe, and T. Suzumura. Scalable Parallel Numerical CSP Solver. 
 
 ## Copyright and license
 
-Copyright (c) 2015 Daisuke Ishii <http://www.dsksh.com/>.
+Copyright (c) 2015 [Daisuke Ishii](http://www.dsksh.com/).
 Code is released under the Eclipse Public License v1.0.
 Code under the "glb" directory is taken from the source tree of X10 version 2.4.3.2.
 "LinkedList.x10" is a modification of "LinkedList.java" taken from an OpenJDK distribution, which is released under GPLv2.
