@@ -130,9 +130,6 @@ innerResult verifyInner(Function& fun,
     std::cout << dom << std::endl;
 #endif
 
-    //Scope scParam, fixed_sc;
-    //fix_redundant_params(dom, scProj, scParam__, fun, scParam, fixed_sc);
-
     const IntervalVector pjOrig(getProjValue(dom, scParam));
     IntervalVector pjDom(pjOrig);
 
