@@ -5,6 +5,7 @@ import x10.util.Box;
 import x10.util.concurrent.Lock;
 import x10.util.StringBuilder;
 import x10.util.Team;
+import x10.xrx.Runtime;
 
 import glb.Context;
 import glb.GLBResult;
@@ -12,11 +13,11 @@ import glb.TaskQueue;
 import glb.TaskBag;
 import glb.Logger;
 
-// kludge for "Interval is incomplete type" error
-class Dummy_Queue {
-    val dummy : Interval = new Interval(0.,0.);
-    val dummyVec : IntervalVec[Long] = new IntervalArray(0);
-}
+//// kludge for "Interval is incomplete type" error
+//class Dummy_Queue {
+//    val dummy : Interval = new Interval(0.,0.);
+//    val dummyVec : IntervalVec[Long] = new IntervalArray(0);
+//}
 
 public class Queue[K] extends BAPSolver[K] 
   implements TaskQueue[Queue[K], Long] {

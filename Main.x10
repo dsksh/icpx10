@@ -13,8 +13,8 @@ import glb.GLBParameters;
 //}
 
 public class Main[K] {
-        val dummy : Interval = new Interval(0.,0.);
-        val dummy_result : BAPSolver.Result = BAPSolver.Result.unknown();
+        //val dummy : Interval = new Interval(0.,0.);
+        //val dummy_result : BAPSolver.Result = BAPSolver.Result.unknown();
 
     public static def init[K](core:BAPSolver.Core[K], prec:Double) {
 //Console.OUT.println(here.id() + ": init");

@@ -31,7 +31,7 @@ public struct GLBParameters(
     /**
      * Returns a default glb parameter
      */
-    public static Default = GLBParameters(100n,0.1,0.1,4n,4n,computeZ(Place.MAX_PLACES,4n),1024n,15n);
+    public static Default = GLBParameters(100n,0.1,0.1,4n,4n,computeZ(Place.numPlaces(),4n),1024n,15n);
     
     /**
      * Show computation result.
