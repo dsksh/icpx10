@@ -5,6 +5,7 @@ import x10.util.Box;
 import x10.util.concurrent.Lock;
 import x10.util.StringBuilder;
 import x10.util.Team;
+import x10.xrx.Runtime;
 
 import glb.Context;
 import glb.GLBResult;

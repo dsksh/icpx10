@@ -4,6 +4,8 @@ import x10.compiler.*;
 import x10.util.Option;
 import x10.util.OptionsParser;
 import x10.util.Random;
+import x10.xrx.Runtime;
+
 /**
  * The local runner for the GLB framework. An instance of this class runs at each
  * place and provides the context within which user-specified tasks execute and
@@ -61,7 +63,7 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
     @x10.compiler.Volatile transient var waiting:Boolean = false;
     
     /* Number of places.*/
-    val P = Place.MAX_PLACES;
+    val P = Place.numPlaces();
     
     /*Context object accessible to user code, which can be used to yield.*/
     var context:Context[Queue, R];
@@ -399,7 +401,7 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
      * @param st PLH of Worker
      */
     static def broadcast[Queue, R](st:PlaceLocalHandle[Worker[Queue, R]]){Queue<:TaskQueue[Queue, R]} {
-        val P = Place.MAX_PLACES;
+        val P = Place.numPlaces();
         @Pragma(Pragma.FINISH_DENSE) finish {
             if (P < 256) {
                 for(var i:Long=0; i<P; i++) {
@@ -423,7 +425,7 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
      * @param st: PLH of Worker
      */
     static def initContexts[Queue,R](st:PlaceLocalHandle[Worker[Queue, R]]){Queue<:TaskQueue[Queue, R]}{
-    	val P = Place.MAX_PLACES;
+    	val P = Place.numPlaces();
     	@Pragma(Pragma.FINISH_DENSE) finish {
     		if (P < 256) {
     			for(var i:Long=0; i<P; i++) {

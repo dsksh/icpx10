@@ -3,6 +3,7 @@ package glb;
 import x10.util.Team;
 import x10.util.StringBuilder;
 import x10.compiler.Inline;
+import x10.xrx.Runtime;
 
 /**
  * <p>The top level class of the Global Load Balancing (GLB) framework.
@@ -12,7 +13,7 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
 	/**
 	 * Number of places.
 	 */
-	private val P = Place.MAX_PLACES;
+	private val P = Place.numPlaces();
 	/**
 	 * Home PlaceLocalHandle of {@link Worker}
 	 */
@@ -55,7 +56,7 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
 	public def this(init:()=>Queue, glbParams:GLBParameters, tree:Boolean) {
 		this.glbParams = glbParams;
 		setupTime = System.nanoTime();
-		plh = PlaceLocalHandle.makeFlat[Worker[Queue, R]](PlaceGroup.WORLD, 
+		plh = PlaceLocalHandle.makeFlat[Worker[Queue, R]](Place.places(), 
 				()=>new Worker[Queue, R](init, glbParams.n, glbParams.i, glbParams.li, glbParams.w, glbParams.l, glbParams.z, glbParams.m, tree));
 		Worker.initContexts[Queue, R](plh);
 		setupTime = System.nanoTime() - setupTime;
@@ -197,7 +198,7 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
 		});
         */
 
-        val it = PlaceGroup.WORLD.iterator();
+        val it = Place.places().iterator();
         finish while (it.hasNext()) {
             val p:Place = it.next();
             if (p != here) at (p) async {
@@ -223,7 +224,7 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
         Console.OUT.println("\"user log\" : [");
         val sbLog = new StringBuilder();
         val sbLogG = new GlobalRef[StringBuilder](sbLog);
-		for(var i:Long =0; i < Place.MAX_PLACES; ++i){
+		for(var i:Long =0; i < Place.numPlaces(); ++i){
             val b = i>0;
 			at(Place(i)){
                 val sbl = new StringBuilder();
