@@ -37,16 +37,9 @@ public class BAPSolver[K] {
     var sentBw:AtomicBoolean = new AtomicBoolean(false);
     var initPhase:Boolean;
 
-    //// kludge for a success of compilation
-    //val dummy:Double;
-    //val dummyI:Interval;
-
     public def this(core:Core[K], selector:(Result, IntervalVec[K])=>Box[K]) {
         this.core = core;
         selectVariable = selector;
-
-        //dummy = 0;
-        //dummyI = new Interval(0.,0.);
     }
 
     protected val selectVariable : (res:Result, box:IntervalVec[K]) => Box[K];

@@ -1,10 +1,5 @@
 import x10.compiler.*;
 
-//// kludge for "Interval is incomplete type" error
-//class Dummy_SolutionSet {
-//    val dummy : Interval = new Interval(0.,0.);
-//}
-
 public struct SolutionSet[K] implements Arithmetic[SolutionSet[K]] {
     public val data:Rail[IntervalVec[K]];
     public def this(sols:Rail[IntervalVec[K]]) {

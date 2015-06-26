@@ -5,7 +5,7 @@ ICPX10 is a parallel interval-based numerical constraint solver implemented with
 ## Requirements
 
 * IBEX <http://www.ibex-lib.org/> (tested with version 2.1.13)
-* X10 <http://x10-lang.org/> (tested with version 2.4.3.2)
+* X10 <http://x10-lang.org/> (tested with version 2.5.3)
 * C/C++ (tested with gcc version 4.7.4 and version 4.8.2)
 
 Tested on Linux version 3.2.0-4-amd64 and Mac OS X version 10.9.5.
@@ -31,9 +31,9 @@ $ ./Main -f benchs-uc/sp22.bch -p 1 -e 0.01 -v 7 -i 0.001 -li 100 -w 1 -l 2
 
 ## Reference
 
-D. Ishii, K. Yoshizoe, and T. Suzumura. Scalable Parallel Numerical Constraint Solver Using Global Load Balancing. In X10 Workshop, 2015. (to appear)
+D. Ishii, K. Yoshizoe, and T. Suzumura. Scalable Parallel Numerical Constraint Solver Using Global Load Balancing. In X10 Workshop, pages 33-38, 2015.
 
-D. Ishii, K. Yoshizoe, and T. Suzumura. Scalable Parallel Numerical CSP Solver. In 20th International Conference on Principles and Practice of Constraint Programming (CP), LNCS 8656, pages 398-406. LNCS 8656, 2014.
+D. Ishii, K. Yoshizoe, and T. Suzumura. Scalable Parallel Numerical CSP Solver. In 20th International Conference on Principles and Practice of Constraint Programming (CP), LNCS 8656, pages 398-406, 2014.
 
 ## Copyright and license
 

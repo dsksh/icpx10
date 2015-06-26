@@ -6,19 +6,9 @@ import x10.util.Box;
 import glb.GLB;
 import glb.GLBParameters;
 
-// kludge for "Interval is incomplete type" error
-//class Dummy_Main {
-//    val dummy : Interval = new Interval(0.,0.);
-//    val dummy_result : BAPSolver.Result = BAPSolver.Result.unknown();
-//}
-
 public class Main[K] {
-        //val dummy : Interval = new Interval(0.,0.);
-        //val dummy_result : BAPSolver.Result = BAPSolver.Result.unknown();
 
     public static def init[K](core:BAPSolver.Core[K], prec:Double) {
-//Console.OUT.println(here.id() + ": init");
-
         val tester = new VariableSelector.Tester[K]();
         val test = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => 
             tester.testPrec(prec, res, box, v);

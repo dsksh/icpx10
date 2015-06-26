@@ -1,11 +1,5 @@
 import x10.compiler.*;
 
-//// kludge for "Interval is incomplete type" error
-//class Dummy_IbexAdapter {
-//    val dummy : Interval = new Interval(0.,0.);
-//    val dummyRes : BAPSolver.Result = BAPSolver.Result.unknown();
-//}
-
 public class IbexAdapter {
 
     @NativeRep("c++", "IbexAdapter__Core *", "IbexAdapter__Core", null)
