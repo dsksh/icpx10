@@ -25,9 +25,18 @@ Binary file `$(ICPX10_DIR)/Main` will be generated.
 
 ## Example
 
+A command-line script for solving the Sphere and Plane benchmark (w. 2+2 variables):
 ```
-$ ./Main -f benchs-uc/sp22.bch -p 1 -e 0.01 -v 7 -i 0.001 -li 100 -w 1 -l 2
+$ X10_NPLACES=4 ./Main -f benchs-uc/sp22.bch -e 0.01 -v 7 -i 0.001 -li 100 -w 1 -l 2
 ```
+The solving parameters are configured as:
+* `X10_NPLACES=4`: use 4 X10 places (when using Sockets X10RT implementation).
+* `-e 0.01`: set the precision to 0.01.
+* `-v 7`: set the verbose level (no outputs when `-v 0`).
+* `-i 0.001`: set the minimal intervals for load balancing (in seconds).
+* `-li 100`: set the log sampling interval (in seconds).
+* `-w 1`: set the number of random stealing attempts.
+* `-l 2`: set the diameter of the lifeline graph.
 
 ## Reference
 
