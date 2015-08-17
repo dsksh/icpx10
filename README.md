@@ -31,7 +31,7 @@ $ X10_NPLACES=4 ./Main -f benchs-uc/sp22.bch -e 0.01 -v 7 -i 0.001 -li 100 -w 1 
 ```
 The solving parameters are configured as:
 * `X10_NPLACES=4`: use 4 X10 places (when using Sockets X10RT implementation).
-* `-e 0.01`: set the precision to 0.01.
+* `-e 0.01`: set the precision threshold for the branch and prune algorithm.
 * `-v 7`: set the verbose level (no outputs when `-v 0`).
 * `-i 0.001`: set the minimal intervals for load balancing (in seconds).
 * `-li 100`: set the log sampling interval (in seconds).
@@ -46,7 +46,7 @@ D. Ishii, K. Yoshizoe, and T. Suzumura. Scalable Parallel Numerical CSP Solver. 
 
 ## Copyright and license
 
-Copyright (c) 2015 [Daisuke Ishii](http://www.dsksh.com/).
+Copyright (c) 2013-2015 [Daisuke Ishii](http://www.dsksh.com/).
 Code is released under the Eclipse Public License v1.0.
 Code under the "glb" directory is taken from the source tree of X10 version 2.4.3.2.
 "LinkedList.x10" is a modification of "LinkedList.java" taken from an OpenJDK distribution, which is released under GPLv2.

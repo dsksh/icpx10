@@ -177,28 +177,29 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
         val tmpPlh = plh; // trick taught by Dave, caputure this.plh (as a pointer) instead
                           // of calling plh() directly inside the closure, which will encapsulate
                           // this (i.e. the whole rail of 
-		/*PlaceGroup.WORLD.broadcastFlat(()=>{
-			if(here == resultGlobal.home){
-			    val tmpresultGlobal = resultGlobal as GlobalRef[GLBResult[R]]{self.home == here};
-				Team.WORLD.allreduce(tmpresultGlobal().submitResult(), // Source buffer.
-						0, // Offset into the source buffer.
-						tmpresultGlobal().submitResult(), // Destination buffer.
-						0, // Offset into the destination buffer.
-						tmpresultGlobal().submitResult().size, // Number of elements.
-						tmpresultGlobal().getReduceOperator()); // Operation to be performed.
-			}else{
-				glbR: GLBResult[R] = tmpPlh().queue.getResult();
-				Team.WORLD.allreduce(glbR.submitResult(), // Source buffer.
-						0, // Offset into the source buffer.
-						glbR.submitResult(), // Destination buffer.
-						0, // Offset into the destination buffer.
-						glbR.submitResult().size, // Number of elements.
-						glbR.getReduceOperator()); // Operation to be performed.
-			}
-		});
-        */
 
-        val it = Place.places().iterator();
+        Place.places().broadcastFlat(()=>{
+            if(here == resultGlobal.home){
+                val tmpresultGlobal = resultGlobal as GlobalRef[GLBResult[R]]{self.home == here};
+                Team.WORLD.allreduce(tmpresultGlobal().submitResult(), // Source buffer.
+                        0, // Offset into the source buffer.
+                        tmpresultGlobal().submitResult(), // Destination buffer.
+                        0, // Offset into the destination buffer.
+                        tmpresultGlobal().submitResult().size, // Number of elements.
+                        tmpresultGlobal().getReduceOperator()); // Operation to be performed.
+            }else{
+                glbR: GLBResult[R] = tmpPlh().queue.getResult();
+                Team.WORLD.allreduce(glbR.submitResult(), // Source buffer.
+                        0, // Offset into the source buffer.
+                        glbR.submitResult(), // Destination buffer.
+                        0, // Offset into the destination buffer.
+                        glbR.submitResult().size, // Number of elements.
+                        glbR.getReduceOperator()); // Operation to be performed.
+            }
+
+        });        
+      
+        /*val it = Place.places().iterator();
         finish while (it.hasNext()) {
             val p:Place = it.next();
             if (p != here) at (p) async {
@@ -208,6 +209,7 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
                     resultGlobal().result(0) += r(0);
             }
         }
+        */
 
 		collectResultTime = System.nanoTime() - collectResultTime;
 		
