@@ -4,7 +4,6 @@ import x10.util.ArrayList;
 import x10.util.Box;
 import x10.util.concurrent.Lock;
 import x10.util.StringBuilder;
-import x10.util.Team;
 import x10.xrx.Runtime;
 
 import glb.Context;
@@ -13,14 +12,11 @@ import glb.TaskQueue;
 import glb.TaskBag;
 import glb.Logger;
 
-public class Queue[K,R] extends BAPSolver[K] 
-  //implements TaskQueue[Queue[K], Long] {
-  implements TaskQueue[Queue[K,R], R] {
+public class GlbQueueImpl[K,R] extends BAPSolver[K] implements TaskQueue[GlbQueueImpl[K,R], R] {
 
     var list:List[IntervalVec[K]] = null;
     var cntPrune:Long = 0;
     var cntBranch:Long = 0;
-    //val solutions:ArrayList[Pair[BAPSolver.Result,IntervalVec[K]]];
     val solutions:ArrayList[IntervalVec[K]];
 
     val initResult:(Rail[IntervalVec[K]])=>R;
@@ -52,16 +48,12 @@ public class Queue[K,R] extends BAPSolver[K]
         }
 //unlockList();
 
-        //solutions = new ArrayList[Pair[BAPSolver.Result, IntervalVec[K]]]();
         solutions = new ArrayList[IntervalVec[K]]();
 
         this.initResult = initResult;
     }
 
-    public def process(n:Long, context:
-      //Context[Queue[K], Long]) 
-      Context[Queue[K,R], R]) 
-    {
+    public def process(n:Long, context:Context[GlbQueueImpl[K,R], R]) {
         var box:IntervalVec[K] = null;
 
 try {
@@ -113,10 +105,7 @@ finally {
     var ngBak:Long = 0;
     var nrBak:Long = 0;
 
-    public def process(interval:Double, 
-                       //context:Context[Queue[K], Long], 
-                       context:Context[Queue[K,R], R], 
-                       logger:Logger) {
+    public def process(interval:Double, context:Context[GlbQueueImpl[K,R], R], logger:Logger) {
         var box:IntervalVec[K] = null;
 
         val tStart = System.nanoTime();
@@ -152,7 +141,6 @@ logger.incrDepthCount(box.depth());
 //Console.OUT.println(here + ": solution:");
 val p = res.entails(Result.inner()) ? 5 : 3;
 //Console.OUT.println("" + box.toString(p) + '\n');
-		            //solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
 		            solutions.add(box);
                 }
 
@@ -193,7 +181,7 @@ lockList();
         if (sz <= 1)
             return null;
 
-        val bag = new Bag[K](sz/2);
+        val bag = new GlbBagImpl[K](sz/2);
         val list1 = new LinkedList[IntervalVec[K]]();
         val it = list.iterator();
         for (var i:Long = 0; it.hasNext(); ++i) {
@@ -211,7 +199,7 @@ finally {
 }
     }
 
-    public def merge(bag:Bag[K]) {
+    public def merge(bag:GlbBagImpl[K]) {
 lockList();
         for (b in bag.data) if (b != null)
             list.add(b);
@@ -219,7 +207,7 @@ unlockList();
     }
 
     public def merge(bag:TaskBag) {
-        merge(bag as Bag[K]);
+        merge(bag as GlbBagImpl[K]);
     }
 
     // override
@@ -233,40 +221,9 @@ unlockList();
 
     @Inline public def count() = cntPrune;
 
-
-    //var result:RPX10Result = null;
     public def getResult() : GlbResultImpl[K,R] {
         return new GlbResultImpl[K,R](initResult(solutions.toRail()));
     }
-
-    /*public class RPX10Result extends GLBResult[SolutionSet[K]]{
-        r:Rail[SolutionSet[K]] = new Rail[SolutionSet[K]](1);
-        public def getResult() : Rail[SolutionSet[K]] {
-            r(0) = SolutionSet[K](solutions.toRail());
-            return r;
-        }
-        public def getReduceOperator() : Int {
-            return Team.ADD;
-        }
-        public def display(r:Rail[SolutionSet[K]]) : void {
-            Console.OUT.println("# results: " + r(0).data.size);
-        }
-    }
-    public class RPX10Result extends GLBResult[Long] {
-        r:Rail[Long] = new Rail[Long](1);
-        public def getResult() : Rail[Long] {
-            r(0) = solutions.size();
-            return r;
-        }
-        public def getReduceOperator() : Int {
-            return Team.ADD;
-        }
-        public def display(r:Rail[Long]) : void {
-            Console.OUT.println("\"# sols\" : " + r(0) + ",");
-            Console.OUT.println();
-        }
-    }
-    */
 }
 
 // vim: shiftwidth=4:tabstop=4:expandtab
