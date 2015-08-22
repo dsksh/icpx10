@@ -1,4 +1,4 @@
-TARGET		= Main Optimizer
+TARGET		= Optimizer
 
 all: $(TARGET)
 

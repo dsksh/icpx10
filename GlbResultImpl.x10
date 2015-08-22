@@ -7,13 +7,18 @@ public class GlbResultImpl[K,D] extends GLBResult[D] {
 
     public static struct Paving[K] implements Arithmetic[Paving[K]] {
         val data:Rail[IntervalVec[K]];
-        public def this(data:Rail[IntervalVec[K]]) {
+        val obj:Interval;
+        public def this(data:Rail[IntervalVec[K]], obj:Interval) {
             this.data = data;
+            this.obj = obj;
+        }
+        public def this(data:Rail[IntervalVec[K]]) {
+            this(data, new Interval(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY));
         }
         public operator this*(that:Paving[K]) : Paving[K] { return this; }
         public operator +this : Paving[K] { return this; }
         public operator this+(that:Paving[K]) : Paving[K] { 
-            val sols = new Paving[K](new Rail[IntervalVec[K]](data.size+that.data.size));
+            val sols = new Paving[K](new Rail[IntervalVec[K]](data.size+that.data.size), obj);
             var i:Long = 0;
             for (; i < data.size; ++i) sols.data(i) = data(i);
             for (var j:Long = 0; j < that.data.size; ++i, ++j) sols.data(i) = that.data(j);
@@ -23,7 +28,10 @@ public class GlbResultImpl[K,D] extends GLBResult[D] {
         public operator this-(that:Paving[K]) : Paving[K] { return this; }
         public operator this/(that:Paving[K]) : Paving[K] { return this; }
 
-        public def toString() : String { return data.size.toString(); }
+        public def toString() : String { 
+            //return data.size.toString(); 
+            return obj.toString();
+        }
     }
 
     val data:D;

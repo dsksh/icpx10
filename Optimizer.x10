@@ -10,8 +10,8 @@ import glb.GLBParameters;
 
 public class Optimizer[K] {
 
-    public static def init[K,R](core:BAPSolver.Core[K], prec:Double,
-                                initResult:(Rail[IntervalVec[K]])=>R) {
+    public static def init[K,R](core:BAPSolverOpt.Core[K], prec:Double,
+                                initResult:(Rail[IntervalVec[K]], Interval)=>R) {
 
         val tester = new VariableSelector.Tester[K]();
         val test = (res:BAPSolver.Result, box:IntervalVec[K], v:K) => 
@@ -83,7 +83,8 @@ public class Optimizer[K] {
             if (!core.initialize(filename, prob))
                 throw new Exception("initialization failed.");
             //val initR = (sols:Rail[IntervalVec[Long]])=>{ return sols.size; };
-            val initR = (sols:Rail[IntervalVec[Long]])=>{ return GlbResultImpl.Paving[Long](sols); };
+            val initR = (sols:Rail[IntervalVec[Long]], obj:Interval)=>
+                { return GlbResultImpl.Paving[Long](sols, obj); };
             //return Optimizer.init[Long,Long](core, prec, initR); 
             return Optimizer.init[Long,GlbResultImpl.Paving[Long]](core, prec, initR); 
         };
@@ -95,11 +96,11 @@ public class Optimizer[K] {
 
         if (outputFilaname != "") {
             val writer = new FileWriter(new File(outputFilaname));
-            for (v in res(0).data) {
-                writer.write(v + "\n\n");
-                writer.flush();
-            }
-            //writer.write("" + res(0));
+            //for (v in res(0).data) {
+            //    writer.write(v + "\n\n");
+            //    writer.flush();
+            //}
+            writer.write("" + res(0));
         }
 
         Console.OUT.println("\"res\":" + 0);

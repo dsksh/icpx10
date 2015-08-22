@@ -135,8 +135,8 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
         //Console.OUT.println(here.id()+": Worker.processStack");
         do {
 //logger.startProc();
-            //while (queue.process(n, context)) {
-            while (queue.process(interval, context, logger)) {
+            while (queue.process(n, context)) {
+            //while (queue.process(interval, context, logger)) {
 //logger.stopProc();
                 Runtime.probe();
                 distribute(st);

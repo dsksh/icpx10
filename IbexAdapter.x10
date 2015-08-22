@@ -35,7 +35,7 @@ public class IbexAdapter {
     @NativeCPPCompilationUnit("innerVerification.cc")
     @NativeCPPOutputFile("util.h")
     @NativeCPPOutputFile("config.h")
-    public static class CoreOpt implements BAPSolver.Core[Long] {
+    public static class CoreOpt implements BAPSolverOpt.Core[Long] {
         public def this() : CoreOpt {}
         @Native("c++", "(#0)->initialize(#1,#2)")
         public def initialize(filename:String, n:Int) : Boolean { return false; };
@@ -52,6 +52,11 @@ public class IbexAdapter {
         @Native("c++", "(#0)->isProjected((#1))")
         public def isProjected(v:Long) : Boolean { return false; }
         public def dummyBox() : IntervalVec[Long] { return new IntervalArray(0); }
+
+        @Native("c++", "(#0)->getGoalVar()")
+        public def getGoalVar() : Long { return 0; };
+        @Native("c++", "(#0)->getGoalVar(#1,#2)")
+        public def updateObjUB(ub:Double, box:IntervalVec[Long]) : Double { return 0.; };
     }
 
 }

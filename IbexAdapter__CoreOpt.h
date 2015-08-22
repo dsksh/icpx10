@@ -22,12 +22,13 @@
 #include "IntervalVec.h"
 #include "IntervalArray.h"
 #include "BAPSolver__Result.h"
-#include "BAPSolver__Core.h"
+#include "BAPSolverOpt__Core.h"
 
 #include "util.h"
 
 class IbexAdapter__CoreOpt : public x10::lang::X10Class {
-	typedef std::auto_ptr<ibex::ExtendedSystem> SystemPtr;
+	typedef std::auto_ptr<ibex::System> SystemPtr;
+	typedef std::auto_ptr<ibex::ExtendedSystem> SystemExPtr;
 	typedef boost::shared_ptr<ibex::Ctc> CtcPtr;
 	typedef std::vector<CtcPtr> CtcPtrVec;
 	typedef boost::shared_ptr<ibex::LinearRelax> LRPtr;
@@ -43,7 +44,7 @@ public:
 
     static x10aux::itable_entry _itables[3];
     virtual x10aux::itable_entry *_getITables() { return _itables; }
-    static BAPSolver__Core<x10_long>::itable<IbexAdapter__CoreOpt> _itable_0;
+    static BAPSolverOpt__Core<x10_long>::itable<IbexAdapter__CoreOpt> _itable_0;
     static x10::lang::Any::itable<IbexAdapter__CoreOpt> _itable_1;
 
     // X10 serialization requires these functions be stubbed out.
@@ -93,6 +94,14 @@ std::cout << "]," << std::endl;
     	return reinterpret_cast<IntervalVec<x10_long> *>(IntervalArray::_make(x10_long(0)));
 	}
 
+	virtual x10_long getGoalVar() {
+        //return x10_long(system_->goal_var());
+        return goalVar_;
+	}
+
+	virtual x10_double updateObjUB(x10_double ub, IntervalVec<x10_long> *box);
+    bool checkCandidate(/*const double ub,*/ const ibex::Vector& pt/*, bool isInner*/, double& ub);
+    bool isInner(const ibex::IntervalVector& box);
 
 protected:
 	virtual IntervalVec<x10_long> *toX10Box(const ibex::IntervalVector& native);
@@ -100,12 +109,16 @@ protected:
 	virtual void setToX10Box(const ibex::IntervalVector& native, IntervalVec<x10_long>& managed);
 
 	SystemPtr system_;
+	SystemExPtr systemEx_;
 
 	CtcPtr ctc_;
 	CtcPtrVec ctcPool_;
 	LRPtrVec lrPool_;
 	//BscPtr bsc_;
 	//BufferPtr buffer_;
+
+    int goalVar_;
+    int goalConstr_;
 	
 	Scope projSc_;
 	Scope paramSc_;
