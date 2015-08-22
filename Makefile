@@ -1,4 +1,4 @@
-TARGET		= Main Optimizer
+TARGET		= Optimizer
 
 all: $(TARGET)
 
@@ -12,8 +12,8 @@ LDFLAGS		+= $(shell pkg-config --libs  ibex)
 
 X10_SOURCES		= $(wildcard *.x10)
 X10_SOURCES		+= $(wildcard glb/*.x10)
-X10_HEADERS     = IbexAdapter__Core.h util.h innerVerification.h config.h
-X10_CPP_SOURCES = IbexAdapter__Core.cc innerVerification.cc
+X10_HEADERS     = IbexAdapter__Core.h IbexAdapter__CoreOpt.h util.h innerVerification.h config.h
+X10_CPP_SOURCES = IbexAdapter__Core.cc IbexAdapter__CoreOpt.cc innerVerification.cc
 
 %.o:%.cc
 	$(CC) $(CFLAGS) -c $< -o $@

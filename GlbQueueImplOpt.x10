@@ -63,9 +63,11 @@ public class GlbQueueImplOpt[K,R] extends BAPSolverOpt[K] implements TaskQueue[G
         val b2l = b2.get(vid)().left;
         val b2r = b2.get(vid)().right;
         if (b1l != b2l)
-            return (b1l - b2l) as Long;
+            return b1l - b2l;
+            //return b1r - b2r;
         else 
-            return (b1r - b2r) as Long;
+            return b1r - b2r;
+            //return b1l - b2l;
     };
 
     public def this(core:Core[K], selector:(Result, IntervalVec[K])=>Box[K],
@@ -76,7 +78,6 @@ public class GlbQueueImplOpt[K,R] extends BAPSolverOpt[K] implements TaskQueue[G
 
 //lockList();
         //list = new LinkedList[IntervalVec[K]]();
-
         list = new PriorityLinkedList[IntervalVec[K]](
             (b1:IntervalVec[K], b2:IntervalVec[K])=>
                 { return cmpBoxes[K](core.getGoalVar(), b1,b2); } );
@@ -132,7 +133,7 @@ lockList();
                 // update objUB
                 val ub = core.updateObjUB(objUB, box);
 lockObjUB();
-                if (ub < objUB) {
+            if (objUB > ub) {
                     objUB = ub;
 //Console.OUT.println(here + ": ub: " + objUB);
                 }
@@ -151,9 +152,8 @@ unlockObjUB();
                     if (objLBEpsBox > lb)
                         objLBEpsBox = lb;
 
-//val p = res.entails(Result.regular()) ? 5 : 3;
 //Console.OUT.println(here + ": solution:\n: " + box.toString() + '\n');
-		            solutions.add(box);
+//		            solutions.add(box);
                 }
             }        
         }
@@ -278,6 +278,7 @@ lockList();
             list.add(b);
 unlockList();
 lockObjUB();
+//Console.OUT.println(here+": merge: "+objUB+" v. "+bag.objUB);
         if (objUB > bag.objUB)
             objUB = bag.objUB;
 unlockObjUB();

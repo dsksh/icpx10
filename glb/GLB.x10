@@ -77,7 +77,9 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
 		plh().main(plh, start);
 		//Console.OUT.println("Hello there!");
 		crunchNumberTime = System.nanoTime() - crunchNumberTime;
+Console.OUT.println("collecting results...");
 		r:Rail[R] = collectResults();
+Console.OUT.println("done");
 		end(r);
 		return r;
 	}
@@ -178,7 +180,7 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
                           // of calling plh() directly inside the closure, which will encapsulate
                           // this (i.e. the whole rail of 
 
-        Place.places().broadcastFlat(()=>{
+        /*Place.places().broadcastFlat(()=>{
             if(here == resultGlobal.home){
                 val tmpresultGlobal = resultGlobal as GlobalRef[GLBResult[R]]{self.home == here};
                 Team.WORLD.allreduce(tmpresultGlobal().submitResult(), // Source buffer.
@@ -198,8 +200,9 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
             }
 
         });        
+        */
       
-        /*val it = Place.places().iterator();
+        val it = Place.places().iterator();
         finish while (it.hasNext()) {
             val p:Place = it.next();
             if (p != here) at (p) async {
@@ -209,7 +212,6 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
                     resultGlobal().result(0) += r(0);
             }
         }
-        */
 
 		collectResultTime = System.nanoTime() - collectResultTime;
 		
