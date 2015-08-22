@@ -3,7 +3,7 @@ package glb;
 import x10.util.ArrayList;
 import x10.util.HashMap;
 import x10.util.StringBuilder;
-import x10.xrx.Runtime;
+//import x10.xrx.Runtime;
 
 /**
  * <p>Class that collects lifeline statistics of GLB

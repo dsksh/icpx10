@@ -2,6 +2,11 @@ import x10.util.Box;
 import x10.util.Pair;
 import x10.util.StringBuilder;
 
+// kludge for "Interval is incomplete type" error
+class Dummy_IntervalArray {
+    val dummy : Interval = new Interval(0.,0.);
+}
+    
 public class IntervalArray implements IntervalVec[Long] { 
     //val theArray : Array[Interval]{self.rank==1};
     val theArray : Rail[Interval];

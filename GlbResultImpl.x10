@@ -3,6 +3,11 @@ import x10.util.ArrayList;
 import x10.util.Team;
 import glb.GLBResult;
 
+// kludge for "Interval is incomplete type" error
+class Dummy_GlbResultImpl {
+    val dummy : Interval = new Interval(0.,0.);
+}
+
 public class GlbResultImpl[K,D] extends GLBResult[D] {
 
     public static struct Paving[K] implements Arithmetic[Paving[K]] {

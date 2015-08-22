@@ -3,7 +3,7 @@ package glb;
 import x10.util.Team;
 import x10.util.StringBuilder;
 import x10.compiler.Inline;
-import x10.xrx.Runtime;
+//import x10.xrx.Runtime;
 
 /**
  * <p>The top level class of the Global Load Balancing (GLB) framework.

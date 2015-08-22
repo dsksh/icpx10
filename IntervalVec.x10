@@ -1,6 +1,11 @@
 import x10.util.Box;
 import x10.util.Pair;
 
+// kludge for "Interval is incomplete type" error
+struct Dummy_IntervalVec {
+    val dummy : Interval = Interval(0.,0.);
+}
+
 public interface IntervalVec[K] { 
     public operator this(key:K) : Box[Interval];
     public def size() : Long;

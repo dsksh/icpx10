@@ -8,7 +8,15 @@ import x10.io.FileWriter;
 import glb.GLB;
 import glb.GLBParameters;
 
+// kludge for "Interval is incomplete type" error
+class Dummy_Optimizer {
+    val dummy : Interval = new Interval(0.,0.);
+    val dummy_result : BAPSolver.Result = BAPSolver.Result.unknown();
+}
+    
 public class Optimizer[K] {
+    val dummy : Interval = new Interval(0.,0.);
+    val dummy_result : BAPSolver.Result = BAPSolver.Result.unknown();
 
     public static def init[K,R](core:BAPSolverOpt.Core[K], prec:Double,
                                 initResult:(Rail[IntervalVec[K]], Interval)=>R) {
@@ -55,7 +63,7 @@ public class Optimizer[K] {
         val filename = opts("-f", "hoge");
         val prob = opts("-p", 2n);
 
-        val outputFilaname = opts("-o", "");
+        val outputFilename = opts("-o", "");
 
         val P = Place.numPlaces();
 
@@ -94,8 +102,8 @@ public class Optimizer[K] {
             init, GLBParameters(n, i, li, w, l, z, m, verbose), true );
         val res = glb.run(()=>{});
 
-        if (outputFilaname != "") {
-            val writer = new FileWriter(new File(outputFilaname));
+        if (!outputFilename.equals("")) {
+            val writer = new FileWriter(new File(outputFilename));
             //for (v in res(0).data) {
             //    writer.write(v + "\n\n");
             //    writer.flush();

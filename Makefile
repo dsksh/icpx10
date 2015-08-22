@@ -22,9 +22,9 @@ X10_CPP_SOURCES = IbexAdapter__Core.cc IbexAdapter__CoreOpt.cc innerVerification
 ## X10 STUFF ##
 X10CXX          = x10c++
 #X10CXX		    += -VERBOSE_CHECKS
-#X10CXX		    += -STATIC_CHECKS
-#X10CXX         += -x10rt mpi
-#X10CXX		    += -O
+X10CXX		    += -STATIC_CHECKS
+X10CXX         += -x10rt mpi
+X10CXX		    += -O
 X10CXX         += -NO_CHECKS
 X10CXX         += -report postcompile=1
 X10CXX         += -debugpositions

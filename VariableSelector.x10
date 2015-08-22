@@ -200,6 +200,9 @@ atomic {
         else
             return select(res, box);
     }
+
+    // kludge for "Interval is incomplete type" error
+    val dummy : Interval = new Interval(0.,0.);
 }
 
 // vim: shiftwidth=4:tabstop=4:expandtab

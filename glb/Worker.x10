@@ -4,7 +4,7 @@ import x10.compiler.*;
 import x10.util.Option;
 import x10.util.OptionsParser;
 import x10.util.Random;
-import x10.xrx.Runtime;
+//import x10.xrx.Runtime;
 
 /**
  * The local runner for the GLB framework. An instance of this class runs at each

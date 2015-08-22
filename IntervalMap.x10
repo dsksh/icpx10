@@ -1,6 +1,11 @@
 import x10.util.Box;
 import x10.util.Pair;
 
+// kludge for "Interval is incomplete type" error
+class Dummy_IntervalMap {
+    val dummy : Interval = new Interval(0.,0.);
+}
+    
 public class IntervalMap extends HashMap[String,Interval] 
 implements IntervalVec[String] { 
 
