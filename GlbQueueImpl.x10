@@ -82,8 +82,8 @@ lockList();
                     list.add(bp.second);
                 }
                 else {
-val p = res.entails(Result.regular()) ? 5 : 3;
-Console.OUT.println(here + ": solution:\n: " + box.toString() + '\n');
+//val p = res.entails(Result.regular()) ? 5 : 3;
+//Console.OUT.println(here + ": solution:\n: " + box.toString() + '\n');
 		            //solutions.add(new Pair[BAPSolver.Result,IntervalVec[K]](res, box));
 		            solutions.add(box);
                 }

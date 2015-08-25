@@ -8,7 +8,15 @@ import x10.io.FileWriter;
 import glb.GLB;
 import glb.GLBParameters;
 
-public class Main[K] {
+// kludge for "Interval is incomplete type" error
+class Dummy_Solver {
+    val dummy : Interval = new Interval(0.,0.);
+    val dummy_result : BAPSolver.Result = BAPSolver.Result.unknown();
+}
+    
+public class Solver[K] {
+    val dummy : Interval = new Interval(0.,0.);
+    val dummy_result : BAPSolver.Result = BAPSolver.Result.unknown();
 
     public static def init[K,R](core:BAPSolver.Core[K], prec:Double,
                                 initResult:(Rail[IntervalVec[K]])=>R) {
@@ -82,25 +90,25 @@ public class Main[K] {
             val core = new IbexAdapter.Core();
             if (!core.initialize(filename, prob))
                 throw new Exception("initialization failed.");
-            //val initR = (sols:Rail[IntervalVec[Long]])=>{ return sols.size; };
-            val initR = (sols:Rail[IntervalVec[Long]])=>{ return GlbResultImpl.Paving[Long](sols); };
-            //return Main.init[Long,Long](core, prec, initR); 
-            return Main.init[Long,GlbResultImpl.Paving[Long]](core, prec, initR); 
+            val initR = (sols:Rail[IntervalVec[Long]])=>{ return sols.size; };
+            //val initR = (sols:Rail[IntervalVec[Long]])=>{ return GlbResultImpl.Paving[Long](sols); };
+            return Solver.init[Long,Long](core, prec, initR); 
+            //return Solver.init[Long,GlbResultImpl.Paving[Long]](core, prec, initR); 
         };
         val glb = 
-          //new GLB[GlbQueueImpl[Long,Long], Long](
-          new GLB[GlbQueueImpl[Long,GlbResultImpl.Paving[Long]], GlbResultImpl.Paving[Long]](
+          new GLB[GlbQueueImpl[Long,Long], Long](
+          //new GLB[GlbQueueImpl[Long,GlbResultImpl.Paving[Long]], GlbResultImpl.Paving[Long]](
             init, GLBParameters(n, i, li, w, l, z, m, verbose), true );
         val res = glb.run(()=>{});
 
-        if (outputFilaname != "") {
-            val writer = new FileWriter(new File(outputFilaname));
-            for (v in res(0).data) {
-                writer.write(v + "\n\n");
-                writer.flush();
-            }
-            //writer.write("" + res(0));
-        }
+//        if (!outputFilaname.equals("")) {
+//            val writer = new FileWriter(new File(outputFilaname));
+//            //for (v in res(0).data) {
+//            //    writer.write(v + "\n\n");
+//            //    writer.flush();
+//            //}
+//            writer.write("" + res(0));
+//        }
 
         Console.OUT.println("\"res\":" + 0);
         Console.OUT.println("}");

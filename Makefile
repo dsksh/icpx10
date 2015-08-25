@@ -33,8 +33,8 @@ OUTDIR_REVERSE  = ..
 
 X10_POST_CMD    = \# \# $(CFLAGS) -I . \# -L . $(LDFLAGS) 
 
-Main: $(X10_HEADERS) $(X10_SOURCES) $(X10_CPP_SOURCES)
-	$(X10CXX) Main.x10 -d $(OUTDIR) -post '$(X10_POST_CMD)' -o Main
+Solver: $(X10_HEADERS) $(X10_SOURCES) $(X10_CPP_SOURCES)
+	$(X10CXX) Solver.x10 -d $(OUTDIR) -post '$(X10_POST_CMD)' -o Solver
 
 Optimizer: $(X10_HEADERS) $(X10_SOURCES) $(X10_CPP_SOURCES)
 	$(X10CXX) Optimizer.x10 -d $(OUTDIR) -post '$(X10_POST_CMD)' -o Optimizer

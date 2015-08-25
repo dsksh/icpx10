@@ -12,6 +12,10 @@ import x10.util.StringBuilder;
  * GLB implementation. It is recommended to have an associated {@link TaskBag} to facilitate the split/merge methods. 
  */
 public interface TaskQueue[Queue, R]{ // {Queue<:TaskQueue[Queue, R]}
+
+// FIXME
+//public abstract def getObjUB():Double;
+//public abstract def setObjUB(ub:Double):void;
 	
 	
 	//public abstract def process(n:Long, context:ContextI):Boolean;

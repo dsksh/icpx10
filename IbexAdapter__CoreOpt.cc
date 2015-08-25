@@ -89,7 +89,7 @@ bool IbexAdapter__CoreOpt::initialize(const char *filename, const int n) {
 
 		ctc_ = CtcPtr(new CtcCompo(*hc4, *acid, *fixpoint));
 
-		//ctc_ = CtcPtr(new CtcHC4(*system_, 0.01));
+		//ctc_ = CtcPtr(new CtcHC4(*systemEx_, 0.01));
 
         impact_ = BitSet::all(systemEx_->nb_var);
     }

@@ -90,15 +90,15 @@ public class Optimizer[K] {
             val core = new IbexAdapter.CoreOpt();
             if (!core.initialize(filename, prob))
                 throw new Exception("initialization failed.");
-            //val initR = (sols:Rail[IntervalVec[Long]])=>{ return sols.size; };
-            val initR = (sols:Rail[IntervalVec[Long]], obj:Interval)=>
-                { return GlbResultImpl.Paving[Long](sols, obj); };
-            //return Optimizer.init[Long,Long](core, prec, initR); 
-            return Optimizer.init[Long,GlbResultImpl.Paving[Long]](core, prec, initR); 
+            val initR = (sols:Rail[IntervalVec[Long]], obj:Interval)=>{ return sols.size; };
+            //val initR = (sols:Rail[IntervalVec[Long]], obj:Interval)=>
+            //    { return GlbResultImpl.Paving[Long](sols, obj); };
+            return Optimizer.init[Long,Long](core, prec, initR); 
+            //return Optimizer.init[Long,GlbResultImpl.Paving[Long]](core, prec, initR); 
         };
         val glb = 
-          //new GLB[GlbQueueImplOpt[Long,Long], Long](
-          new GLB[GlbQueueImplOpt[Long,GlbResultImpl.Paving[Long]], GlbResultImpl.Paving[Long]](
+          new GLB[GlbQueueImplOpt[Long,Long], Long](
+          //new GLB[GlbQueueImplOpt[Long,GlbResultImpl.Paving[Long]], GlbResultImpl.Paving[Long]](
             init, GLBParameters(n, i, li, w, l, z, m, verbose), true );
         val res = glb.run(()=>{});
 

@@ -66,13 +66,16 @@ bool IbexAdapter__Core::initialize(const char *filename, const int n) {
 		/* ============================ building contractors ========================= */
 		/*CtcPtr hc4(new CtcHC4(*system_, 0.01));
         ctcPool_.push_back(hc4);
+
 		CtcPtr hc4_2(new CtcHC4(*system_, 0.1, true));
         ctcPool_.push_back(hc4_2);
 		CtcPtr acid(new CtcAcid(*system_, *hc4_2));
         ctcPool_.push_back(acid);
+
 		CtcPtr newton(new CtcNewton(system_->f, 5e+08, 1e-08, 1e-04));
         ctcPool_.push_back(newton);
-		LRPtr linear_relax(new LinearRelaxCombo(*system_, LinearRelaxCombo::COMPO));
+
+		LRPtr linear_relax(new LinearRelaxCombo(*system_, LinearRelaxCombo::XNEWTON));
         lrPool_.push_back(linear_relax);
 		CtcPtr polytope(new CtcPolytopeHull(*linear_relax, CtcPolytopeHull::ALL_BOX));
         ctcPool_.push_back(polytope);
@@ -80,11 +83,28 @@ bool IbexAdapter__Core::initialize(const char *filename, const int n) {
         ctcPool_.push_back(polytope_hc4);
 		CtcPtr fixpoint(new CtcFixPoint(*polytope_hc4));
         ctcPool_.push_back(fixpoint);
+
 		ctc_ = CtcPtr(new CtcCompo(*hc4, *acid, *newton, *fixpoint));
-		ctc_ = CtcPtr(new CtcCompo(*hc4, *acid, *newton, *fixpoint));
-        */
+		*/
         
-		ctc_ = CtcPtr(new CtcHC4(*system_, 0.01));
+		/*CtcPtr hc4(new CtcHC4(*system_, 0.01));
+        ctcPool_.push_back(hc4);
+
+		CtcPtr newton(new CtcNewton(system_->f, 5e+08, 1e-08, 1e-04));
+        ctcPool_.push_back(newton);
+
+		CtcPtr fb(new CtcFwdBwd(system_->f));
+		ctcPool_.push_back(fb);
+		CtcPtr fb_hc4(new CtcCompo(*fb, *hc4));
+        ctcPool_.push_back(fb_hc4);
+		CtcPtr fixpoint(new CtcFixPoint(*fb_hc4));
+        ctcPool_.push_back(fixpoint);
+
+		ctc_ = CtcPtr(new CtcCompo(*hc4, *newton, *fixpoint));
+		*/
+
+		//ctc_ = CtcPtr(new CtcHC4(*system_, 0.01));
+		ctc_ = CtcPtr(new CtcFwdBwd(system_->f));
 
 		/* Create a bisection heuristic. */
 		//SmearSumRelative bisector(sys, prec);
