@@ -14,8 +14,8 @@ import x10.util.StringBuilder;
 public interface TaskQueue[Queue, R]{ // {Queue<:TaskQueue[Queue, R]}
 
 // FIXME
-//public abstract def getObjUB():Double;
-//public abstract def setObjUB(ub:Double):void;
+public abstract def getObjUB():Double;
+public abstract def setObjUB(ub:Double):void;
 	
 	
 	//public abstract def process(n:Long, context:ContextI):Boolean;

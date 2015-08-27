@@ -109,6 +109,7 @@ public class GlbQueueImplOpt[K,R] extends BAPSolverOpt[K] implements TaskQueue[G
 try {
 lockList();
 
+        val ubOld = objUB;
         var i:Long = 0;
         for (; i < n && !list.isEmpty(); ++i) {
 
@@ -159,14 +160,14 @@ unlockObjUB();
                         objLBEpsBox = lb;
 
 //Console.OUT.println(here + ": solution:\n: " + box.toString() + '\n');
-		            solutions.add(box);
+		            //solutions.add(box);
                 }
             }        
         }
 //Console.OUT.println(here + ": processed: " + cntPrune);
 
         //return i == n;
-        return !list.isEmpty();
+        return !list.isEmpty() || objUB != ubOld;
 }
 finally {
 	unlockList();

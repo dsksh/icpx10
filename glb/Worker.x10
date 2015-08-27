@@ -144,6 +144,9 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
 //logger.startProc();
             }
 //logger.stopProc();
+// FIXME
+Runtime.probe();
+distribute(st);
             reject(st);
         } while (steal(st));
     }
@@ -220,12 +223,23 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
         if (P == 1) return false;
         val p = Runtime.hereLong();
         empty = true;
+// FIXME
+val ub = queue.getObjUB();
+if (!empty) {
+    for (var i:Long=0; i < w && empty; ++i) {
+        logger.stopLive();
+        val v = victims(random.nextInt(m));
+        at (Place(v)) @Uncounted async st().request(st, p, false, ub, true);
+        logger.startLive();
+    }
+    return true;
+}
         for (var i:Long=0; i < w && empty; ++i) {
             ++logger.stealsAttempted;
             waiting = true;
             logger.stopLive();
             val v = victims(random.nextInt(m));
-            at (Place(v)) @Uncounted async st().request(st, p, false);
+            at (Place(v)) @Uncounted async st().request(st, p, false, ub, false);
             while (waiting) Runtime.probe();
             logger.startLive();
         }
@@ -236,7 +250,7 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
                 lifelinesActivated(lifeline) = true;
                 waiting = true;
                 logger.stopLive();
-                at (Place(lifeline)) @Uncounted async st().request(st, p, true);
+                at (Place(lifeline)) @Uncounted async st().request(st, p, true, ub, false);
                 while (waiting) Runtime.probe();
                 logger.startLive();
             }
@@ -251,7 +265,15 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
      * @param thief place id of thief
      * @param lifeline if I am the lifeline buddy of the remote thief
      */
-    def request(st:PlaceLocalHandle[Worker[Queue, R]], thief:Long, lifeline:Boolean) {
+    def request(st:PlaceLocalHandle[Worker[Queue, R]], thief:Long, lifeline:Boolean,
+                ub:Double, ubOnly:Boolean) {
+// FIXME
+queue.setObjUB(ub);
+val ub1 = queue.getObjUB();
+//if (ub > ub1)
+//at (Place(thief)) @Uncounted async { st().queue.setObjUB(ub1); }
+if (ubOnly) return;
+
         try {
             if (lifeline) ++logger.lifelineStealsReceived; else ++logger.stealsReceived;
             if (empty || waiting) {
