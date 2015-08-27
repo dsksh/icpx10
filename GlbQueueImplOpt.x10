@@ -119,10 +119,6 @@ lockList();
 
             // contract the domain of the obj function value
 
-            //var objMax:Double;
-            //if (objUB == Double.POSITIVE_INFINITY) objMax = Double.POSITIVE_INFINITY;
-            //else objMax = 
-
             //val goalVar = core.getGoalVar();
             val goalVal = box.get(goalVar)().intersect(
                               new Interval(Double.NEGATIVE_INFINITY, objUB) );
@@ -143,7 +139,7 @@ lockList();
                 // update objUB
                 val ub = core.updateObjUB(objUB, box);
 lockObjUB();
-            if (objUB > ub) {
+                if (objUB > ub) {
                     objUB = ub;
 //Console.OUT.println(here + ": ub: " + objUB);
                 }

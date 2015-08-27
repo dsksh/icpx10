@@ -174,7 +174,7 @@ x10_double IbexAdapter__CoreOpt::updateObjUB(x10_double objUB, IntervalVec<x10_l
     }
 
     // random probing
-    ibex::Vector pt(box.size());
+    /*ibex::Vector pt(box.size());
 	//bool loupChanged = false;
 
 	for(int i(0); i < nSamples; i++) {
@@ -182,6 +182,7 @@ x10_double IbexAdapter__CoreOpt::updateObjUB(x10_double objUB, IntervalVec<x10_l
 //cout << "box: " << box << endl << "pt: " << pt << endl;
 		checkCandidate(pt, ub);
 	}
+    */
 
     return x10_double(ub);
 }

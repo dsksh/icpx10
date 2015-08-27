@@ -57,7 +57,7 @@ public class GlbResultImpl[K,D] extends GLBResult[D] {
         return Team.ADD;
     }
     public def display(r:Rail[D]) : void {
-        Console.OUT.println("# results: " + r(0));
+        Console.OUT.println("resulting data: " + r(0));
     }
 }
 
