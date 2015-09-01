@@ -32,6 +32,7 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
      * outgoing lifeline (and hence at most one message has
      * been received on an incoming lifeline).*/
     val lifelinesActivated:Rail[Boolean];
+    val lifelinesActivated2:Rail[Boolean];
     
     /** The granularity of tasks to run in a batch before starts to probe network to respond to work-stealing 
      * requests. The smaller n is, the more responsive to the work-stealing requests; on the other hand, less focused
@@ -111,7 +112,8 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
         lifelineThieves = new FixedSizeStack[Long](lifelines.size+3);
         thieves = new FixedSizeStack[Long](P);
         lifelinesActivated = new Rail[Boolean](P);
-        
+        lifelinesActivated2 = new Rail[Boolean](P);
+
         if (tree) {
             // 1st wave
             if (3*h+1 < P) lifelineThieves.push(3*h+1);
@@ -135,18 +137,22 @@ final class Worker[Queue, R]{Queue<:TaskQueue[Queue, R]} {
         //Console.OUT.println(here.id()+": Worker.processStack");
         do {
 //logger.startProc();
-            while (queue.process(n, context)) {
+            var res:Long;
+            while ((res = queue.process(n, context)) > 0) {
             //while (queue.process(interval, context, logger)) {
 //logger.stopProc();
                 Runtime.probe();
+if (res >= 2)
+    distributeUB(st);
                 distribute(st);
                 reject(st);
 //logger.startProc();
             }
 //logger.stopProc();
-// FIXME
-Runtime.probe();
-distribute(st);
+//// FIXME
+if (res <= -1)
+    distributeUB(st);
+
             reject(st);
         } while (steal(st));
     }
@@ -189,7 +195,34 @@ distribute(st);
             give(st, loot);
         }
     }
-    
+
+    def distributeUB(st:PlaceLocalHandle[Worker[Queue, R]]) {
+        if (P == 1) return;
+        val p = Runtime.hereLong();
+
+        //logger.stopLive();
+        val ub = queue.getObjUB();
+        //for (var i:Long=0; (i<lifelines.size) && (0<=lifelines(i)); ++i) {
+        for (var i:Long=0; i < w && (i<lifelines.size) && (0<=lifelines(i)); ++i) {
+            //val v = victims(random.nextInt(m));
+            val v = lifelines(i);
+            if (!lifelinesActivated2(v)) {
+                lifelinesActivated2(v) = true;
+                at (Place(v)) @Uncounted async 
+                {
+                    //st().request(st, p, false, ub, true);
+                    st().queue.setObjUB(ub);
+                    //val ub1 = st().queue.getObjUB();
+                    at (Place(p)) @Uncounted async { 
+                        //st().queue.setObjUB(ub1); 
+                        st().lifelinesActivated2(v) = false;
+                    }
+                }
+            }
+        }
+        //logger.startLive();
+    }
+
     /**
      * Rejecting thieves when no task to share (or worth sharing). Note, never reject lifeline thief,
      * instead put it into the lifelineThieves stack,
@@ -206,7 +239,7 @@ distribute(st);
             }
         }
     }
-    
+
     /**
      * Send out steal requests.
      * It does following things:
@@ -223,23 +256,29 @@ distribute(st);
         if (P == 1) return false;
         val p = Runtime.hereLong();
         empty = true;
-// FIXME
+//// FIXME
 val ub = queue.getObjUB();
-if (!empty) {
-    for (var i:Long=0; i < w && empty; ++i) {
-        logger.stopLive();
-        val v = victims(random.nextInt(m));
-        at (Place(v)) @Uncounted async st().request(st, p, false, ub, true);
-        logger.startLive();
-    }
-    return true;
-}
+////for (var i:Long=0; i < w; ++i) {
+//for (var i:Long=0; (i<lifelines.size) /*&& (0<=lifelines(i))*/; ++i) {
+//    logger.stopLive();
+//    //val v = victims(random.nextInt(m));
+//    val v = lifelines(i);
+//    at (Place(v)) @Uncounted async {
+//        //st().request(st, p, false, ub, true);
+//        st().queue.setObjUB(ub);
+//        val ub1 = st().queue.getObjUB();
+//        //if (ub > ub1)
+//        //at (Place(thief)) @Uncounted async { st().queue.setObjUB(ub1); }
+//    }
+//    logger.startLive();
+//}
+
         for (var i:Long=0; i < w && empty; ++i) {
             ++logger.stealsAttempted;
             waiting = true;
             logger.stopLive();
             val v = victims(random.nextInt(m));
-            at (Place(v)) @Uncounted async st().request(st, p, false, ub, false);
+            at (Place(v)) @Uncounted async st().request(st, p, false, ub);
             while (waiting) Runtime.probe();
             logger.startLive();
         }
@@ -250,7 +289,7 @@ if (!empty) {
                 lifelinesActivated(lifeline) = true;
                 waiting = true;
                 logger.stopLive();
-                at (Place(lifeline)) @Uncounted async st().request(st, p, true, ub, false);
+                at (Place(lifeline)) @Uncounted async st().request(st, p, true, ub);
                 while (waiting) Runtime.probe();
                 logger.startLive();
             }
@@ -266,13 +305,13 @@ if (!empty) {
      * @param lifeline if I am the lifeline buddy of the remote thief
      */
     def request(st:PlaceLocalHandle[Worker[Queue, R]], thief:Long, lifeline:Boolean,
-                ub:Double, ubOnly:Boolean) {
-// FIXME
+                ub:Double) {
+//// FIXME
 queue.setObjUB(ub);
-val ub1 = queue.getObjUB();
+//val ub1 = queue.getObjUB();
 //if (ub > ub1)
 //at (Place(thief)) @Uncounted async { st().queue.setObjUB(ub1); }
-if (ubOnly) return;
+//if (ubOnly) return;
 
         try {
             if (lifeline) ++logger.lifelineStealsReceived; else ++logger.stealsReceived;

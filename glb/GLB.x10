@@ -226,20 +226,32 @@ public final class GLB[Queue, R]{Queue<:TaskQueue[Queue, R], R<:Arithmetic[R]} {
         Console.OUT.println("\"user log\" : [");
         val sbLog = new StringBuilder();
         val sbLogG = new GlobalRef[StringBuilder](sbLog);
+        val sum = st().queue.initLogData();
+        val sumG = new GlobalRef[TaskQueue.LogData](sum);
 		for(var i:Long =0; i < Place.numPlaces(); ++i){
             val b = i>0;
 			at(Place(i)){
+                val ld = st().queue.getLogData();
                 val sbl = new StringBuilder();
                 if (b) 
                     //Console.OUT.print(", ");
                     sbl.add("\n, ");
-				st().queue.printLog(sbl);
+				//st().queue.printLog(sbl);
+                ld.printLog(sbl);
                 val s = sbl.result();
                 at (sbLogG.home) sbLogG().add(s);
+
+                at (sumG.home) sumG().append(ld);
 			}
 		}
         Console.OUT.println(sbLog);
         Console.OUT.println("],");
+
+        Console.OUT.println("\"user log (aggregation)\" :");
+        val sbl = new StringBuilder();
+        sum.printLog(sbl);
+        Console.OUT.println(sbl);
+        Console.OUT.println(",");
         Console.OUT.println();
 	}
 }

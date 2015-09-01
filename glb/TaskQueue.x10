@@ -14,14 +14,20 @@ import x10.util.StringBuilder;
 public interface TaskQueue[Queue, R]{ // {Queue<:TaskQueue[Queue, R]}
 
 // FIXME
-public abstract def getObjUB():Double;
-public abstract def setObjUB(ub:Double):void;
+public def getObjUB():Double;
+public def setObjUB(ub:Double):void;
 	
+interface LogData {
+    public def append(rhs:LogData) : void;
+	public def printLog(sb:StringBuilder) : void;
+}
+public def initLogData() : LogData;
+public def getLogData() : LogData;
 	
 	//public abstract def process(n:Long, context:ContextI):Boolean;
 	
-	public abstract def process(n:Long, context:Context[Queue, R]){Queue<:TaskQueue[Queue, R ]}:Boolean;
-	public abstract def process(interval:Double, context:Context[Queue, R], logger:Logger){Queue<:TaskQueue[Queue, R ]}:Boolean;
+	public abstract def process(n:Long, context:Context[Queue, R]){Queue<:TaskQueue[Queue, R ]}:Long;
+	//public abstract def process(interval:Double, context:Context[Queue, R], logger:Logger){Queue<:TaskQueue[Queue, R ]}:Boolean;
 	
 	/**
 	 * Split the current TaskBag
@@ -56,6 +62,6 @@ public abstract def setObjUB(ub:Double):void;
 	 * e.g., computation time. This function will be called only after all the calculation
 	 * and results reduction are done.
 	 */
-	public  def printLog(sb:StringBuilder):void;
+	//public  def printLog(sb:StringBuilder):void;
 	
 }

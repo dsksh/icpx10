@@ -27,6 +27,7 @@ public class GlbQueueImplOpt[K,R] extends BAPSolverOpt[K] implements TaskQueue[G
 
     val initResult:(Rail[IntervalVec[K]],Interval)=>R;
 
+
     private val lockList = new Lock();
     protected def tryLockList() : Boolean {
         return lockList.tryLock();
@@ -61,8 +62,10 @@ public class GlbQueueImplOpt[K,R] extends BAPSolverOpt[K] implements TaskQueue[G
 	public def getObjUB() : Double { return objUB; }
 	public def setObjUB(ub:Double) {
 		lockObjUB();	
-		if (objUB > ub)
+		if (objUB > ub) {
+Console.OUT.println(here+": setOUB: "+objUB+" -> "+ub);
 			objUB = ub;
+        }
 		unlockObjUB();	
 	}
 
@@ -101,9 +104,11 @@ public class GlbQueueImplOpt[K,R] extends BAPSolverOpt[K] implements TaskQueue[G
         solutions = new ArrayList[IntervalVec[K]]();
 
         this.initResult = initResult;
+
+        //this.logData = new GlbQueueImplOpt.LogData[K,R](this);
     }
 
-    public def process(n:Long, context:Context[GlbQueueImplOpt[K,R], R]) : Boolean {
+    public def process(n:Long, context:Context[GlbQueueImplOpt[K,R], R]) : Long {
         var box:IntervalVec[K] = null;
 
 try {
@@ -133,7 +138,7 @@ lockList();
 //logger.startProc();
             res = core.contract(box); 
 //logger.stopProc();
-            ++cntPrune;
+            //++cntPrune;
 //Console.OUT.println(here + ": contracted:\n" + box + '\n');
 
             if (!res.hasNoSolution()) {
@@ -167,7 +172,12 @@ unlockObjUB();
 //Console.OUT.println(here + ": processed: " + cntPrune);
 
         //return i == n;
-        return !list.isEmpty() || objUB != ubOld;
+        val res:Long = list.isEmpty() ? 0 : 1;
+        if (ubOld - objUB > 0.1) {
+            ++cntPrune;
+            return res == 0 ? -1 : 2;
+        }
+        return res;
 }
 finally {
 	unlockList();
@@ -182,72 +192,6 @@ finally {
     var nrBak:Long = 0;
 
     public def process(interval:Double, context:Context[GlbQueueImplOpt[K,R], R], logger:Logger) {
-/*        var box:IntervalVec[K] = null;
-
-        val tStart = System.nanoTime();
-
-try {
-lockList();
-
-    	while (format(System.nanoTime()-tStart) < interval && !list.isEmpty()) {
-
-//var time:Long = -System.nanoTime();
-
-            box = list.removeFirst();
-//Console.OUT.println(here + ": search:\n" + box + '\n');
-
-            var res:Result = Result.unknown();
-logger.startProc();
-            res = core.contract(box); 
-logger.stopProc();
-            ++cntPrune;
- 
-            if (!res.hasNoSolution()) {
-                val v = selectVariable(res, box);
-                if (v != null) {
-//Console.OUT.println(here + ": split: " + v);
-                    val bp = box.split(v());
-                    ++cntBranch;
-                    list.add(bp.first);
-                    list.add(bp.second);
-                }
-                else {
-// count depth
-logger.incrDepthCount(box.depth());
-//Console.OUT.println(here + ": solution:");
-val p = res.entails(Result.inner()) ? 5 : 3;
-//Console.OUT.println("" + box.toString(p) + '\n');
-		            solutions.add(box);
-                }
-
-val t = format(System.nanoTime());
-while (t >= tLogNext) {
-    tLogNext += logger.tInterval;
-    val nc = count();
-    val ng = logger.nodesGiven;
-    val nr = logger.nodesReceived;
-    logger.listNodesCount.add(nc - ncBak);
-    logger.listNodesGiven.add(ng - ngBak);
-    logger.listNodesReceived.add(nr - nrBak);
-    logger.listQueueSize.add(list.size());
-    ncBak = nc;
-    ngBak = ng;
-    nrBak = nr;
-} 
-            }        
-            else { // hasNoSolution()
-// count depth
-logger.incrDepthCount(box.depth());
-            }
-        }
-//Console.OUT.println(here + ": processed: " + cntPrune);
-
-        return !list.isEmpty();
-}
-finally {
-	unlockList();
-}
-*/
         return false;
     }
 
@@ -286,8 +230,9 @@ lockList();
         for (b in bag.data) if (b != null)
             list.add(b);
 unlockList();
+
 lockObjUB();
-Console.OUT.println(here+": merge: "+objUB+" v. "+bag.objUB);
+Console.OUT.println(here+": merge: "+objUB+" v. "+bag.objUB +", "+cntPrune);
         if (objUB > bag.objUB)
             objUB = bag.objUB;
 unlockObjUB();
@@ -298,19 +243,55 @@ unlockObjUB();
     }
 
     // override
-    public def printLog(sb:StringBuilder){
+    /*public def printLog(sb:StringBuilder) {
         sb.add("{\"# prunes\":" + cntPrune + 
             ", \"# branches\":" + cntBranch + 
             ", \"# solutions\":" + solutions.size() + "}");
 
 		core.finalize();
     }
+    */
 
     @Inline public def count() = cntPrune;
 
     public def getResult() : GlbResultImpl[K,R] {
         return new GlbResultImpl[K,R](initResult(solutions.toRail(), 
                                           new Interval(objLBEpsBox, objUB) ));
+    }
+
+
+    public static class LogData implements TaskQueue.LogData {
+        var nbPrune:Long = 0;
+        var nbBranch:Long = 0;
+        var nbSols:Long = 0;
+
+        /*public def this(nbP:Long, nbB:Long, nbS:Long) { 
+            this.nbPrune = nbP;
+            this.nbBranch = nbB;
+            this.nbSols = nbS;
+        }*/
+
+        public def append(rhs:TaskQueue.LogData) {
+            val rhs1 = rhs as LogData;
+            this.nbPrune  += rhs1.nbPrune;
+            this.nbBranch += rhs1.nbBranch;
+            this.nbSols   += rhs1.nbSols;
+        }
+    	public def printLog(sb:StringBuilder) : void {
+            sb.add("{\"# prunes\":" + nbPrune + 
+                ", \"# branches\":" + nbBranch + 
+                ", \"# solutions\":" + nbSols + "}");
+        }
+    }
+    public def initLogData() : LogData {
+        return new LogData();
+    }
+    public def getLogData() : LogData {
+        val res = new LogData();
+        res.nbPrune = cntPrune;
+        res.nbBranch = cntBranch;
+        res.nbSols = solutions.size();
+        return res;
     }
 }
 

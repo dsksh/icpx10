@@ -135,10 +135,24 @@ BAPSolver__Result IbexAdapter__CoreOpt::contract(IntervalVec<x10_long> *iv) {
 
     //innerResult res = verifyInner(system_->f, projSc_, paramSc_, cyclicSc_,
     //        box, system_->box, true, -1);
+    // 
+    bool inner(true);
+    for (int j(0); j < systemEx_->nb_ctr; ++j) {
+        if (j == goalVar_) continue;
+        ibex::Interval y = systemEx_->ctrs[j].f.eval(box);
+        if (y.lb() > 0.) return BAPSolver__Result::noSolution();
+        else if (y.ub() > 0.)
+            inner = false;
+    }
 
     BAPSolver__Result sr = BAPSolver__Result::unknown();
     if (box.is_empty())
         sr = BAPSolver__Result::noSolution();
+
+    if (inner) {
+cout << "inner" << endl;
+        sr = BAPSolver__Result::inner();
+    }
 
     //else if (res.regular)
     //    sr = BAPSolver__Result::inner();
